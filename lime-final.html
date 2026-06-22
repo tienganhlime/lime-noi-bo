@@ -2575,6 +2575,7 @@ function attachAllListeners() {
 
   const unsubTpl = onSnapshot(collection(db, 'templates'), snap => {
     templates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    updateSeedBanner();
     if (currentPage === 'template') renderTemplateTable();
   }, err => console.error(err));
   window._state.unsubscribers.push(unsubTpl);
@@ -2589,7 +2590,6 @@ function attachAllListeners() {
 
   const unsubUsers = onSnapshot(collection(db, 'users'), snap => {
     STAFF = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    document.getElementById('seedBanner').style.display = STAFF.length <= 1 ? 'flex' : 'none';
     if (currentPage === 'personnel') renderPersonnelPage();
     if (currentPage === 'branch') renderBranchPage();
     if (currentPage === 'report') renderReportPage();
@@ -2634,6 +2634,11 @@ function updateBadges() {
   const carryBadge = document.getElementById('carryBadge');
   if (todayBadge) todayBadge.textContent = urgentCount + carryCount;
   if (carryBadge) carryBadge.textContent = carryCount;
+}
+
+function updateSeedBanner() {
+  const banner = document.getElementById('seedBanner');
+  if (banner) banner.style.display = templates.length === 0 ? 'flex' : 'none';
 }
 // =============================================================
 //  RENDER: TODAY PAGE
@@ -3838,7 +3843,10 @@ window.disableUser = async function() {
 //  thật cho từng người ở mục "+ Tạo tài khoản".
 // =============================================================
 window.seedSampleData = async function() {
-  if (!confirm('Nạp dữ liệu mẫu (template công việc, thông tin 3 cơ sở, vài lịch học & sự kiện ví dụ)?\nDữ liệu hiện có sẽ KHÔNG bị xoá, chỉ thêm mới.')) return;
+  const warnExisting = templates.length > 0
+    ? `\n\n⚠️ Hiện đã có ${templates.length} template — nạp lại có thể tạo trùng nội dung.`
+    : '';
+  if (!confirm('Nạp dữ liệu mẫu (template công việc, thông tin 3 cơ sở, vài lịch học & sự kiện ví dụ)?\nDữ liệu hiện có sẽ KHÔNG bị xoá, chỉ thêm mới.' + warnExisting)) return;
   showToast('Đang nạp dữ liệu mẫu...', 'default');
 
   const sampleTemplates = [
@@ -3880,6 +3888,7 @@ window.seedSampleData = async function() {
     sampleEvents.forEach(ev => batch.set(doc(collection(db,'events')), { ...ev, createdAt: serverTimestamp() }));
     await batch.commit();
     showToast('✅ Đã nạp dữ liệu mẫu!', 'success');
+    updateSeedBanner();
   } catch (e) {
     showToast('Lỗi nạp dữ liệu mẫu: ' + e.message, 'error');
   }
