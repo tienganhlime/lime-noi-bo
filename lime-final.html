@@ -1,0 +1,3927 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lime – Phase 3: Báo cáo · Nhân sự · Cơ sở</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --lime-green: #3DBE6C;
+  --lime-dark: #1A7A40;
+  --lime-light: #E8F8EE;
+  --lime-bg: #F5FBF7;
+
+  --urgent: #E53E3E;
+  --urgent-bg: #FFF5F5;
+  --warn: #DD6B20;
+  --warn-bg: #FFFAF0;
+  --done: #38A169;
+  --done-bg: #F0FFF4;
+  --carry: #718096;
+  --carry-bg: #F7FAFC;
+
+  --text: #1A202C;
+  --text-muted: #718096;
+  --text-light: #A0AEC0;
+  --border: #E2E8F0;
+  --border-focus: #3DBE6C;
+
+  --white: #FFFFFF;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--lime-bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ===== LAYOUT ===== */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: #FFFFFF;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-text {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--lime-green);
+  letter-spacing: -0.5px;
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.sidebar-user {
+  padding: 12px 16px;
+  background: var(--lime-light);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-avatar {
+  width: 34px; height: 34px;
+  background: var(--lime-green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-name { font-weight: 600; font-size: 13px; color: var(--text); }
+.user-role { font-size: 11px; color: var(--text-muted); }
+
+.sidebar-nav {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-light);
+  padding: 10px 16px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 0;
+  position: relative;
+  text-decoration: none;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover { background: var(--lime-light); color: var(--lime-dark); }
+
+.nav-item.active {
+  background: var(--lime-light);
+  color: var(--lime-dark);
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--lime-green);
+  border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.badge {
+  margin-left: auto;
+  background: var(--urgent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ===== MAIN ===== */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.topbar-date { font-size: 13px; color: var(--text-muted); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--lime-green);
+  color: white;
+}
+.btn-primary:hover { background: var(--lime-dark); }
+
+.btn-outline {
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { background: var(--lime-light); border-color: var(--lime-green); color: var(--lime-dark); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 10px;
+}
+.btn-ghost:hover { background: var(--lime-light); color: var(--lime-dark); }
+
+.btn-danger {
+  background: var(--urgent);
+  color: white;
+}
+.btn-danger:hover { background: #C53030; }
+
+.content {
+  padding: 24px;
+  flex: 1;
+}
+
+/* ===== DATE NAV ===== */
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.date-nav-btn {
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: all 0.15s;
+}
+.date-nav-btn:hover { background: var(--lime-light); color: var(--lime-dark); }
+
+.date-nav-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.date-nav-today {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.date-nav-day {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.today-pill {
+  background: var(--lime-green);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* ===== STATS ROW ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-value { font-size: 26px; font-weight: 800; color: var(--text); margin: 4px 0 2px; line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--text-muted); }
+
+.stat-card.urgent { border-left: 3px solid var(--urgent); }
+.stat-card.urgent .stat-value { color: var(--urgent); }
+.stat-card.done-stat { border-left: 3px solid var(--done); }
+.stat-card.done-stat .stat-value { color: var(--done); }
+.stat-card.carry { border-left: 3px solid var(--carry); }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar-wrap {
+  background: var(--border);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--lime-green);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* ===== TASK SECTIONS ===== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.section-icon { font-size: 16px; }
+.section-count { font-size: 12px; color: var(--text-muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+/* ===== TASK CARD ===== */
+.task-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+
+.task-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  transition: all 0.15s;
+  position: relative;
+}
+
+.task-card:hover { box-shadow: var(--shadow-md); border-color: #CBD5E0; }
+
+.task-card.urgent-task {
+  border-left: 3px solid var(--urgent);
+  background: var(--urgent-bg);
+}
+
+.task-card.carry-task {
+  border-left: 3px solid var(--carry);
+  background: var(--carry-bg);
+}
+
+.task-card.done-task {
+  border-left: 3px solid var(--done);
+  background: var(--done-bg);
+  opacity: 0.8;
+}
+
+.task-card.done-task .task-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.task-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.task-checkbox {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.15s;
+  background: white;
+}
+
+.task-checkbox:hover { border-color: var(--lime-green); }
+.task-checkbox.checked {
+  background: var(--lime-green);
+  border-color: var(--lime-green);
+  color: white;
+}
+.task-checkbox.checked::after { content: '✓'; font-size: 12px; font-weight: 700; }
+
+.task-body { flex: 1; min-width: 0; }
+
+.task-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tag-team { background: #EBF4FF; color: #2B6CB0; }
+.tag-freq { background: #F0FFF4; color: #276749; }
+.tag-urgent { background: var(--urgent-bg); color: var(--urgent); }
+.tag-carry { background: var(--carry-bg); color: var(--carry); border: 1px solid #CBD5E0; }
+.tag-cross { background: #FAF5FF; color: #553C9A; }
+.tag-personal { background: #FFFAF0; color: #744210; }
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.task-btn {
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.task-btn:hover { background: var(--lime-light); border-color: var(--lime-green); color: var(--lime-dark); }
+.task-btn.submit { background: var(--lime-green); color: white; border-color: var(--lime-green); }
+.task-btn.submit:hover { background: var(--lime-dark); }
+
+/* ===== EXPAND AREA ===== */
+.task-expand {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+
+.task-expand.open { display: block; }
+
+.expand-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.field-input {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text);
+  background: white;
+  transition: border 0.15s;
+  width: 100%;
+}
+.field-input:focus { outline: none; border-color: var(--lime-green); }
+textarea.field-input { min-height: 70px; resize: vertical; }
+
+.expand-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ===== DONE REPORT ===== */
+.done-report {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--done-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid #9AE6B4;
+  font-size: 12px;
+  color: var(--lime-dark);
+}
+.done-report strong { font-weight: 700; }
+
+/* ===== TEMPLATE PAGE ===== */
+.page { display: none; }
+.page.active { display: block; }
+
+.template-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+}
+
+.template-header-left h2 { font-size: 18px; font-weight: 700; }
+.template-header-left p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* ===== TEMPLATE TABLE ===== */
+.template-table-wrap {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.template-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.template-table th {
+  background: var(--lime-light);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lime-dark);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.template-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.template-table tr:last-child td { border-bottom: none; }
+.template-table tr:hover td { background: var(--lime-bg); }
+
+.freq-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.freq-daily { background: #EBF4FF; color: #2B6CB0; }
+.freq-weekly { background: #F0FFF4; color: #276749; }
+.freq-monthly { background: #FAF5FF; color: #553C9A; }
+.freq-fixed { background: #FFFAF0; color: #744210; }
+
+.action-group { display: flex; gap: 6px; }
+
+.icon-btn {
+  width: 28px; height: 28px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+  color: var(--text-muted);
+}
+.icon-btn:hover { background: var(--lime-light); border-color: var(--lime-green); color: var(--lime-dark); }
+.icon-btn.danger:hover { background: var(--urgent-bg); border-color: var(--urgent); color: var(--urgent); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close {
+  width: 28px; height: 28px;
+  border-radius: 5px;
+  border: none;
+  background: var(--lime-light);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+}
+.modal-close:hover { color: var(--text); background: var(--border); }
+
+.modal-body { padding: 20px 24px; }
+
+.modal-body .field-group + .field-group { margin-top: 14px; }
+
+.modal-foot {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ===== SELECT ===== */
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23718096' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+/* ===== CHECKBOX GROUP ===== */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.checkbox-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  user-select: none;
+}
+.checkbox-chip input { display: none; }
+.checkbox-chip.selected { background: var(--lime-green); border-color: var(--lime-green); color: white; }
+
+/* ===== FILTERS ===== */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.filter-chip:hover { border-color: var(--lime-green); color: var(--lime-dark); }
+.filter-chip.active { background: var(--lime-green); border-color: var(--lime-green); color: white; }
+
+/* ===== GENERATE BANNER ===== */
+.generate-banner {
+  background: linear-gradient(135deg, var(--lime-light), #D1FAE5);
+  border: 1px solid #9AE6B4;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.generate-banner-text h3 { font-size: 14px; font-weight: 700; color: var(--lime-dark); }
+.generate-banner-text p { font-size: 12px; color: #276749; margin-top: 2px; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; }
+
+/* ===== NOTIFICATION TOAST ===== */
+.toast-wrap {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 500;
+}
+
+.toast {
+  background: var(--text);
+  color: white;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  animation: slideIn 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.success { background: var(--lime-dark); }
+.toast.error { background: var(--urgent); }
+.toast.warn { background: var(--warn); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { width: 0; overflow: hidden; }
+  .main { margin-left: 0; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .expand-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== DIVIDER ===== */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+/* ===== INFO ROW ===== */
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+.info-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime-green); flex-shrink: 0; }
+
+/* ===== PHASE 3: KPI CARDS ===== */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.kpi-card .kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi-card .kpi-value { font-size: 24px; font-weight: 800; margin: 4px 0 2px; }
+.kpi-card .kpi-sub { font-size: 11px; color: var(--text-muted); }
+.kpi-card .kpi-delta { font-size: 11px; font-weight: 700; }
+.kpi-delta.up { color: var(--done); }
+.kpi-delta.down { color: var(--urgent); }
+
+/* ===== TEAM PROGRESS BARS ===== */
+.team-progress-list { display: flex; flex-direction: column; gap: 14px; }
+.team-progress-row { display: flex; align-items: center; gap: 12px; }
+.team-progress-label { width: 110px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.team-progress-track {
+  flex: 1; height: 10px; border-radius: 6px; background: var(--border); overflow: hidden;
+}
+.team-progress-fill { height: 100%; border-radius: 6px; transition: width .4s ease; }
+.team-progress-pct { width: 42px; text-align: right; font-size: 12px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+
+/* ===== SPARK BARS (7-day trend) ===== */
+.spark-row { display: flex; align-items: flex-end; gap: 6px; height: 90px; padding: 4px 0; }
+.spark-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.spark-bar { width: 100%; max-width: 26px; border-radius: 4px 4px 0 0; background: var(--lime-green); transition: height .3s ease; position: relative; }
+.spark-bar.low { background: var(--warn); }
+.spark-bar.today { background: var(--lime-dark); }
+.spark-day { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+.spark-val { font-size: 10px; color: var(--text-muted); }
+
+/* ===== LEADERBOARD ===== */
+.leaderboard-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 4px; border-bottom: 1px solid var(--border);
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.rank-badge {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: white; background: var(--text-light);
+}
+.rank-badge.gold { background: #D69E2E; }
+.rank-badge.silver { background: #A0AEC0; }
+.rank-badge.bronze { background: #C05621; }
+.lb-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--lime-green);
+  color: white; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.lb-body { flex: 1; min-width: 0; }
+.lb-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.lb-team { font-size: 11px; color: var(--text-muted); }
+.lb-score { font-size: 15px; font-weight: 800; color: var(--lime-dark); flex-shrink: 0; }
+.lb-streak { font-size: 11px; color: var(--warn); font-weight: 700; flex-shrink: 0; }
+
+/* ===== TWO COLUMN GRID ===== */
+.grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* ===== OVERDUE LIST ===== */
+.overdue-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+}
+.overdue-row:last-child { border-bottom: none; }
+.overdue-title { font-weight: 600; color: var(--text); }
+.overdue-days { color: var(--urgent); font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+
+/* ===== PERSONNEL ===== */
+.personnel-toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.personnel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.person-card {
+  background: white; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow); display: flex; gap: 12px; align-items: flex-start;
+}
+.person-avatar {
+  width: 42px; height: 42px; border-radius: 50%; background: var(--lime-green); color: white;
+  font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.person-body { flex: 1; min-width: 0; }
+.person-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.person-role { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.person-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+.person-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+.role-pill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.role-leader { background: #DBEAFE; color: #1E40AF; }
+.role-staff { background: var(--lime-light); color: var(--lime-dark); }
+
+.duty-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.duty-dot.on { background: var(--done); }
+.duty-dot.off { background: var(--text-light); }
+.duty-label { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+
+.leave-banner {
+  background: var(--warn-bg); border: 1px solid #FBD38D; border-radius: var(--radius);
+  padding: 12px 16px; margin-bottom: 16px; font-size: 12px; color: #7B341E;
+}
+.leave-banner strong { color: var(--warn); }
+
+/* ===== BRANCH CARDS ===== */
+.branch-card {
+  background: white; border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.branch-card-head {
+  padding: 16px 18px; background: var(--lime-light); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.branch-card-head h3 { font-size: 15px; font-weight: 800; color: var(--lime-dark); }
+.branch-card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.branch-row { display: flex; gap: 10px; font-size: 12px; align-items: flex-start; }
+.branch-row .branch-icon { width: 16px; text-align: center; flex-shrink: 0; }
+.branch-row .branch-label { color: var(--text-muted); font-weight: 600; min-width: 78px; flex-shrink: 0; }
+.branch-row .branch-val { color: var(--text); flex: 1; }
+.branch-stats { display: flex; gap: 10px; margin-top: 4px; }
+.branch-stat-pill {
+  flex: 1; text-align: center; background: var(--lime-bg); border-radius: var(--radius-sm);
+  padding: 8px 4px;
+}
+.branch-stat-pill .v { font-size: 16px; font-weight: 800; color: var(--lime-dark); }
+.branch-stat-pill .l { font-size: 10px; color: var(--text-muted); }
+
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ===================================================== */
+/*  AUTH: LOADING / LOGIN SCREENS (theo theme Lime)       */
+/* ===================================================== */
+#loadingScreen, #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--lime-bg); }
+#loadingScreen.hidden, #loginScreen.hidden, #appRoot.hidden { display: none !important; }
+#appRoot { display: none; }
+#appRoot.ready { display: block; }
+
+.lime-spinner {
+  width: 42px; height: 42px; border: 4px solid var(--lime-light);
+  border-top-color: var(--lime-green); border-radius: 50%;
+  animation: limeSpin .8s linear infinite;
+}
+@keyframes limeSpin { to { transform: rotate(360deg); } }
+.loading-caption { margin-top: 14px; font-size: 13px; color: var(--text-muted); text-align:center; }
+
+.login-box {
+  background: var(--white); border-radius: 16px; padding: 36px 32px;
+  width: 100%; max-width: 380px; box-shadow: var(--shadow-md); border: 1px solid var(--border);
+}
+.login-logo { text-align: center; margin-bottom: 22px; }
+.login-logo h1 { font-size: 28px; font-weight: 800; color: var(--lime-green); letter-spacing: -0.5px; }
+.login-logo p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.login-box .field-group { margin-bottom: 12px; }
+.login-box .field-input { width: 100%; }
+.login-error { color: var(--urgent); font-size: 12px; margin: -2px 0 10px; display: none; line-height:1.5; }
+.login-error.show { display: block; }
+.login-box .btn-primary { width: 100%; padding: 11px; font-size: 14px; margin-top: 4px; }
+.login-forgot { text-align: center; margin-top: 16px; font-size: 12px; }
+.login-forgot a { color: var(--lime-dark); cursor: pointer; font-weight: 600; }
+.login-forgot a:hover { text-decoration: underline; }
+.login-hint { margin-top: 18px; padding: 10px 12px; background: var(--lime-light); border-radius: var(--radius-sm); font-size: 11.5px; color: var(--lime-dark); line-height: 1.6; }
+
+/* ===================================================== */
+/*  ROLE / VISIBILITY HELPERS                             */
+/* ===================================================== */
+.role-hidden { display: none !important; }
+.sync-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; color: var(--text-muted); padding: 4px 9px; border-radius:12px; background:#F7FAFC; border:1px solid var(--border); }
+.sync-dot { width:6px; height:6px; border-radius:50%; background: var(--text-light); flex-shrink:0; }
+.sync-pill.online .sync-dot { background: var(--done); }
+.sync-pill.syncing .sync-dot { background: var(--warn); animation: pulseDot 1s infinite; }
+@keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.logout-link { display:flex; align-items:center; gap:8px; padding: 11px 16px; font-size:12.5px; color: var(--text-muted); cursor:pointer; border-top:1px solid var(--border); }
+.logout-link:hover { color: var(--urgent); background: var(--urgent-bg); }
+
+/* ===================================================== */
+/*  ADMIN — USERS / DATA TABLE                            */
+/* ===================================================== */
+.data-table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align:left; padding:10px 14px; background: var(--lime-bg); color: var(--text-muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border); }
+.data-table td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--lime-bg); }
+
+.role-chip { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; display:inline-block; }
+.role-chip.admin { background:#FEF3C7; color:#92400E; }
+.role-chip.leader { background:#DBEAFE; color:#1E40AF; }
+.role-chip.staff { background: var(--lime-light); color: var(--lime-dark); }
+.role-chip.viewer { background:#F1F5F9; color:#475569; }
+.status-chip { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; }
+.status-chip.active { background: var(--done-bg); color: var(--done); }
+.status-chip.disabled { background: var(--urgent-bg); color: var(--urgent); }
+
+.seed-banner { display:flex; align-items:center; justify-content:space-between; gap:12px; background: var(--warn-bg); border:1.5px dashed var(--warn); border-radius: var(--radius); padding: 14px 18px; margin-bottom:18px; }
+.seed-banner h3 { font-size:13px; color:#7B341E; font-weight:700; margin-bottom:3px; }
+.seed-banner p { font-size:12px; color:#7B341E; }
+
+/* ===================================================== */
+/*  PHASE 4: SCHEDULE                                     */
+/* ===================================================== */
+.sched-toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+.sched-toolbar select, .sched-toolbar input { padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; font-family:var(--font); }
+.sched-grid { overflow-x:auto; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); }
+.sched-table { width:100%; border-collapse:collapse; min-width:900px; font-size:12px; }
+.sched-table th, .sched-table td { border:1px solid var(--border); padding:6px 8px; vertical-align:top; text-align:left; }
+.sched-table th { background:var(--lime-light); color:var(--lime-dark); font-weight:700; position:sticky; top:0; }
+.sched-room-col { background:#FAFAFA; font-weight:700; width:90px; color:var(--text); }
+.sched-slot { border-radius:6px; padding:5px 6px; margin-bottom:4px; font-size:11.5px; line-height:1.35; cursor:pointer; transition:transform .1s; }
+.sched-slot:hover { transform:scale(1.02); }
+.sched-slot b { display:block; font-size:12px; }
+.sched-slot .sched-teacher { color:rgba(0,0,0,.55); }
+.sched-empty-cell { color:var(--text-light); font-size:11px; text-align:center; padding:10px 4px; }
+.sched-color-swatch { display:inline-block; width:16px; height:16px; border-radius:4px; vertical-align:middle; cursor:pointer; border:2px solid transparent; }
+.sched-color-swatch.active { border-color:var(--text); }
+
+/* ===================================================== */
+/*  PHASE 5: EVENTS                                       */
+/* ===================================================== */
+.event-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; }
+.event-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+.event-card-head { display:flex; justify-content:space-between; align-items:start; gap:8px; }
+.event-card-head h3 { font-size:15px; font-weight:700; color:var(--text); }
+.event-status { font-size:11px; font-weight:700; padding:3px 9px; border-radius:10px; white-space:nowrap; }
+.event-status.upcoming { background:#EBF4FF; color:#2B6CB0; }
+.event-status.ongoing { background:var(--warn-bg); color:var(--warn); }
+.event-status.done { background:var(--done-bg); color:var(--done); }
+.event-meta { font-size:12px; color:var(--text-muted); margin:6px 0 10px; }
+.event-progress-wrap { background:#EDF2F7; border-radius:6px; height:8px; overflow:hidden; margin-bottom:6px; }
+.event-progress-bar { height:100%; background:var(--lime-green); border-radius:6px; transition:width .3s; }
+.event-progress-label { font-size:11px; color:var(--text-muted); margin-bottom:10px; }
+.event-timeline { border-top:1px solid var(--border); padding-top:10px; display:none; flex-direction:column; gap:7px; max-height:260px; overflow-y:auto; }
+.event-timeline.open { display:flex; }
+.event-step { display:flex; gap:8px; align-items:start; font-size:12.5px; }
+.event-step-check { width:16px; height:16px; border-radius:4px; border:1.5px solid var(--border); flex-shrink:0; margin-top:1px; cursor:pointer; }
+.event-step-check.checked { background:var(--lime-green); border-color:var(--lime-green); position:relative; }
+.event-step-check.checked::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; }
+.event-step.done-step span { text-decoration:line-through; color:var(--text-light); }
+.event-step-date { color:var(--text-light); font-size:11px; min-width:38px; }
+
+/* Settings / password modal small text */
+.modal-note { font-size:11.5px; color: var(--text-muted); line-height:1.6; margin-top: 2px; }
+</style>
+<title>Lime — Hệ thống quản lý nội bộ</title>
+</head>
+<body>
+
+<!-- ===================================================== -->
+<!--  LOADING SCREEN                                        -->
+<!-- ===================================================== -->
+<div id="loadingScreen">
+  <div style="text-align:center">
+    <div class="lime-spinner" style="margin:0 auto"></div>
+    <div class="loading-caption">🍋 Đang tải Lime...</div>
+  </div>
+</div>
+
+<!-- ===================================================== -->
+<!--  LOGIN SCREEN                                          -->
+<!-- ===================================================== -->
+<div id="loginScreen" class="hidden">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>🍋 Lime</h1>
+      <p>Hệ thống quản lý nội bộ</p>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Email công việc</label>
+      <input class="field-input" type="email" id="loginEmail" placeholder="ten@lime.edu.vn" autocomplete="email">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Mật khẩu</label>
+      <input class="field-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
+    <div class="login-forgot"><a onclick="doForgotPassword()">Quên mật khẩu?</a></div>
+    <div class="login-hint" id="firstRunHint" style="display:none">
+      👋 Đây là lần đăng nhập đầu tiên của hệ thống — tài khoản này sẽ tự động trở thành <strong>Admin</strong>.
+    </div>
+  </div>
+</div>
+
+<div id="appRoot" class="hidden">
+<div class="app-layout">
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">🍋 Lime</div>
+    <div class="logo-sub">Hệ thống quản lý nội bộ</div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar" id="sidebarAvatar">K</div>
+    <div>
+      <div class="user-name" id="sidebarName">Khánh Linh</div>
+      <div class="user-role" id="sidebarRole">Leader · CSKH · Trung Kính</div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section-label">Công việc</div>
+    <button class="nav-item active" data-page="today" onclick="showPage('today')">
+      <span class="nav-icon">📋</span> Hôm nay
+      <span class="badge" id="todayBadge">0</span>
+    </button>
+    <button class="nav-item" data-page="template" data-roles="admin,leader" onclick="showPage('template')">
+      <span class="nav-icon">⚙️</span> Template gốc
+    </button>
+    <button class="nav-item" data-page="addTask" data-roles="admin,leader,staff" onclick="showPage('addTask')">
+      <span class="nav-icon">➕</span> Thêm việc đột xuất
+    </button>
+    <button class="nav-item" data-page="carryover" onclick="showPage('carryover')">
+      <span class="nav-icon">🔄</span> Việc tồn
+      <span class="badge" id="carryBadge" style="background: var(--carry)">0</span>
+    </button>
+
+    <div class="nav-section-label">Đội nhóm</div>
+    <button class="nav-item" data-page="crossTask" data-roles="admin,leader,staff" onclick="showPage('crossTask')">
+      <span class="nav-icon">🔀</span> Giao việc chéo đội
+    </button>
+    <button class="nav-item" data-page="report" onclick="showPage('report')">
+      <span class="nav-icon">📊</span> Báo cáo đội
+    </button>
+
+    <div class="nav-section-label">Quản lý</div>
+    <button class="nav-item" data-page="schedule" onclick="showPage('schedule')">
+      <span class="nav-icon">📅</span> Thời khóa biểu
+    </button>
+    <button class="nav-item" data-page="events" onclick="showPage('events')">
+      <span class="nav-icon">🎉</span> Sự kiện
+      <span class="badge" id="eventBadge" style="background: var(--lime-green)">0</span>
+    </button>
+    <button class="nav-item" data-page="personnel" onclick="showPage('personnel')">
+      <span class="nav-icon">👥</span> Nhân sự
+      <span class="badge" id="leaveBadge" style="background: var(--warn)">0</span>
+    </button>
+    <button class="nav-item" data-page="branch" onclick="showPage('branch')">
+      <span class="nav-icon">🏢</span> Cơ sở
+    </button>
+
+    <div class="nav-section-label" data-roles="admin">Hệ thống</div>
+    <button class="nav-item" data-page="admin" data-roles="admin" onclick="showPage('admin')">
+      <span class="nav-icon">🔐</span> Quản lý tài khoản
+    </button>
+  </div>
+
+  <div class="sidebar-footer" style="border-top:1px solid var(--border)">
+    <div class="logout-link" onclick="openPasswordModal()">
+      <span>🔑</span> Đổi mật khẩu
+    </div>
+    <div class="logout-link" onclick="doLogout()">
+      <span>🚪</span> Đăng xuất
+    </div>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title" id="pageTitle">📋 Việc hôm nay</div>
+        <div class="topbar-date" id="todayDateStr">Đang tải...</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncPillText">Đang kết nối...</span></span>
+      <select class="field-input" style="width:auto;font-size:12px;padding:5px 28px 5px 10px;" id="branchSelect" onchange="onBranchSelectChange()">
+        <option value="tk">🏠 Trung Kính</option>
+        <option value="th">🏠 Trung Hòa</option>
+        <option value="md">🏠 Mỹ Đình</option>
+      </select>
+      <button class="btn btn-outline" data-roles="admin,leader" onclick="openGenerateModal()">⚡ Generate tháng mới</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Thêm việc</button>
+    </div>
+  </header>
+
+  <!-- CONTENT AREA -->
+  <div class="content">
+
+    <!-- ========== PAGE: TODAY ========== -->
+    <div class="page active" id="page-today">
+
+      <!-- Date nav -->
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="changeDate(-1)">‹</button>
+        <div class="date-nav-center">
+          <div>
+            <div class="date-nav-today" id="navDateMain">Thứ Hai, 22 tháng 6</div>
+            <div class="date-nav-day" id="navDateYear">2026</div>
+          </div>
+          <span class="today-pill">Hôm nay</span>
+        </div>
+        <button class="date-nav-btn" onclick="changeDate(1)">›</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card urgent">
+          <div class="stat-label">🔴 Gấp / Chưa làm</div>
+          <div class="stat-value" id="statUrgent">3</div>
+          <div class="stat-sub">cần làm ngay</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📋 Tổng hôm nay</div>
+          <div class="stat-value" id="statTotal">8</div>
+          <div class="stat-sub">nhiệm vụ</div>
+          <div class="progress-bar-wrap" style="margin-top:8px">
+            <div class="progress-bar" id="progressBar" style="width:37%"></div>
+          </div>
+        </div>
+        <div class="stat-card done-stat">
+          <div class="stat-label">✅ Đã xong</div>
+          <div class="stat-value" id="statDone">3</div>
+          <div class="stat-sub" id="statPct">37% hoàn thành</div>
+        </div>
+        <div class="stat-card carry">
+          <div class="stat-label">🔄 Tồn từ hôm qua</div>
+          <div class="stat-value" id="statCarry">2</div>
+          <div class="stat-sub">việc chưa xong</div>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="filter-row" id="filterRow">
+        <button class="filter-chip active" onclick="filterTasks(this,'all')">Tất cả</button>
+        <button class="filter-chip" onclick="filterTasks(this,'urgent')">🔴 Gấp</button>
+        <button class="filter-chip" onclick="filterTasks(this,'pending')">⏳ Chưa làm</button>
+        <button class="filter-chip" onclick="filterTasks(this,'done')">✅ Xong</button>
+        <button class="filter-chip" onclick="filterTasks(this,'carry')">🔄 Tồn</button>
+        <button class="filter-chip" onclick="filterTasks(this,'cross')">🔀 Giao chéo</button>
+      </div>
+
+      <!-- URGENT SECTION -->
+      <div id="section-urgent">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">🔴</span>
+            Việc GẤP / Ưu tiên cao
+            <span class="section-count">— cần làm trước</span>
+          </div>
+        </div>
+        <div class="task-list" id="urgentList"></div>
+      </div>
+
+      <!-- REGULAR SECTION -->
+      <div id="section-regular">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">📌</span>
+            Checklist hôm nay
+            <span class="section-count">— định kỳ &amp; phát sinh</span>
+          </div>
+        </div>
+        <div class="task-list" id="regularList"></div>
+      </div>
+
+      <!-- CARRY SECTION -->
+      <div id="section-carry">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">🔄</span>
+            Tồn từ hôm qua
+            <span class="section-count">— chưa hoàn thành</span>
+          </div>
+        </div>
+        <div class="task-list" id="carryList"></div>
+      </div>
+
+      <!-- DONE SECTION -->
+      <div id="section-done" style="display:none">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">✅</span>
+            Đã hoàn thành
+          </div>
+          <button class="btn btn-ghost" onclick="toggleDone()" id="doneToggleBtn">Hiện</button>
+        </div>
+        <div class="task-list" id="doneList" style="display:none"></div>
+      </div>
+
+    </div>
+    <!-- end page-today -->
+
+    <!-- ========== PAGE: TEMPLATE ========== -->
+    <div class="page" id="page-template">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>⚙️ Template công việc gốc</h2>
+          <p>Leader/Admin chỉnh sửa — hệ thống tự generate checklist hàng tháng</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <select class="field-input" style="width:auto;font-size:12px;" id="templateTeamFilter" onchange="renderTemplateTable()">
+            <option value="all">Tất cả đội</option>
+            <option value="cskh">CSKH</option>
+            <option value="chuyenmon">Chuyên môn</option>
+            <option value="trogiangHT">Trợ giảng</option>
+            <option value="vanhanh">Vận hành</option>
+            <option value="tuyensinh">Tuyển sinh</option>
+          </select>
+          <button class="btn btn-primary" onclick="openTemplateAddModal()">+ Thêm template</button>
+        </div>
+      </div>
+
+      <div class="generate-banner">
+        <div class="generate-banner-text">
+          <h3>⚡ Generate checklist tháng mới</h3>
+          <p>Hệ thống sẽ tạo tự động tất cả task dựa trên template gốc hiện tại</p>
+        </div>
+        <button class="btn btn-primary" onclick="openGenerateModal()">Generate ngay</button>
+      </div>
+
+      <div class="template-table-wrap">
+        <table class="template-table" id="templateTable">
+          <thead>
+            <tr>
+              <th style="width:32%">Tên công việc</th>
+              <th style="width:10%">Đội</th>
+              <th style="width:12%">Tần suất</th>
+              <th style="width:12%">Lịch</th>
+              <th style="width:10%">Phân công</th>
+              <th style="width:14%">Ưu tiên</th>
+              <th style="width:10%">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="templateBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- end page-template -->
+
+    <!-- ========== PAGE: ADD TASK ========== -->
+    <div class="page" id="page-addTask">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>➕ Thêm việc đột xuất</h2>
+          <p>Thêm công việc ngoài checklist cố định — cá nhân hoặc cho cả đội</p>
+        </div>
+      </div>
+
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);max-width:640px">
+        <div class="field-group" style="margin-bottom:14px">
+          <label class="field-label">Tên công việc *</label>
+          <input class="field-input" type="text" id="adhocTitle" placeholder="VD: Gọi điện cho PH Thái Sơn về học phí">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div class="field-group">
+            <label class="field-label">Deadline *</label>
+            <input class="field-input" type="date" id="adhocDate">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ưu tiên</label>
+            <select class="field-input" id="adhocPriority">
+              <option value="normal">Bình thường</option>
+              <option value="urgent">🔴 Gấp</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div class="field-group">
+            <label class="field-label">Giao cho đội</label>
+            <select class="field-input" id="adhocTeam">
+              <option value="">— Cá nhân (chỉ mình) —</option>
+              <option value="cskh">CSKH</option>
+              <option value="chuyenmon">Chuyên môn</option>
+              <option value="trogiangHT">Trợ giảng</option>
+              <option value="vanhanh">Vận hành</option>
+              <option value="tuyensinh">Tuyển sinh</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Giao cho người</label>
+            <select class="field-input" id="adhocAssign">
+              <option value="">Cả đội</option>
+              <option value="me">Chỉ mình tôi</option>
+              <option value="specific">Người cụ thể...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom:14px">
+          <label class="field-label">Ghi chú / Mô tả</label>
+          <textarea class="field-input" id="adhocNote" placeholder="Thêm thông tin chi tiết nếu cần..."></textarea>
+        </div>
+
+        <div class="field-group" style="margin-bottom:14px">
+          <label class="field-label">Link tài liệu (Google Drive, Sheet...)</label>
+          <input class="field-input" type="url" id="adhocLink" placeholder="https://docs.google.com/...">
+        </div>
+
+        <div class="field-group" style="margin-bottom:20px">
+          <label class="field-label">Lặp lại?</label>
+          <select class="field-input" id="adhocRepeat">
+            <option value="none">Không lặp</option>
+            <option value="daily">Hàng ngày</option>
+            <option value="weekly">Hàng tuần</option>
+            <option value="monthly">Hàng tháng</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="saveAdhocTask()" style="flex:1">✅ Lưu &amp; thêm vào hôm nay</button>
+          <button class="btn btn-outline" onclick="showPage('today')">Huỷ</button>
+        </div>
+      </div>
+    </div>
+    <!-- end page-addTask -->
+
+    <!-- ========== PAGE: CARRYOVER ========== -->
+    <div class="page" id="page-carryover">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>🔄 Việc tồn đọng</h2>
+          <p>Các việc chưa xong từ ngày trước — tự động đẩy sang ngày mới</p>
+        </div>
+        <button class="btn btn-outline" onclick="pushAllToToday()">Đẩy tất cả về hôm nay</button>
+      </div>
+
+      <div class="task-list" id="carryoverPageList"></div>
+    </div>
+    <!-- end page-carryover -->
+
+    <!-- ========== PAGE: CROSS TASK ========== -->
+    <div class="page" id="page-crossTask">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>🔀 Giao việc chéo đội</h2>
+          <p>Bất kỳ ai cũng có thể giao việc cho đội khác</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCrossModal()">+ Giao việc mới</button>
+      </div>
+
+      <div class="task-list" id="crossList"></div>
+    </div>
+    <!-- end page-crossTask -->
+
+    <!-- ========== PAGE: REPORT (Phase 3) ========== -->
+    <div class="page" id="page-report">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>📊 Báo cáo đội</h2>
+          <p>Tổng quan tiến độ checklist toàn trung tâm — tuần này</p>
+        </div>
+        <select class="field-input" style="width:auto;font-size:12px;" id="reportBranchFilter" onchange="renderReportPage()">
+          <option value="all">Tất cả cơ sở</option>
+          <option value="tk">Trung Kính</option>
+          <option value="th">Trung Hòa</option>
+          <option value="md">Mỹ Đình</option>
+        </select>
+      </div>
+
+      <div class="kpi-row" id="reportKpiRow"></div>
+
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <div class="card-title">📌 Tỷ lệ hoàn thành theo đội</div>
+            <div class="team-progress-list" id="teamProgressList"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📈 Xu hướng hoàn thành 7 ngày qua</div>
+            <div class="spark-row" id="sparkRow"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">⏰ Việc trễ hạn nhiều ngày nhất</div>
+            <div id="overdueList"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title">🏆 Bảng xếp hạng nhân sự — tuần này</div>
+            <div id="leaderboardList"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🔀 Việc giao chéo đội</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:12px;color:var(--text-muted)">Đang chờ xử lý</span>
+              <span style="font-size:20px;font-weight:800" id="crossPendingCount">0</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted)" id="crossDoneNote"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end page-report -->
+
+    <!-- ========== PAGE: PERSONNEL (Phase 3) ========== -->
+    <div class="page" id="page-personnel">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>👥 Nhân sự</h2>
+          <p>Danh bạ nhân sự theo đội &amp; cơ sở — trạng thái đi làm hôm nay</p>
+        </div>
+        <button class="btn btn-primary" onclick="openLeaveModal()">📝 Xin nghỉ</button>
+      </div>
+
+      <div class="leave-banner" id="leaveBanner" style="display:none"></div>
+
+      <div class="personnel-toolbar">
+        <div class="filter-row" style="margin-bottom:0" id="personnelFilterRow">
+          <button class="filter-chip active" onclick="filterPersonnel(this,'all')">Tất cả</button>
+          <button class="filter-chip" onclick="filterPersonnel(this,'cskh')">CSKH</button>
+          <button class="filter-chip" onclick="filterPersonnel(this,'chuyenmon')">Chuyên môn</button>
+          <button class="filter-chip" onclick="filterPersonnel(this,'trogiangHT')">Trợ giảng</button>
+          <button class="filter-chip" onclick="filterPersonnel(this,'vanhanh')">Vận hành</button>
+        </div>
+        <span style="font-size:12px;color:var(--text-muted)" id="personnelCount"></span>
+      </div>
+
+      <div class="personnel-grid" id="personnelGrid"></div>
+    </div>
+    <!-- end page-personnel -->
+
+    <!-- ========== PAGE: BRANCH (Phase 3) ========== -->
+    <div class="page" id="page-branch">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>🏢 Cơ sở</h2>
+          <p>Thông tin 3 cơ sở — địa chỉ, hotline, tài khoản học phí, nhân sự</p>
+        </div>
+      </div>
+
+      <div class="grid-3" id="branchGrid"></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">🧹 Lịch dọn vệ sinh cơ sở</div>
+        <div id="cleaningSchedule"></div>
+      </div>
+    </div>
+    <!-- end page-branch -->
+
+    <!-- ========== PAGE: SCHEDULE (Phase 4) ========== -->
+    <div class="page" id="page-schedule">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>📅 Thời khóa biểu</h2>
+          <p>Lịch học theo cơ sở — phòng × ngày trong tuần</p>
+        </div>
+        <button class="btn btn-primary" data-roles="admin,leader" onclick="openScheduleModal()">➕ Thêm lịch</button>
+      </div>
+
+      <div class="sched-toolbar">
+        <select id="schedBranchFilter" onchange="renderSchedulePage()">
+          <option value="all">Tất cả cơ sở</option>
+          <option value="md">Mỹ Đình</option>
+          <option value="tk">Trung Kính</option>
+          <option value="th">Trung Hòa</option>
+        </select>
+        <select id="schedDayFilter" onchange="renderSchedulePage()">
+          <option value="all">Cả tuần</option>
+          <option value="t2">Thứ 2</option><option value="t3">Thứ 3</option>
+          <option value="t4">Thứ 4</option><option value="t5">Thứ 5</option>
+          <option value="t6">Thứ 6</option><option value="t7">Thứ 7</option>
+          <option value="cn">Chủ Nhật</option>
+        </select>
+        <input type="text" id="schedSearch" placeholder="🔍 Tìm lớp / giáo viên..." oninput="renderSchedulePage()">
+      </div>
+
+      <div class="sched-grid">
+        <table class="sched-table" id="schedTable"></table>
+      </div>
+    </div>
+    <!-- end page-schedule -->
+
+    <!-- ========== PAGE: EVENTS (Phase 5) ========== -->
+    <div class="page" id="page-events">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>🎉 Sự kiện</h2>
+          <p>Theo dõi timeline các sự kiện: thi thử, Challenge, dã ngoại...</p>
+        </div>
+        <button class="btn btn-primary" data-roles="admin,leader" onclick="openEventModal()">➕ Thêm sự kiện</button>
+      </div>
+      <div class="event-grid" id="eventGrid"></div>
+    </div>
+    <!-- end page-events -->
+
+    <!-- ========== PAGE: ADMIN — ACCOUNTS (mới) ========== -->
+    <div class="page" id="page-admin">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>🔐 Quản lý tài khoản</h2>
+          <p>Tạo và phân quyền tài khoản đăng nhập cho nhân sự</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddUserModal()">+ Tạo tài khoản</button>
+      </div>
+
+      <div class="seed-banner" id="seedBanner" style="display:none">
+        <div>
+          <h3>⚠️ Chưa có dữ liệu mẫu</h3>
+          <p>Bấm để nạp dữ liệu mẫu ban đầu (template, cơ sở, nhân sự...) — chỉ nên dùng 1 lần lúc khởi tạo hệ thống.</p>
+        </div>
+        <button class="btn btn-outline" onclick="seedSampleData()">Nạp dữ liệu mẫu</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Tên</th><th>Email</th><th>Vai trò</th><th>Đội</th><th>Cơ sở</th><th>Trạng thái</th><th></th></tr>
+          </thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- end page-admin -->
+
+  </div>
+  <!-- end content -->
+
+</main>
+</div>
+</div>
+<!-- end appRoot -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">➕ Thêm công việc nhanh</div>
+      <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Tên công việc</label>
+        <input class="field-input" type="text" id="quickTitle" placeholder="Tên việc cần làm...">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Deadline</label>
+        <input class="field-input" type="date" id="quickDate">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ưu tiên</label>
+        <select class="field-input" id="quickPriority">
+          <option value="normal">Bình thường</option>
+          <option value="urgent">🔴 Gấp</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Đội nhận</label>
+        <select class="field-input" id="quickTeam">
+          <option value="">Cá nhân</option>
+          <option value="cskh">CSKH</option>
+          <option value="chuyenmon">Chuyên môn</option>
+          <option value="trogiangHT">Trợ giảng</option>
+          <option value="vanhanh">Vận hành</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveQuickTask()">Thêm việc</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generate Modal -->
+<div class="modal-overlay" id="generateModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">⚡ Generate Checklist Tháng Mới</div>
+      <button class="modal-close" onclick="closeModal('generateModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Tháng generate</label>
+        <select class="field-input" id="genMonth" onchange="updateGenCount()"></select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Đội</label>
+        <div class="checkbox-group" id="genTeamGroup">
+          <label class="checkbox-chip selected"><input type="checkbox" data-team="cskh" checked> CSKH</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-team="chuyenmon" checked> Chuyên môn</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-team="trogiangHT" checked> Trợ giảng</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-team="vanhanh" checked> Vận hành</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-team="tuyensinh" checked> Tuyển sinh</label>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Cơ sở</label>
+        <div class="checkbox-group" id="genBranchGroup">
+          <label class="checkbox-chip selected"><input type="checkbox" data-branch="tk" checked> Trung Kính</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-branch="th" checked> Trung Hòa</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-branch="md" checked> Mỹ Đình</label>
+        </div>
+      </div>
+      <div style="padding:12px;background:var(--lime-light);border-radius:var(--radius-sm);margin-top:4px;font-size:12px;color:var(--lime-dark)">
+        ✅ Hệ thống sẽ tạo khoảng <strong id="genCount">0</strong> task dựa trên template gốc hiện tại, tính ngày từ thứ trong tuần và ngày cố định.
+        <div class="modal-note" style="color:var(--lime-dark);opacity:.8">Mỗi đội × mỗi cơ sở đã chọn sẽ có 1 bộ task riêng theo template. Việc trùng ngày sẽ không tạo lại nếu đã generate trước đó.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('generateModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="confirmGenerate()">⚡ Generate ngay</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Add Modal -->
+<div class="modal-overlay" id="templateAddModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="templateModalTitle">➕ Thêm template công việc</div>
+      <button class="modal-close" onclick="closeModal('templateAddModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Tên công việc *</label>
+        <input class="field-input" type="text" id="tplTitle" placeholder="VD: Kiểm tra tin nhắn, báo cáo trao đổi gấp...">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-group">
+          <label class="field-label">Đội *</label>
+          <select class="field-input" id="tplTeam">
+            <option value="cskh">CSKH</option>
+            <option value="chuyenmon">Chuyên môn</option>
+            <option value="trogiangHT">Trợ giảng</option>
+            <option value="vanhanh">Vận hành</option>
+            <option value="tuyensinh">Tuyển sinh</option>
+            <option value="all">Tất cả đội</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Tần suất *</label>
+          <select class="field-input" id="tplFreq" onchange="updateScheduleOptions()">
+            <option value="daily">Hàng ngày</option>
+            <option value="weekly">Hàng tuần</option>
+            <option value="monthly">Hàng tháng</option>
+            <option value="fixed">Ngày cố định</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group" id="scheduleField">
+        <label class="field-label">Lịch cụ thể</label>
+        <select class="field-input" id="tplSchedule">
+          <option value="">— Mỗi ngày —</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-group">
+          <label class="field-label">Ưu tiên</label>
+          <select class="field-input" id="tplPriority">
+            <option value="normal">Bình thường</option>
+            <option value="urgent">🔴 Gấp</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Phân công mặc định</label>
+          <select class="field-input" id="tplAssign">
+            <option value="all">Cả đội</option>
+            <option value="leader">Leader</option>
+            <option value="staff">Staff</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ghi chú / Hướng dẫn</label>
+        <textarea class="field-input" id="tplNote" placeholder="Hướng dẫn chi tiết cho nhân sự..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('templateAddModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveTemplate()">Lưu template</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cross Task Modal -->
+<div class="modal-overlay" id="crossModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔀 Giao việc cho đội khác</div>
+      <button class="modal-close" onclick="closeModal('crossModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Tên việc cần giao *</label>
+        <input class="field-input" type="text" id="crossTitle" placeholder="VD: Chuẩn bị folder cho lớp Cam1T khai giảng 25/6">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-group">
+          <label class="field-label">Giao cho đội *</label>
+          <select class="field-input" id="crossTeam">
+            <option value="vanhanh">Vận hành</option>
+            <option value="cskh">CSKH</option>
+            <option value="chuyenmon">Chuyên môn</option>
+            <option value="trogiangHT">Trợ giảng</option>
+            <option value="tuyensinh">Tuyển sinh</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Deadline *</label>
+          <input class="field-input" type="date" id="crossDeadline">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mức độ</label>
+        <select class="field-input" id="crossUrgency">
+          <option value="normal">Bình thường</option>
+          <option value="urgent">🔴 Gấp — hiện ngay trên dashboard</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mô tả chi tiết</label>
+        <textarea class="field-input" id="crossNote" placeholder="Ghi rõ yêu cầu để đội nhận hiểu đúng..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('crossModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveCrossTask()">Giao việc</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📝 Báo cáo hoàn thành</div>
+      <button class="modal-close" onclick="closeModal('reportModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px;padding:10px;background:var(--lime-light);border-radius:var(--radius-sm)">
+        <div style="font-weight:600;font-size:13px" id="reportTaskName">—</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Kết quả</label>
+        <select class="field-input" id="reportResult">
+          <option value="done">✅ Đã làm xong</option>
+          <option value="partial">⚠️ Làm một phần</option>
+          <option value="blocked">🚫 Bị chặn / Không làm được</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ghi chú kết quả</label>
+        <textarea class="field-input" id="reportNote" placeholder="VD: Đã gọi 3 PH, 2 bạn chưa đóng HP, 1 bạn hẹn thứ 5 đóng..."></textarea>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Link file / bằng chứng</label>
+        <input class="field-input" type="url" id="reportLink" placeholder="Google Drive, Sheet...">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ai thực hiện</label>
+        <input class="field-input" type="text" id="reportWho" value="Khánh Linh" placeholder="Tên người làm">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('reportModal')">Huỷ</button>
+      <button class="btn btn-danger" onclick="markCarryover()" id="carryBtn">🔄 Chuyển sang ngày mai</button>
+      <button class="btn btn-primary" onclick="submitReport()">✅ Submit báo cáo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Request Modal -->
+<div class="modal-overlay" id="leaveModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📝 Đăng ký xin nghỉ</div>
+      <button class="modal-close" onclick="closeModal('leaveModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="padding:10px 12px;background:var(--lime-light);border-radius:var(--radius-sm);font-size:12px;color:var(--lime-dark);margin-bottom:14px;line-height:1.6">
+        <strong>Nội quy xin nghỉ tại Lime:</strong><br>
+        • Nghỉ 1 ngày: báo trước 5 ngày + tìm người thay thế.<br>
+        • Nghỉ &gt;2 ngày: báo trước 8 ngày + xin phép bằng văn bản, được Quản lý duyệt.<br>
+        • Khẩn cấp trong ngày: gọi điện trực tiếp cho cấp trên sớm nhất có thể.
+      </div>
+      <div class="field-group">
+        <label class="field-label">Người xin nghỉ *</label>
+        <select class="field-input" id="leaveStaff"></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-group">
+          <label class="field-label">Ngày nghỉ *</label>
+          <input class="field-input" type="date" id="leaveDate">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Số ngày nghỉ</label>
+          <select class="field-input" id="leaveSpan">
+            <option value="1">1 ngày</option>
+            <option value="2">2 ngày</option>
+            <option value="3+">Hơn 2 ngày</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Lý do</label>
+        <input class="field-input" type="text" id="leaveReason" placeholder="VD: Về quê, việc gia đình...">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Người cover (đã nhờ trước)</label>
+        <input class="field-input" type="text" id="leaveCover" placeholder="Tên người sẽ làm thay ca">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('leaveModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveLeaveRequest()">Gửi yêu cầu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Modal (Phase 4) -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="schedModalTitle">Thêm lịch học</div>
+      <button class="modal-close" onclick="closeModal('scheduleModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Cơ sở</label>
+        <select class="field-input" id="schedBranch">
+          <option value="md">Mỹ Đình</option>
+          <option value="tk">Trung Kính</option>
+          <option value="th">Trung Hòa</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Phòng</label>
+        <input class="field-input" id="schedRoom" placeholder="VD: 301, 201 bàn ghế cao...">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Thứ</label>
+        <select class="field-input" id="schedDay">
+          <option value="t2">Thứ 2</option><option value="t3">Thứ 3</option>
+          <option value="t4">Thứ 4</option><option value="t5">Thứ 5</option>
+          <option value="t6">Thứ 6</option><option value="t7">Thứ 7</option>
+          <option value="cn">Chủ Nhật</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Tên lớp</label>
+        <input class="field-input" id="schedClass" placeholder="VD: CLC A2E, CAM1Q...">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Giáo viên (tên hiển thị)</label>
+        <input class="field-input" id="schedTeacherDisplay" placeholder="VD: Ms Aimee">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Giáo viên (tên thật)</label>
+        <input class="field-input" id="schedTeacherReal" placeholder="VD: Ms Le Hoang Anh">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Giờ học</label>
+        <input class="field-input" id="schedTime" placeholder="VD: 18:00 - 20:00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Màu thẻ</label>
+        <div id="schedColorPicker"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('scheduleModal')">Huỷ</button>
+      <button class="btn btn-danger" id="schedDeleteBtn" style="display:none" onclick="deleteScheduleSlot()">Xoá</button>
+      <button class="btn btn-primary" onclick="saveScheduleSlot()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal (Phase 5) -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Thêm sự kiện</div>
+      <button class="modal-close" onclick="closeModal('eventModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Tên sự kiện</label>
+        <input class="field-input" id="evName" placeholder="VD: Thi thử Cambridge">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Cơ sở</label>
+        <select class="field-input" id="evBranch">
+          <option value="all">Cả 3 cơ sở</option>
+          <option value="md">Mỹ Đình</option>
+          <option value="tk">Trung Kính</option>
+          <option value="th">Trung Hòa</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ngày diễn ra sự kiện</label>
+        <input class="field-input" type="date" id="evDate">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ghi chú</label>
+        <textarea class="field-input" id="evNote" placeholder="Chi phí, giới hạn số lượng, địa điểm..."></textarea>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Các bước timeline (mỗi dòng: ngày | nội dung)</label>
+        <textarea class="field-input" id="evSteps" rows="5" placeholder="8/3 | Đăng bài thông báo lên nhóm lớp&#10;15/3 | Nhắc PH đăng ký&#10;27/3 | Chốt danh sách"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('eventModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Lưu sự kiện</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal (mới — Quản lý tài khoản) -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="userModalTitle">+ Tạo tài khoản nhân sự</div>
+      <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Họ tên *</label>
+        <input class="field-input" id="newUserName" placeholder="Nguyễn Văn A">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Email đăng nhập *</label>
+        <input class="field-input" type="email" id="newUserEmail" placeholder="ten@lime.edu.vn">
+      </div>
+      <div class="field-group" id="newUserPasswordGroup">
+        <label class="field-label">Mật khẩu ban đầu *</label>
+        <input class="field-input" id="newUserPassword" placeholder="Tối thiểu 6 ký tự">
+        <div class="modal-note">Gửi mật khẩu này cho nhân sự — họ nên đổi lại sau khi đăng nhập lần đầu (mục "Đổi mật khẩu").</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-group">
+          <label class="field-label">Vai trò *</label>
+          <select class="field-input" id="newUserRole">
+            <option value="staff">Staff (Nhân sự)</option>
+            <option value="leader">Leader (Trưởng đội)</option>
+            <option value="admin">Admin (Quản lý)</option>
+            <option value="viewer">Viewer (Chỉ xem)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Đội</label>
+          <select class="field-input" id="newUserTeam">
+            <option value="">— Không thuộc đội —</option>
+            <option value="cskh">CSKH</option>
+            <option value="chuyenmon">Chuyên môn</option>
+            <option value="trogiangHT">Trợ giảng</option>
+            <option value="vanhanh">Vận hành</option>
+            <option value="tuyensinh">Tuyển sinh</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Cơ sở (có thể chọn nhiều — giữ Ctrl/Cmd)</label>
+        <select class="field-input" id="newUserBranch" multiple style="height:84px">
+          <option value="tk">Trung Kính</option>
+          <option value="th">Trung Hòa</option>
+          <option value="md">Mỹ Đình</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addUserModal')">Huỷ</button>
+      <button class="btn btn-danger" id="userDeleteBtn" style="display:none" onclick="disableUser()">Khoá tài khoản</button>
+      <button class="btn btn-primary" id="userSaveBtn" onclick="submitAddUser()">Tạo tài khoản</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal (mới) -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔑 Đổi mật khẩu</div>
+      <button class="modal-close" onclick="closeModal('passwordModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Mật khẩu mới</label>
+        <input class="field-input" type="password" id="newPassword1" placeholder="Tối thiểu 6 ký tự">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Nhập lại mật khẩu mới</label>
+        <input class="field-input" type="password" id="newPassword2" placeholder="Nhập lại để xác nhận">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('passwordModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="submitChangePassword()">Đổi mật khẩu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+
+
+<!-- ===== SCRIPT ===== -->
+<script type="module">
+// =============================================================
+//  LIME — HỆ THỐNG QUẢN LÝ NỘI BỘ
+//  Firebase Auth + Firestore — gộp Phase 1 (đăng nhập/phân quyền)
+//  + Phase 2/3 (checklist/báo cáo/nhân sự/cơ sở)
+//  + Phase 4 (thời khóa biểu) + Phase 5 (sự kiện)
+// =============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail,
+  onAuthStateChanged, updatePassword, createUserWithEmailAndPassword,
+  setPersistence, browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, query, where, orderBy, onSnapshot, addDoc, getDocs,
+  serverTimestamp, writeBatch, limit
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// =============================================================
+//  🔧 CẤU HÌNH FIREBASE — DÁN CONFIG PROJECT CỦA BẠN VÀO ĐÂY
+//  (Lấy từ Firebase Console → Project Settings → General →
+//   "Your apps" → SDK setup and configuration → Config)
+// =============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAiSs6wLFtV4gFbqJzKehP42uKESRdJZo4",
+  authDomain: "lamviecnoibo.firebaseapp.com",
+  projectId: "lamviecnoibo",
+  storageBucket: "lamviecnoibo.firebasestorage.app",
+  messagingSenderId: "328794939138",
+  appId: "1:328794939138:web:a762cc7cde66d644a26c1b",
+  measurementId: "G-Q0FGVKB357"
+}; 
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// App phụ — dùng riêng để TẠO tài khoản mới mà không làm mất phiên đăng nhập
+// hiện tại của Admin (đây là cách làm chuẩn khi tạo user bằng Firebase Auth
+// phía client — xem ghi chú cuối file hướng dẫn).
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryAuth = getAuth(secondaryApp);
+
+// =============================================================
+//  GLOBAL STATE
+// =============================================================
+window._state = {
+  user: null,        // Firebase Auth user
+  profile: null,      // Firestore doc trong 'users'
+  currentPage: 'today',
+  unsubscribers: [],   // các onSnapshot listener đang mở, gỡ khi logout
+};
+
+const today = new Date();
+let currentDate = new Date(today);
+let currentPage = 'today';
+let reportingTaskId = null;
+let editingTemplateId = null;
+let editingScheduleId = null;
+let editingUserId = null;
+
+// ===== DATA (cache cục bộ — đồng bộ realtime từ Firestore) =====
+let templates = [];
+let tasks = [];           // chỉ chứa task của "currentDate" + các task tồn (carry)
+let crossTasks = [];
+let STAFF = [];           // = toàn bộ doc trong collection 'users'
+let leaveRequests = [];
+let BRANCHES = [];
+let schedules = [];
+let events = [];
+
+// ===== CONSTANTS (taxonomy — không phải dữ liệu, giữ cố định) =====
+const TEAMS = {
+  cskh: { label: 'CSKH', color: '#2B6CB0', bg: '#EBF4FF' },
+  chuyenmon: { label: 'Chuyên môn', color: '#276749', bg: '#F0FFF4' },
+  trogiangHT: { label: 'Trợ giảng', color: '#553C9A', bg: '#FAF5FF' },
+  vanhanh: { label: 'Vận hành', color: '#744210', bg: '#FFFAF0' },
+  tuyensinh: { label: 'Tuyển sinh', color: '#702459', bg: '#FFF5F7' },
+  all: { label: 'Tất cả đội', color: '#1A202C', bg: '#F7FAFC' },
+};
+const FREQ_LABELS = {
+  daily: { label: 'Hàng ngày', cls: 'freq-daily' },
+  weekly: { label: 'Hàng tuần', cls: 'freq-weekly' },
+  monthly: { label: 'Hàng tháng', cls: 'freq-monthly' },
+  fixed: { label: 'Ngày cố định', cls: 'freq-fixed' },
+};
+const BRANCH_LABEL = { tk: 'Trung Kính', th: 'Trung Hòa', md: 'Mỹ Đình' };
+const ROLE_LABELS = { admin: 'Admin', leader: 'Leader', staff: 'Staff', viewer: 'Viewer' };
+const SCHED_COLORS = ['#FFE5A0','#A0D2FF','#B8F2C9','#F8B5C4','#D9C2FF','#FFC9A0','#C2F0E0'];
+const DAY_LABEL = { t2:'Thứ 2', t3:'Thứ 3', t4:'Thứ 4', t5:'Thứ 5', t6:'Thứ 6', t7:'Thứ 7', cn:'Chủ Nhật' };
+// 7-day trend hiện được TÍNH TỪ tasks thật (xem renderReportPage); giữ mảng rỗng làm fallback.
+let WEEK_TREND = [];
+
+// =============================================================
+//  UTILS
+// =============================================================
+function fmt(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtYesterday() {
+  const y = new Date(today); y.setDate(y.getDate()-1); return fmt(y);
+}
+function todayStr() { return fmt(today); }
+
+const DAYS_VI = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+const MONTHS_VI = ['tháng 1','tháng 2','tháng 3','tháng 4','tháng 5','tháng 6','tháng 7','tháng 8','tháng 9','tháng 10','tháng 11','tháng 12'];
+function formatDateVI(d) { return `${DAYS_VI[d.getDay()]}, ${d.getDate()} ${MONTHS_VI[d.getMonth()]}`; }
+function isToday(d) { return fmt(d) === fmt(today); }
+
+function initials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  return parts.length > 1 ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase() : name.substring(0,2).toUpperCase();
+}
+
+function emptyHTML(msg) {
+  return `<div style="color:var(--text-muted);font-size:13px;padding:6px 2px">${msg}</div>`;
+}
+
+function showToast(msg, type = 'default') {
+  const wrap = document.getElementById('toastWrap');
+  if (!wrap) return;
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = msg;
+  wrap.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'all 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function openModal(id) { const el = document.getElementById(id); if (el) el.classList.add('open'); }
+function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.remove('open'); }
+
+function setSync(state) {
+  // state: 'online' | 'syncing' | 'offline'
+  const pill = document.getElementById('syncPill');
+  const text = document.getElementById('syncPillText');
+  if (!pill || !text) return;
+  pill.classList.remove('online', 'syncing');
+  if (state === 'online') { pill.classList.add('online'); text.textContent = 'Đã đồng bộ'; }
+  else if (state === 'syncing') { pill.classList.add('syncing'); text.textContent = 'Đang đồng bộ...'; }
+  else { text.textContent = 'Mất kết nối'; }
+}
+
+function escapeHTML(str) {
+  if (str === undefined || str === null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// =============================================================
+//  AUTH
+// =============================================================
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    setSync('syncing');
+    try {
+      const profileSnap = await getDoc(doc(db, 'users', user.uid));
+      if (profileSnap.exists()) {
+        const profile = profileSnap.data();
+        if (profile.active === false) {
+          showToast('Tài khoản đã bị khoá. Liên hệ Admin.', 'error');
+          await signOut(auth);
+          return;
+        }
+        window._state.user = user;
+        window._state.profile = profile;
+        await initApp();
+      } else {
+        // Chưa có hồ sơ trong Firestore — kiểm tra có phải lần đăng nhập ĐẦU TIÊN
+        // của toàn hệ thống không. Nếu đúng, tự động cấp quyền Admin cho người này.
+        const usersSnap = await getDocs(query(collection(db, 'users'), limit(1)));
+        if (usersSnap.empty) {
+          const newProfile = {
+            name: user.email.split('@')[0],
+            email: user.email,
+            role: 'admin',
+            team: '',
+            branch: ['tk','th','md'],
+            active: true,
+            createdAt: serverTimestamp(),
+          };
+          await setDoc(doc(db, 'users', user.uid), newProfile);
+          window._state.user = user;
+          window._state.profile = newProfile;
+          showToast('🎉 Tài khoản Admin đầu tiên đã được tạo!', 'success');
+          await initApp();
+        } else {
+          showToast('Tài khoản chưa được cấp quyền trong hệ thống. Liên hệ Admin.', 'error');
+          await signOut(auth);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Lỗi tải hồ sơ: ' + e.message, 'error');
+      showLoginPage();
+    }
+  } else {
+    detachAllListeners();
+    window._state.user = null;
+    window._state.profile = null;
+    showLoginPage();
+  }
+});
+
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+  if (!email || !password) {
+    errEl.textContent = 'Vui lòng nhập email và mật khẩu.';
+    errEl.classList.add('show');
+    return;
+  }
+  try {
+    document.getElementById('loadingScreen').classList.remove('hidden');
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    errEl.textContent = 'Email hoặc mật khẩu không đúng.';
+    errEl.classList.add('show');
+  }
+};
+
+window.doLogout = async function() {
+  if (!confirm('Đăng xuất khỏi Lime?')) return;
+  detachAllListeners();
+  await signOut(auth);
+  showToast('Đã đăng xuất', 'default');
+};
+
+window.doForgotPassword = async function() {
+  const email = prompt('Nhập email của bạn để nhận link đặt lại mật khẩu:');
+  if (!email) return;
+  try {
+    await sendPasswordResetEmail(auth, email.trim());
+    showToast('📧 Email đặt lại mật khẩu đã được gửi!', 'success');
+  } catch (e) {
+    showToast('Không gửi được email — kiểm tra lại địa chỉ.', 'error');
+  }
+};
+
+window.openPasswordModal = function() {
+  document.getElementById('newPassword1').value = '';
+  document.getElementById('newPassword2').value = '';
+  openModal('passwordModal');
+};
+
+window.submitChangePassword = async function() {
+  const p1 = document.getElementById('newPassword1').value;
+  const p2 = document.getElementById('newPassword2').value;
+  if (!p1 || p1.length < 6) { showToast('Mật khẩu cần tối thiểu 6 ký tự', 'error'); return; }
+  if (p1 !== p2) { showToast('Hai mật khẩu không khớp', 'error'); return; }
+  try {
+    await updatePassword(auth.currentUser, p1);
+    closeModal('passwordModal');
+    showToast('✅ Đã đổi mật khẩu', 'success');
+  } catch (e) {
+    showToast('Lỗi: cần đăng nhập lại gần đây để đổi mật khẩu (đăng xuất rồi đăng nhập lại và thử tiếp).', 'error');
+  }
+};
+
+function showLoginPage() {
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appRoot').classList.add('hidden');
+  document.getElementById('appRoot').classList.remove('ready');
+  // Gợi ý first-run: kiểm tra nhẹ xem hệ thống đã có user nào chưa (best-effort, có thể bị rules chặn — bỏ qua lỗi)
+  getDocs(query(collection(db, 'users'), limit(1))).then(snap => {
+    document.getElementById('firstRunHint').style.display = snap.empty ? 'block' : 'none';
+  }).catch(() => {});
+}
+
+// =============================================================
+//  ROLE-BASED UI VISIBILITY (chỉ là UX — bảo mật thật nằm ở
+//  Firestore Security Rules, xem hướng dẫn cuối file)
+// =============================================================
+function applyRoleVisibility() {
+  const role = window._state.profile?.role || 'viewer';
+  document.querySelectorAll('[data-roles]').forEach(el => {
+    const allowed = el.getAttribute('data-roles').split(',').map(s => s.trim());
+    el.classList.toggle('role-hidden', !allowed.includes(role));
+  });
+  // Viewer: ẩn toàn bộ nút hành động ghi dữ liệu trên trang Hôm nay
+  document.body.classList.toggle('is-viewer', role === 'viewer');
+}
+// =============================================================
+//  INIT APP (sau khi đăng nhập thành công)
+// =============================================================
+async function initApp() {
+  const profile = window._state.profile;
+
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.add('hidden');
+
+  document.getElementById('sidebarAvatar').textContent = initials(profile.name).charAt(0);
+  document.getElementById('sidebarName').textContent = profile.name;
+  const teamLabel = profile.team ? TEAMS[profile.team]?.label || profile.team : '';
+  const branchLabel = (profile.branch || []).map(b => BRANCH_LABEL[b] || b).join(', ');
+  document.getElementById('sidebarRole').textContent =
+    [ROLE_LABELS[profile.role] || profile.role, teamLabel, branchLabel].filter(Boolean).join(' · ');
+
+  applyRoleVisibility();
+  setupBranchSelect();
+
+  const root = document.getElementById('appRoot');
+  root.classList.remove('hidden');
+  root.classList.add('ready');
+
+  updateDateDisplay();
+
+  attachAllListeners();
+  showPage('today');
+  setSync('online');
+}
+
+function setupBranchSelect() {
+  const sel = document.getElementById('branchSelect');
+  const profile = window._state.profile;
+  const allBranches = ['tk','th','md'];
+  const allowed = (profile.role === 'admin' || profile.role === 'leader')
+    ? allBranches
+    : (profile.branch && profile.branch.length ? profile.branch : allBranches);
+  sel.innerHTML = allowed.map(b => `<option value="${b}">🏠 ${BRANCH_LABEL[b]}</option>`).join('');
+  sel.value = allowed[0];
+  sel.disabled = allowed.length <= 1;
+}
+
+window.onBranchSelectChange = function() {
+  renderTodayPage();
+  if (currentPage === 'report') renderReportPage();
+  if (currentPage === 'branch') renderBranchPage();
+};
+
+function currentBranch() {
+  return document.getElementById('branchSelect')?.value || (window._state.profile?.branch?.[0]) || 'tk';
+}
+
+// =============================================================
+//  DATE HELPERS / NAV
+// =============================================================
+function updateDateDisplay() {
+  document.getElementById('navDateMain').textContent = formatDateVI(currentDate);
+  document.getElementById('navDateYear').textContent = currentDate.getFullYear();
+  document.getElementById('todayDateStr').textContent = `${formatDateVI(currentDate)} ${currentDate.getFullYear()}`;
+  const quickDate = document.getElementById('quickDate');
+  if (quickDate && !quickDate.value) quickDate.value = fmt(today);
+  const adhocDate = document.getElementById('adhocDate');
+  if (adhocDate && !adhocDate.value) adhocDate.value = fmt(today);
+}
+
+window.changeDate = function(delta) {
+  currentDate.setDate(currentDate.getDate() + delta);
+  updateDateDisplay();
+  attachTasksForCurrentDate();
+};
+
+window.showPage = function(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + id);
+  if (pageEl) pageEl.classList.add('active');
+
+  const titles = {
+    today: '📋 Việc hôm nay', template: '⚙️ Template công việc gốc',
+    addTask: '➕ Thêm việc đột xuất', carryover: '🔄 Việc tồn đọng',
+    crossTask: '🔀 Giao việc chéo đội', report: '📊 Báo cáo đội',
+    personnel: '👥 Nhân sự', branch: '🏢 Cơ sở',
+    schedule: '📅 Thời khóa biểu', events: '🎉 Sự kiện',
+    admin: '🔐 Quản lý tài khoản',
+  };
+  document.getElementById('pageTitle').textContent = titles[id] || '';
+  currentPage = id;
+  window._state.currentPage = id;
+
+  const navBtn = document.querySelector(`.nav-item[data-page="${id}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  if (id === 'template') renderTemplateTable();
+  if (id === 'carryover') renderCarryoverPage();
+  if (id === 'crossTask') renderCrossPage();
+  if (id === 'report') renderReportPage();
+  if (id === 'personnel') renderPersonnelPage();
+  if (id === 'branch') renderBranchPage();
+  if (id === 'schedule') renderSchedulePage();
+  if (id === 'events') renderEventsPage();
+  if (id === 'admin') renderUsersPage();
+  if (id === 'today') renderTodayPage();
+}
+
+// =============================================================
+//  FIRESTORE LISTENERS
+// =============================================================
+function detachAllListeners() {
+  window._state.unsubscribers.forEach(u => { try { u(); } catch(e){} });
+  window._state.unsubscribers = [];
+}
+
+let _tasksToday = [];
+let _tasksCarry = [];
+function mergeTasks() {
+  const map = new Map();
+  [..._tasksCarry, ..._tasksToday].forEach(t => map.set(t.id, t));
+  tasks = [...map.values()];
+  if (currentPage === 'today') renderTodayPage();
+  if (currentPage === 'carryover') renderCarryoverPage();
+  if (currentPage === 'report') renderReportPage();
+  updateBadges();
+}
+
+let _unsubTasksToday = null;
+function attachTasksForCurrentDate() {
+  if (_unsubTasksToday) { _unsubTasksToday(); _unsubTasksToday = null; }
+  const dateStr = fmt(currentDate);
+  const q = query(collection(db, 'tasks'), where('deadline', '==', dateStr));
+  _unsubTasksToday = onSnapshot(q, snap => {
+    _tasksToday = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mergeTasks();
+  }, err => { console.error(err); showToast('Lỗi tải checklist: ' + err.message, 'error'); });
+  window._state.unsubscribers.push(_unsubTasksToday);
+}
+
+function attachAllListeners() {
+  detachAllListeners();
+  setSync('syncing');
+
+  attachTasksForCurrentDate();
+
+  const qCarry = query(collection(db, 'tasks'), where('isCarry', '==', true), where('status', '==', 'pending'));
+  const unsubCarry = onSnapshot(qCarry, snap => {
+    _tasksCarry = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mergeTasks();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubCarry);
+
+  const unsubTpl = onSnapshot(collection(db, 'templates'), snap => {
+    templates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentPage === 'template') renderTemplateTable();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubTpl);
+
+  const qCross = query(collection(db, 'crossTasks'), orderBy('createdAt', 'desc'), limit(300));
+  const unsubCross = onSnapshot(qCross, snap => {
+    crossTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentPage === 'crossTask') renderCrossPage();
+    if (currentPage === 'report') renderReportPage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubCross);
+
+  const unsubUsers = onSnapshot(collection(db, 'users'), snap => {
+    STAFF = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('seedBanner').style.display = STAFF.length <= 1 ? 'flex' : 'none';
+    if (currentPage === 'personnel') renderPersonnelPage();
+    if (currentPage === 'branch') renderBranchPage();
+    if (currentPage === 'report') renderReportPage();
+    if (currentPage === 'admin') renderUsersPage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubUsers);
+
+  const qLeave = query(collection(db, 'leaveRequests'), orderBy('createdAt', 'desc'), limit(100));
+  const unsubLeave = onSnapshot(qLeave, snap => {
+    leaveRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    updateLeaveBadge();
+    if (currentPage === 'personnel') renderPersonnelPage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubLeave);
+
+  const unsubBranches = onSnapshot(collection(db, 'branches'), snap => {
+    BRANCHES = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentPage === 'branch') renderBranchPage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubBranches);
+
+  const unsubSched = onSnapshot(collection(db, 'schedules'), snap => {
+    schedules = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentPage === 'schedule') renderSchedulePage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubSched);
+
+  const unsubEvents = onSnapshot(collection(db, 'events'), snap => {
+    events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentPage === 'events') renderEventsPage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(unsubEvents);
+
+  setTimeout(() => setSync('online'), 600);
+}
+
+function updateBadges() {
+  const dateStr = fmt(currentDate);
+  const urgentCount = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr).length;
+  const carryCount = tasks.filter(t => t.isCarry && t.status !== 'done').length;
+  const todayBadge = document.getElementById('todayBadge');
+  const carryBadge = document.getElementById('carryBadge');
+  if (todayBadge) todayBadge.textContent = urgentCount + carryCount;
+  if (carryBadge) carryBadge.textContent = carryCount;
+}
+// =============================================================
+//  RENDER: TODAY PAGE
+// =============================================================
+function renderTodayPage() {
+  const dateStr = fmt(currentDate);
+
+  const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr);
+  const regularTasks = tasks.filter(t => t.priority !== 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr);
+  const carryTasks = tasks.filter(t => t.isCarry && t.status !== 'done');
+  const doneTasks = tasks.filter(t => t.status === 'done' && t.deadline === dateStr);
+
+  document.getElementById('urgentList').innerHTML = urgentTasks.map(taskHTML).join('') || emptyHTML('Không có việc gấp 🎉');
+  document.getElementById('regularList').innerHTML = regularTasks.map(taskHTML).join('') || emptyHTML('Không có việc thêm');
+  document.getElementById('carryList').innerHTML = carryTasks.map(taskHTML).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Không có việc tồn ✅</div>';
+  document.getElementById('doneList').innerHTML = doneTasks.map(taskHTML).join('');
+
+  const allToday = tasks.filter(t => t.deadline === dateStr || t.isCarry);
+  const doneCount = allToday.filter(t => t.status === 'done').length;
+  const total = allToday.length;
+  const pct = total ? Math.round(doneCount/total*100) : 0;
+
+  document.getElementById('statUrgent').textContent = urgentTasks.length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = doneCount;
+  document.getElementById('statPct').textContent = pct + '% hoàn thành';
+  document.getElementById('statCarry').textContent = carryTasks.length;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  updateBadges();
+
+  if (doneTasks.length > 0) {
+    document.getElementById('section-done').style.display = 'block';
+  } else {
+    document.getElementById('section-done').style.display = 'none';
+  }
+}
+
+function taskHTML(task) {
+  const team = TEAMS[task.team];
+  const isChecked = task.status === 'done';
+  const role = window._state.profile?.role || 'viewer';
+  const canAct = role !== 'viewer';
+
+  let cardClass = 'task-card';
+  if (task.priority === 'urgent' && !isChecked) cardClass += ' urgent-task';
+  else if (task.isCarry && !isChecked) cardClass += ' carry-task';
+  else if (isChecked) cardClass += ' done-task';
+
+  let tags = '';
+  if (team) tags += `<span class="tag tag-team">${team.label}</span>`;
+  if (task.isCarry) tags += `<span class="tag tag-carry">🔄 Tồn từ ${task.deadline}</span>`;
+  if (task.isCross) tags += `<span class="tag tag-cross">🔀 Giao từ ${TEAMS[task.crossFrom]?.label || task.crossFrom || ''}</span>`;
+  if (task.freq) {
+    const f = FREQ_LABELS[task.freq];
+    if (f) tags += `<span class="tag tag-freq">${f.label}</span>`;
+  }
+  if (task.priority === 'urgent') tags += `<span class="tag tag-urgent">🔴 Gấp</span>`;
+  if (task.branch) tags += `<span style="font-size:11px;color:var(--text-muted)">🏠 ${BRANCH_LABEL[task.branch] || task.branch}</span>`;
+  if (task.assignedToName) tags += `<span style="font-size:11px;color:var(--text-muted)">👤 ${escapeHTML(task.assignedToName)}</span>`;
+
+  let reportBlock = '';
+  if (task.report) {
+    reportBlock = `<div class="done-report">
+      <strong>${task.report.result === 'done' ? '✅' : task.report.result === 'partial' ? '⚠️' : '🚫'} ${escapeHTML(task.report.who)}</strong>
+      ${task.report.note ? ` — ${escapeHTML(task.report.note)}` : ''}
+      ${task.report.link ? ` · <a href="${task.report.link}" target="_blank" style="color:var(--lime-dark)">📎 Tài liệu</a>` : ''}
+    </div>`;
+  }
+
+  return `
+  <div class="${cardClass}" id="task-${task.id}">
+    <div class="task-top">
+      <div class="task-checkbox ${isChecked ? 'checked' : ''}" ${canAct ? `onclick="toggleTask('${task.id}')"` : ''}></div>
+      <div class="task-body">
+        <div class="task-title">${escapeHTML(task.title)}</div>
+        ${task.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escapeHTML(task.note)}</div>` : ''}
+        <div class="task-meta">${tags}</div>
+        ${reportBlock}
+      </div>
+      <div class="task-actions">
+        ${!isChecked && canAct ? `<button class="task-btn submit" onclick="openReportModal('${task.id}')">📝 Submit</button>` : ''}
+        <button class="task-btn" onclick="toggleExpand('${task.id}')">···</button>
+      </div>
+    </div>
+    <div class="task-expand" id="expand-${task.id}">
+      <div class="expand-grid">
+        <div class="field-group">
+          <label class="field-label">Ghi chú nhanh</label>
+          <textarea class="field-input" id="note-${task.id}" placeholder="Thêm ghi chú..." ${canAct?'':'readonly'}>${escapeHTML(task.note || '')}</textarea>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Link tài liệu</label>
+          <input class="field-input" type="url" id="link-${task.id}" placeholder="Google Drive..." value="${escapeHTML(task.report?.link || '')}" ${canAct?'':'readonly'}>
+        </div>
+      </div>
+      ${canAct ? `<div class="expand-actions">
+        <button class="task-btn" onclick="saveNote('${task.id}')">Lưu ghi chú</button>
+        ${!isChecked ? `<button class="task-btn" style="color:var(--carry)" onclick="pushCarry('${task.id}')">🔄 Đẩy sang ngày mai</button>` : ''}
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+window.toggleExpand = function(id) {
+  const el = document.getElementById('expand-' + id);
+  if (el) el.classList.toggle('open');
+};
+
+window.toggleTask = async function(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  if (task.status === 'done') {
+    try {
+      await updateDoc(doc(db, 'tasks', id), { status: 'pending', report: null });
+      showToast('Đã bỏ tick — việc về pending', 'warn');
+    } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+  } else {
+    openReportModal(id);
+  }
+};
+
+window.saveNote = async function(id) {
+  const noteEl = document.getElementById('note-' + id);
+  if (!noteEl) return;
+  try {
+    await updateDoc(doc(db, 'tasks', id), { note: noteEl.value });
+    showToast('Đã lưu ghi chú ✅', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.pushCarry = async function(id) {
+  let task = tasks.find(t => t.id === id);
+  let baseDate = currentDate;
+  if (!task) {
+    const snap = await getDoc(doc(db, 'tasks', id));
+    if (!snap.exists()) return;
+    task = snap.data();
+    baseDate = new Date(task.deadline);
+  }
+  const next = new Date(baseDate);
+  next.setDate(next.getDate() + 1);
+  try {
+    await updateDoc(doc(db, 'tasks', id), { deadline: fmt(next), isCarry: true });
+    showToast('Đã đẩy sang ngày mai 🔄', 'warn');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.toggleDone = function() {
+  const list = document.getElementById('doneList');
+  const btn = document.getElementById('doneToggleBtn');
+  if (list.style.display === 'none') {
+    list.style.display = 'flex';
+    list.style.flexDirection = 'column';
+    list.style.gap = '8px';
+    btn.textContent = 'Ẩn';
+  } else {
+    list.style.display = 'none';
+    btn.textContent = 'Hiện';
+  }
+};
+
+window.filterTasks = function(chip, filter) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+
+  const dateStr = fmt(currentDate);
+  let filtered;
+  switch (filter) {
+    case 'urgent': filtered = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done'); break;
+    case 'pending': filtered = tasks.filter(t => t.status !== 'done' && t.deadline === dateStr); break;
+    case 'done': filtered = tasks.filter(t => t.status === 'done'); break;
+    case 'carry': filtered = tasks.filter(t => t.isCarry); break;
+    case 'cross': filtered = tasks.filter(t => t.isCross); break;
+    default: renderTodayPage(); return;
+  }
+
+  document.getElementById('urgentList').innerHTML = filtered.filter(t => t.priority === 'urgent').map(taskHTML).join('') || emptyHTML('Không có');
+  document.getElementById('regularList').innerHTML = filtered.filter(t => t.priority !== 'urgent').map(taskHTML).join('') || emptyHTML('Không có');
+  document.getElementById('carryList').innerHTML = '';
+  document.getElementById('doneList').innerHTML = '';
+}
+
+// ===== REPORT MODAL =====
+window.openReportModal = function(id) {
+  reportingTaskId = id;
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  document.getElementById('reportTaskName').textContent = task.title;
+  document.getElementById('reportNote').value = '';
+  document.getElementById('reportLink').value = '';
+  document.getElementById('reportResult').value = 'done';
+  document.getElementById('reportWho').value = window._state.profile?.name || '';
+  openModal('reportModal');
+};
+
+window.submitReport = async function() {
+  const task = tasks.find(t => t.id === reportingTaskId);
+  if (!task) return;
+  const report = {
+    result: document.getElementById('reportResult').value,
+    note: document.getElementById('reportNote').value,
+    link: document.getElementById('reportLink').value,
+    who: document.getElementById('reportWho').value || window._state.profile?.name || '',
+  };
+  try {
+    await updateDoc(doc(db, 'tasks', reportingTaskId), { status: 'done', report, isCarry: false });
+    closeModal('reportModal');
+    showToast('✅ Đã submit báo cáo!', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.markCarryover = async function() {
+  if (!reportingTaskId) return;
+  await window.pushCarry(reportingTaskId);
+  closeModal('reportModal');
+  showToast('🔄 Đã chuyển sang ngày mai', 'warn');
+};
+// =============================================================
+//  TEMPLATE PAGE
+// =============================================================
+function renderTemplateTable() {
+  const filter = document.getElementById('templateTeamFilter')?.value || 'all';
+  const filtered = filter === 'all' ? templates : templates.filter(t => t.team === filter);
+  const tbody = document.getElementById('templateBody');
+  if (!tbody) return;
+  const role = window._state.profile?.role;
+  const canEdit = role === 'admin' || role === 'leader';
+
+  tbody.innerHTML = filtered.map(t => {
+    const team = TEAMS[t.team];
+    const freq = FREQ_LABELS[t.freq];
+    const scheduleLabel = scheduleText(t.freq, t.schedule);
+    return `<tr>
+      <td>
+        <div style="font-weight:600;margin-bottom:2px">${escapeHTML(t.title)}</div>
+        ${t.note ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHTML(t.note.substring(0,80))}${t.note.length>80?'…':''}</div>` : ''}
+      </td>
+      <td><span style="font-size:11px;font-weight:600;color:${team?.color||'#333'};background:${team?.bg||'#f0f0f0'};padding:2px 8px;border-radius:20px">${team?.label||t.team}</span></td>
+      <td><span class="freq-badge ${freq?.cls||''}">${freq?.label||t.freq}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${scheduleLabel}</td>
+      <td style="font-size:12px">${t.assign === 'all' ? 'Cả đội' : t.assign === 'leader' ? '👑 Leader' : '👤 Staff'}</td>
+      <td>${t.priority === 'urgent' ? '<span style="color:var(--urgent);font-size:12px;font-weight:700">🔴 Gấp</span>' : '<span style="color:var(--text-muted);font-size:12px">Thường</span>'}</td>
+      <td>
+        ${canEdit ? `<div class="action-group">
+          <button class="icon-btn" title="Sửa" onclick="editTemplate('${t.id}')">✏️</button>
+          <button class="icon-btn danger" title="Xoá" onclick="deleteTemplate('${t.id}')">🗑️</button>
+        </div>` : ''}
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⚙️</div><h3>Chưa có template</h3></div></td></tr>`;
+}
+
+function scheduleText(freq, schedule) {
+  if (freq === 'daily') return 'Mỗi ngày';
+  if (freq === 'weekly') {
+    const map = { thu2:'Thứ Hai', thu3:'Thứ Ba', thu4:'Thứ Tư', thu5:'Thứ Năm', thu6:'Thứ Sáu', thu7:'Thứ Bảy', cn:'Chủ Nhật' };
+    return map[schedule] || schedule || '—';
+  }
+  if (freq === 'monthly') return schedule ? `Ngày ${schedule} hàng tháng` : '—';
+  if (freq === 'fixed') return schedule || '—';
+  return '—';
+}
+
+window.openTemplateAddModal = function() {
+  editingTemplateId = null;
+  document.getElementById('templateModalTitle').textContent = '➕ Thêm template công việc';
+  document.getElementById('tplTitle').value = '';
+  document.getElementById('tplNote').value = '';
+  document.getElementById('tplPriority').value = 'normal';
+  document.getElementById('tplFreq').value = 'daily';
+  window.updateScheduleOptions();
+  openModal('templateAddModal');
+};
+
+window.editTemplate = function(id) {
+  const t = templates.find(x => x.id === id);
+  if (!t) return;
+  editingTemplateId = id;
+  document.getElementById('templateModalTitle').textContent = '✏️ Sửa template công việc';
+  document.getElementById('tplTitle').value = t.title;
+  document.getElementById('tplTeam').value = t.team;
+  document.getElementById('tplFreq').value = t.freq;
+  document.getElementById('tplPriority').value = t.priority;
+  document.getElementById('tplAssign').value = t.assign;
+  document.getElementById('tplNote').value = t.note || '';
+  window.updateScheduleOptions();
+  setTimeout(() => { document.getElementById('tplSchedule').value = t.schedule || ''; }, 50);
+  openModal('templateAddModal');
+};
+
+window.deleteTemplate = async function(id) {
+  if (!confirm('Xoá template này?')) return;
+  try {
+    await deleteDoc(doc(db, 'templates', id));
+    showToast('Đã xoá template', 'warn');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.saveTemplate = async function() {
+  const title = document.getElementById('tplTitle').value.trim();
+  if (!title) { showToast('Vui lòng nhập tên công việc', 'error'); return; }
+
+  const obj = {
+    title,
+    team: document.getElementById('tplTeam').value,
+    freq: document.getElementById('tplFreq').value,
+    schedule: document.getElementById('tplSchedule').value,
+    priority: document.getElementById('tplPriority').value,
+    assign: document.getElementById('tplAssign').value,
+    note: document.getElementById('tplNote').value,
+  };
+
+  try {
+    if (editingTemplateId) {
+      await updateDoc(doc(db, 'templates', editingTemplateId), obj);
+      showToast('Đã cập nhật template ✅', 'success');
+    } else {
+      obj.createdAt = serverTimestamp();
+      await addDoc(collection(db, 'templates'), obj);
+      showToast('Đã thêm template mới ✅', 'success');
+    }
+    closeModal('templateAddModal');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.updateScheduleOptions = function() {
+  const freq = document.getElementById('tplFreq').value;
+  const sel = document.getElementById('tplSchedule');
+  sel.innerHTML = '';
+  if (freq === 'daily') {
+    sel.innerHTML = '<option value="">— Mỗi ngày —</option>';
+  } else if (freq === 'weekly') {
+    ['thu2','thu3','thu4','thu5','thu6','thu7','cn'].forEach((v,i) => {
+      const labels = ['Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy','Chủ Nhật'];
+      sel.innerHTML += `<option value="${v}">${labels[i]}</option>`;
+    });
+  } else if (freq === 'monthly') {
+    for (let i=1;i<=31;i++) sel.innerHTML += `<option value="${i}">Ngày ${i}</option>`;
+  } else {
+    sel.innerHTML = '<option value="">Nhập ngày cụ thể bên dưới</option>';
+  }
+};
+
+// =============================================================
+//  ADD TASK (quick + adhoc)
+// =============================================================
+window.openAddModal = function() {
+  document.getElementById('quickDate').value = fmt(currentDate);
+  openModal('addModal');
+};
+
+window.saveQuickTask = async function() {
+  const title = document.getElementById('quickTitle').value.trim();
+  if (!title) { showToast('Vui lòng nhập tên việc', 'error'); return; }
+  const deadline = document.getElementById('quickDate').value || fmt(today);
+  const priority = document.getElementById('quickPriority').value;
+  const team = document.getElementById('quickTeam').value || '';
+  const profile = window._state.profile;
+
+  try {
+    await addDoc(collection(db, 'tasks'), {
+      title, team, freq: 'fixed', priority, status: 'pending',
+      assignedToUid: window._state.user.uid, assignedToName: profile.name,
+      note: '', deadline, report: null, isCross: false, isCarry: false,
+      branch: currentBranch(), createdAt: serverTimestamp(),
+    });
+    closeModal('addModal');
+    showToast('✅ Đã thêm việc!', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.saveAdhocTask = async function() {
+  const title = document.getElementById('adhocTitle').value.trim();
+  if (!title) { showToast('Vui lòng nhập tên công việc', 'error'); return; }
+  const deadline = document.getElementById('adhocDate').value || fmt(today);
+  const priority = document.getElementById('adhocPriority').value;
+  const team = document.getElementById('adhocTeam').value || '';
+  const note = document.getElementById('adhocNote').value;
+  const profile = window._state.profile;
+
+  try {
+    await addDoc(collection(db, 'tasks'), {
+      title, team, freq: 'fixed', priority, status: 'pending',
+      assignedToUid: window._state.user.uid, assignedToName: profile.name,
+      note, deadline, report: null, isCross: false, isCarry: false,
+      branch: currentBranch(), createdAt: serverTimestamp(),
+    });
+    showToast('✅ Đã thêm vào checklist!', 'success');
+    document.getElementById('adhocTitle').value = '';
+    document.getElementById('adhocNote').value = '';
+    document.getElementById('adhocLink').value = '';
+    showPage('today');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+// =============================================================
+//  CARRYOVER PAGE
+// =============================================================
+function renderCarryoverPage() {
+  const carryTasksList = tasks.filter(t => t.isCarry && t.status !== 'done');
+  const list = document.getElementById('carryoverPageList');
+  if (!list) return;
+  list.innerHTML = carryTasksList.length ? carryTasksList.map(taskHTML).join('') :
+    `<div class="empty-state"><div class="empty-icon">✅</div><h3>Không có việc tồn đọng!</h3><p>Tất cả việc đã được hoàn thành đúng hạn.</p></div>`;
+}
+
+window.pushAllToToday = async function() {
+  const carryTasksList = tasks.filter(t => t.isCarry && t.status !== 'done');
+  if (!carryTasksList.length) { showToast('Không có việc tồn để đẩy', 'default'); return; }
+  try {
+    const batch = writeBatch(db);
+    carryTasksList.forEach(t => batch.update(doc(db, 'tasks', t.id), { deadline: fmt(today) }));
+    await batch.commit();
+    showToast('Đã đẩy tất cả việc tồn về hôm nay', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+// =============================================================
+//  CROSS TASK PAGE
+// =============================================================
+function renderCrossPage() {
+  const list = document.getElementById('crossList');
+  if (!list) return;
+  list.innerHTML = crossTasks.map(ct => {
+    const fromTeam = TEAMS[ct.fromTeam];
+    const toTeam = TEAMS[ct.toTeam];
+    const isDone = ct.status === 'done';
+    return `<div class="task-card ${ct.urgency === 'urgent' ? 'urgent-task' : ''} ${isDone ? 'done-task' : ''}">
+      <div class="task-top">
+        <div class="task-checkbox ${isDone ? 'checked' : ''}" onclick="toggleCross('${ct.id}')"></div>
+        <div class="task-body">
+          <div class="task-title">${escapeHTML(ct.title)}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${escapeHTML(ct.note||'')}</div>
+          <div class="task-meta" style="margin-top:6px">
+            <span class="tag tag-team">Từ: ${fromTeam?.label||ct.fromTeam}</span>
+            <span class="tag" style="background:${toTeam?.bg};color:${toTeam?.color}">→ ${toTeam?.label||ct.toTeam}</span>
+            ${ct.urgency === 'urgent' ? '<span class="tag tag-urgent">🔴 Gấp</span>' : ''}
+            <span style="font-size:11px;color:var(--text-muted)">📅 ${ct.deadline}</span>
+            <span style="font-size:11px;color:var(--text-muted)">👤 ${escapeHTML(ct.fromUserName||'')}</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          ${!isDone ? `<button class="task-btn submit" onclick="toggleCross('${ct.id}')">✅ Xong</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="empty-icon">🔀</div><h3>Chưa có việc giao chéo</h3><p>Nhấn + Giao việc mới để bắt đầu.</p></div>`;
+}
+
+window.openCrossModal = function() {
+  document.getElementById('crossDeadline').value = fmt(today);
+  openModal('crossModal');
+};
+
+window.saveCrossTask = async function() {
+  const title = document.getElementById('crossTitle').value.trim();
+  if (!title) { showToast('Nhập tên việc', 'error'); return; }
+  const profile = window._state.profile;
+  try {
+    await addDoc(collection(db, 'crossTasks'), {
+      title,
+      fromTeam: profile.team || 'cskh',
+      toTeam: document.getElementById('crossTeam').value,
+      fromUserUid: window._state.user.uid,
+      fromUserName: profile.name,
+      deadline: document.getElementById('crossDeadline').value,
+      urgency: document.getElementById('crossUrgency').value,
+      note: document.getElementById('crossNote').value,
+      status: 'pending',
+      branch: currentBranch(),
+      createdAt: serverTimestamp(),
+    });
+    closeModal('crossModal');
+    showToast('🔀 Đã giao việc cho đội!', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.toggleCross = async function(id) {
+  const ct = crossTasks.find(t => t.id === id);
+  if (!ct) return;
+  const newStatus = ct.status === 'done' ? 'pending' : 'done';
+  try {
+    await updateDoc(doc(db, 'crossTasks', id), { status: newStatus });
+    showToast(newStatus === 'done' ? '✅ Xong!' : 'Đã bỏ tick', newStatus === 'done' ? 'success' : 'warn');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+// =============================================================
+//  REPORT PAGE — tính từ dữ liệu task thật trong 7 ngày qua
+//  (không còn dùng điểm "score/streak" giả định như bản demo)
+// =============================================================
+function teamStaff(teamKey, branchFilter) {
+  return STAFF.filter(s => (teamKey === 'all' || s.team === teamKey) && (branchFilter === 'all' || (s.branch||[]).includes(branchFilter)));
+}
+
+async function renderReportPage() {
+  const branchFilter = document.getElementById('reportBranchFilter')?.value || 'all';
+  const staffInScope = teamStaff('all', branchFilter);
+
+  // Lấy task 7 ngày gần nhất (range query theo field 'deadline' dạng YYYY-MM-DD)
+  const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 6);
+  const weekAgoStr = fmt(weekAgo);
+  const todayStrV = fmt(today);
+
+  let weekTasks = [];
+  try {
+    const qWeek = query(collection(db, 'tasks'), where('deadline', '>=', weekAgoStr), where('deadline', '<=', todayStrV));
+    const snap = await getDocs(qWeek);
+    weekTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) { console.error(e); }
+
+  const weekTasksScoped = branchFilter === 'all' ? weekTasks : weekTasks.filter(t => t.branch === branchFilter);
+
+  // ----- KPI row -----
+  const totalWeek = weekTasksScoped.length;
+  const doneWeek = weekTasksScoped.filter(t => t.status === 'done').length;
+  const avgScore = totalWeek ? Math.round(doneWeek / totalWeek * 100) : 0;
+  const totalToday = tasks.filter(t => t.deadline === fmt(currentDate) || t.isCarry).length;
+  const doneToday = tasks.filter(t => t.status === 'done').length;
+  const carryCount = tasks.filter(t => t.isCarry && t.status !== 'done').length;
+  const crossPending = crossTasks.filter(c => c.status !== 'done').length;
+
+  const kpiRow = document.getElementById('reportKpiRow');
+  if (kpiRow) kpiRow.innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label">Tỷ lệ hoàn thành 7 ngày</div>
+      <div class="kpi-value" style="color:var(--lime-dark)">${avgScore}%</div>
+      <div class="kpi-sub">${doneWeek}/${totalWeek} task</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Việc hôm nay</div>
+      <div class="kpi-value">${totalToday}</div>
+      <div class="kpi-sub">${doneToday} đã xong</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Việc tồn đọng</div>
+      <div class="kpi-value" style="color:${carryCount ? 'var(--urgent)' : 'var(--done)'}">${carryCount}</div>
+      <div class="kpi-sub">chưa hoàn thành</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Giao chéo đội</div>
+      <div class="kpi-value" style="color:var(--lime-dark)">${crossPending}</div>
+      <div class="kpi-sub">đang chờ xử lý</div>
+    </div>`;
+
+  // ----- Team progress (theo % hoàn thành tuần) -----
+  const teamKeys = ['cskh','chuyenmon','trogiangHT','vanhanh','tuyensinh'];
+  const teamProgressList = document.getElementById('teamProgressList');
+  if (teamProgressList) teamProgressList.innerHTML = teamKeys.map(tk => {
+    const team = TEAMS[tk];
+    const tTasks = weekTasksScoped.filter(t => t.team === tk);
+    if (!tTasks.length) return '';
+    const avg = Math.round(tTasks.filter(t => t.status === 'done').length / tTasks.length * 100);
+    const color = avg >= 90 ? 'var(--done)' : avg >= 80 ? 'var(--lime-green)' : 'var(--warn)';
+    return `<div class="team-progress-row">
+      <div class="team-progress-label" style="color:${team.color}">${team.label}</div>
+      <div class="team-progress-track"><div class="team-progress-fill" style="width:${avg}%;background:${color}"></div></div>
+      <div class="team-progress-pct">${avg}%</div>
+    </div>`;
+  }).join('') || emptyHTML('Chưa có dữ liệu tuần này');
+
+  // ----- 7-day spark trend -----
+  WEEK_TREND = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const ds = fmt(d);
+    const dayTasks = weekTasks.filter(t => t.deadline === ds);
+    const pct = dayTasks.length ? Math.round(dayTasks.filter(t => t.status === 'done').length / dayTasks.length * 100) : 0;
+    WEEK_TREND.push({ day: DAYS_VI[d.getDay()].replace('Thứ ','T').replace('Chủ Nhật','CN'), pct, hasData: dayTasks.length > 0 });
+  }
+  const sparkRow = document.getElementById('sparkRow');
+  if (sparkRow) sparkRow.innerHTML = WEEK_TREND.map((d, i) => {
+    const h = Math.max(8, Math.round((d.pct / 100) * 80));
+    const isLast = i === WEEK_TREND.length - 1;
+    const cls = isLast ? 'today' : (d.pct < 85 ? 'low' : '');
+    return `<div class="spark-col">
+      <span class="spark-val">${d.hasData ? d.pct + '%' : '—'}</span>
+      <div class="spark-bar ${cls}" style="height:${h}px" title="${d.day}: ${d.pct}%"></div>
+      <span class="spark-day">${d.day}</span>
+    </div>`;
+  }).join('');
+
+  // ----- Overdue -----
+  const overdue = tasks.filter(t => t.isCarry && t.status !== 'done');
+  const overdueList = document.getElementById('overdueList');
+  if (overdueList) overdueList.innerHTML = overdue.length ? overdue.map(t => {
+    const days = Math.max(1, Math.round((new Date(fmt(currentDate)) - new Date(t.deadline)) / 86400000) || 1);
+    return `<div class="overdue-row">
+      <div><div class="overdue-title">${escapeHTML(t.title)}</div><div style="color:var(--text-muted)">👤 ${escapeHTML(t.assignedToName||'—')} · ${TEAMS[t.team]?.label||t.team||''}</div></div>
+      <div class="overdue-days">${days} ngày trễ</div>
+    </div>`;
+  }).join('') : `<div style="font-size:12px;color:var(--text-muted);padding:6px 0">✅ Không có việc trễ hạn nhiều ngày</div>`;
+
+  // ----- Leaderboard (tính từ % hoàn thành thật trong tuần) -----
+  const byUser = {};
+  weekTasksScoped.forEach(t => {
+    if (!t.assignedToUid) return;
+    if (!byUser[t.assignedToUid]) byUser[t.assignedToUid] = { total: 0, done: 0 };
+    byUser[t.assignedToUid].total++;
+    if (t.status === 'done') byUser[t.assignedToUid].done++;
+  });
+  const ranked = staffInScope
+    .map(s => ({ ...s, weekTotal: byUser[s.id]?.total || 0, weekScore: byUser[s.id]?.total ? Math.round(byUser[s.id].done / byUser[s.id].total * 100) : null }))
+    .filter(s => s.weekTotal > 0)
+    .sort((a,b) => b.weekScore - a.weekScore)
+    .slice(0, 8);
+  const leaderboardList = document.getElementById('leaderboardList');
+  if (leaderboardList) leaderboardList.innerHTML = ranked.map((s, i) => {
+    const rankCls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const team = TEAMS[s.team] || TEAMS.all;
+    return `<div class="leaderboard-row">
+      <div class="rank-badge ${rankCls}">${i+1}</div>
+      <div class="lb-avatar">${initials(s.name)}</div>
+      <div class="lb-body">
+        <div class="lb-name">${escapeHTML(s.name)}</div>
+        <div class="lb-team" style="color:${team.color}">${team.label}</div>
+      </div>
+      <div class="lb-score">${s.weekScore}%</div>
+    </div>`;
+  }).join('') || emptyHTML('Chưa có dữ liệu task tuần này để xếp hạng');
+
+  const crossDone = crossTasks.filter(c => c.status === 'done').length;
+  const cpc = document.getElementById('crossPendingCount'); if (cpc) cpc.textContent = crossPending;
+  const cdn = document.getElementById('crossDoneNote'); if (cdn) cdn.textContent = `${crossDone} việc đã hoàn thành gần đây`;
+}
+// =============================================================
+//  PERSONNEL PAGE
+// =============================================================
+function updateLeaveBadge() {
+  const pendingCount = leaveRequests.filter(l => l.status === 'pending').length;
+  const badge = document.getElementById('leaveBadge');
+  if (badge) badge.textContent = pendingCount;
+}
+
+function renderPersonnelPage() {
+  updateLeaveBadge();
+  const activeFilter = document.querySelector('#personnelFilterRow .filter-chip.active')?.dataset.team || 'all';
+  const list = activeFilter === 'all' ? STAFF : STAFF.filter(s => s.team === activeFilter);
+  const role = window._state.profile?.role;
+  const canApprove = role === 'admin' || role === 'leader';
+
+  document.getElementById('personnelCount').textContent = `${list.length} nhân sự`;
+
+  const pending = leaveRequests.filter(l => l.status === 'pending');
+  const banner = document.getElementById('leaveBanner');
+  if (pending.length) {
+    banner.style.display = 'block';
+    banner.innerHTML = `<strong>📝 ${pending.length} yêu cầu xin nghỉ đang chờ duyệt:</strong><br>` +
+      pending.map(l => `
+        <span style="display:inline-flex;align-items:center;gap:6px;margin:4px 8px 0 0">
+          ${escapeHTML(l.staffName)} — ${l.date} (${l.span === '3+' ? 'hơn 2 ngày' : l.span + ' ngày'}${l.cover ? ', cover: '+escapeHTML(l.cover) : ''})
+          ${canApprove ? `<button class="task-btn" style="padding:2px 8px;font-size:11px" onclick="reviewLeave('${l.id}','approved')">Duyệt</button>
+          <button class="task-btn" style="padding:2px 8px;font-size:11px;color:var(--urgent)" onclick="reviewLeave('${l.id}','rejected')">Từ chối</button>` : ''}
+        </span>`).join('');
+  } else {
+    banner.style.display = 'none';
+  }
+
+  document.getElementById('personnelGrid').innerHTML = list.map(s => {
+    const team = TEAMS[s.team] || TEAMS.all;
+    return `<div class="person-card">
+      <div class="person-avatar">${initials(s.name)}</div>
+      <div class="person-body">
+        <div class="person-name">${escapeHTML(s.name)}</div>
+        <div class="person-role" style="color:${team.color}">${team.label}${s.email ? ' · ' + escapeHTML(s.email) : ''}</div>
+        <div class="person-tags">
+          <span class="role-chip ${s.role}">${ROLE_LABELS[s.role]||s.role}</span>
+          ${(s.branch||[]).map(b => `<span class="tag tag-team">${BRANCH_LABEL[b]||b}</span>`).join('')}
+          ${s.active === false ? '<span class="status-chip disabled">Đã khoá</span>' : ''}
+        </div>
+        <div class="person-actions">
+          <button class="task-btn" onclick="quickOpenLeave('${s.id}')">📝 Xin nghỉ</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="empty-icon">👥</div><h3>Chưa có nhân sự</h3><p>Vào "Quản lý tài khoản" (Admin) để tạo tài khoản đầu tiên.</p></div>`;
+}
+
+window.filterPersonnel = function(chip, team) {
+  document.querySelectorAll('#personnelFilterRow .filter-chip').forEach(c => { c.classList.remove('active'); delete c.dataset.team; });
+  chip.classList.add('active');
+  chip.dataset.team = team;
+  renderPersonnelPage();
+};
+
+window.quickOpenLeave = function(staffId) {
+  window.openLeaveModal();
+  setTimeout(() => { document.getElementById('leaveStaff').value = staffId; }, 30);
+};
+
+window.openLeaveModal = function() {
+  const sel = document.getElementById('leaveStaff');
+  sel.innerHTML = STAFF.map(s => `<option value="${s.id}">${escapeHTML(s.name)} — ${TEAMS[s.team]?.label||''}</option>`).join('');
+  // mặc định chọn chính mình nếu có trong danh sách
+  if (window._state.user && STAFF.some(s => s.id === window._state.user.uid)) {
+    sel.value = window._state.user.uid;
+  }
+  document.getElementById('leaveDate').value = fmt(today);
+  openModal('leaveModal');
+};
+
+window.saveLeaveRequest = async function() {
+  const staffId = document.getElementById('leaveStaff').value;
+  const staff = STAFF.find(s => s.id === staffId);
+  const date = document.getElementById('leaveDate').value;
+  if (!staff || !date) { showToast('Vui lòng chọn nhân sự và ngày nghỉ', 'error'); return; }
+
+  try {
+    await addDoc(collection(db, 'leaveRequests'), {
+      staffUid: staff.id,
+      staffName: staff.name,
+      date,
+      span: document.getElementById('leaveSpan').value,
+      reason: document.getElementById('leaveReason').value,
+      cover: document.getElementById('leaveCover').value,
+      status: 'pending',
+      requestedByUid: window._state.user.uid,
+      createdAt: serverTimestamp(),
+    });
+    closeModal('leaveModal');
+    showToast('📝 Đã gửi yêu cầu xin nghỉ — chờ Quản lý duyệt', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.reviewLeave = async function(id, status) {
+  try {
+    await updateDoc(doc(db, 'leaveRequests', id), { status });
+    showToast(status === 'approved' ? '✅ Đã duyệt nghỉ' : '❌ Đã từ chối', status === 'approved' ? 'success' : 'warn');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+// =============================================================
+//  BRANCH PAGE
+// =============================================================
+function renderBranchPage() {
+  const role = window._state.profile?.role;
+  const canEdit = role === 'admin';
+  document.getElementById('branchGrid').innerHTML = BRANCHES.map(b => {
+    const staffCount = STAFF.filter(s => (s.branch||[]).includes(b.id)).length;
+    const leaderCount = STAFF.filter(s => (s.branch||[]).includes(b.id) && s.role === 'leader').length;
+    return `<div class="branch-card">
+      <div class="branch-card-head">
+        <h3>${b.emoji||'🏠'} ${escapeHTML(b.name)}</h3>
+        ${canEdit ? `<button class="icon-btn" title="Sửa" onclick="editBranch('${b.id}')">✏️</button>` : ''}
+      </div>
+      <div class="branch-card-body">
+        <div class="branch-row"><span class="branch-icon">📍</span><span class="branch-label">Địa chỉ</span><span class="branch-val">${escapeHTML(b.address||'—')}</span></div>
+        <div class="branch-row"><span class="branch-icon">☎️</span><span class="branch-label">Hotline</span><span class="branch-val">${escapeHTML(b.hotline||'—')}</span></div>
+        <div class="branch-row"><span class="branch-icon">🏦</span><span class="branch-label">TK học phí</span><span class="branch-val">${escapeHTML(b.bankAccount||'—')}</span></div>
+        <div class="branch-row"><span class="branch-icon">👑</span><span class="branch-label">Phụ trách</span><span class="branch-val">${escapeHTML(b.manager||'—')}</span></div>
+        <div class="branch-stats">
+          <div class="branch-stat-pill"><div class="v">${staffCount}</div><div class="l">Nhân sự</div></div>
+          <div class="branch-stat-pill"><div class="v">${leaderCount}</div><div class="l">Leader</div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || emptyHTML('Chưa có dữ liệu cơ sở — Admin vào "Quản lý tài khoản" để nạp dữ liệu mẫu.');
+
+  document.getElementById('cleaningSchedule').innerHTML = BRANCHES.map(b =>
+    `<div class="info-row"><span class="dot"></span><strong>${escapeHTML(b.name)}:</strong>&nbsp;${escapeHTML(b.cleaning||'—')}</div>`
+  ).join('') || emptyHTML('—');
+}
+
+window.editBranch = async function(id) {
+  const b = BRANCHES.find(x => x.id === id);
+  if (!b) return;
+  const address = prompt('Địa chỉ:', b.address || '');
+  if (address === null) return;
+  const hotline = prompt('Hotline:', b.hotline || '');
+  if (hotline === null) return;
+  const bankAccount = prompt('Tài khoản học phí:', b.bankAccount || '');
+  if (bankAccount === null) return;
+  const manager = prompt('Phụ trách:', b.manager || '');
+  if (manager === null) return;
+  const cleaning = prompt('Lịch dọn vệ sinh:', b.cleaning || '');
+  if (cleaning === null) return;
+  try {
+    await setDoc(doc(db, 'branches', id), { ...b, address, hotline, bankAccount, manager, cleaning }, { merge: true });
+    showToast('✅ Đã lưu thông tin cơ sở', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+// =============================================================
+//  GENERATE THÁNG MỚI — sinh task thật từ template vào Firestore
+// =============================================================
+function monthOptionsHTML() {
+  let opts = '';
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    opts += `<option value="${val}">Tháng ${d.getMonth()+1} / ${d.getFullYear()}</option>`;
+  }
+  return opts;
+}
+
+function computeGenPlan(monthStr, selectedTeams, selectedBranches) {
+  if (!monthStr) return [];
+  const [y, m] = monthStr.split('-').map(Number);
+  const numDays = new Date(y, m, 0).getDate();
+  const weekdayKeys = ['cn','thu2','thu3','thu4','thu5','thu6','thu7'];
+  const plan = [];
+  for (let day = 1; day <= numDays; day++) {
+    const d = new Date(y, m - 1, day);
+    const dateStr = fmt(d);
+    const weekdayKey = weekdayKeys[d.getDay()];
+    templates.forEach(t => {
+      if (!(t.team === 'all' || selectedTeams.includes(t.team))) return;
+      let matches = false;
+      if (t.freq === 'daily') matches = true;
+      else if (t.freq === 'weekly') matches = t.schedule === weekdayKey;
+      else if (t.freq === 'monthly') matches = String(day) === String(t.schedule);
+      if (matches) selectedBranches.forEach(branch => plan.push({ dateStr, template: t, branch }));
+    });
+  }
+  return plan;
+}
+
+window.openGenerateModal = function() {
+  document.getElementById('genMonth').innerHTML = monthOptionsHTML();
+  window.updateGenCount();
+  openModal('generateModal');
+};
+
+window.updateGenCount = function() {
+  const monthStr = document.getElementById('genMonth')?.value;
+  const selectedTeams = [...document.querySelectorAll('#genTeamGroup input:checked')].map(i => i.dataset.team);
+  const selectedBranches = [...document.querySelectorAll('#genBranchGroup input:checked')].map(i => i.dataset.branch);
+  const plan = computeGenPlan(monthStr, selectedTeams, selectedBranches);
+  const el = document.getElementById('genCount');
+  if (el) el.textContent = plan.length;
+};
+
+window.confirmGenerate = async function() {
+  const monthStr = document.getElementById('genMonth').value;
+  const selectedTeams = [...document.querySelectorAll('#genTeamGroup input:checked')].map(i => i.dataset.team);
+  const selectedBranches = [...document.querySelectorAll('#genBranchGroup input:checked')].map(i => i.dataset.branch);
+  if (!selectedTeams.length || !selectedBranches.length) { showToast('Chọn ít nhất 1 đội và 1 cơ sở', 'error'); return; }
+
+  const plan = computeGenPlan(monthStr, selectedTeams, selectedBranches);
+  if (!plan.length) { showToast('Không có template phù hợp để generate', 'warn'); return; }
+
+  closeModal('generateModal');
+  showToast('⚡ Đang generate, vui lòng đợi...', 'default');
+
+  const [y, m] = monthStr.split('-').map(Number);
+  const monthStart = fmt(new Date(y, m - 1, 1));
+  const monthEnd = fmt(new Date(y, m, 0));
+
+  let existingKeys = new Set();
+  try {
+    const qExisting = query(collection(db, 'tasks'), where('deadline', '>=', monthStart), where('deadline', '<=', monthEnd));
+    const snap = await getDocs(qExisting);
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (data.templateId) existingKeys.add(`${data.templateId}|${data.deadline}|${data.branch}`);
+    });
+  } catch (e) { console.error(e); }
+
+  const toCreate = plan.filter(p => !existingKeys.has(`${p.template.id}|${p.dateStr}|${p.branch}`));
+  if (!toCreate.length) { showToast('Tất cả task tháng này đã được generate trước đó', 'default'); return; }
+
+  try {
+    let count = 0;
+    for (let i = 0; i < toCreate.length; i += 450) {
+      const chunk = toCreate.slice(i, i + 450);
+      const batch = writeBatch(db);
+      chunk.forEach(p => {
+        const ref = doc(collection(db, 'tasks'));
+        batch.set(ref, {
+          title: p.template.title,
+          team: p.template.team === 'all' ? '' : p.template.team,
+          freq: p.template.freq,
+          priority: p.template.priority,
+          status: 'pending',
+          assignedToUid: null,
+          assignedToName: p.template.assign === 'leader' ? '👑 Leader đội' : p.template.assign === 'staff' ? '👤 Staff đội' : 'Cả đội',
+          note: p.template.note || '',
+          deadline: p.dateStr,
+          report: null,
+          isCross: false,
+          isCarry: false,
+          branch: p.branch,
+          templateId: p.template.id,
+          createdAt: serverTimestamp(),
+        });
+        count++;
+      });
+      await batch.commit();
+    }
+    showToast(`✅ Đã generate ${count} task mới cho tháng ${m}/${y}!`, 'success');
+  } catch (e) {
+    showToast('Lỗi khi generate: ' + e.message, 'error');
+  }
+};
+// =============================================================
+//  PHASE 4: THỜI KHÓA BIỂU (Firestore-backed)
+// =============================================================
+function renderSchedulePage() {
+  const branchFilterEl = document.getElementById('schedBranchFilter');
+  const dayFilterEl = document.getElementById('schedDayFilter');
+  const searchEl = document.getElementById('schedSearch');
+  if (!branchFilterEl) return;
+  const branch = branchFilterEl.value;
+  const day = dayFilterEl.value;
+  const kw = (searchEl.value || '').trim().toLowerCase();
+
+  let list = schedules.filter(s =>
+    (branch === 'all' || s.branch === branch) &&
+    (day === 'all' || s.day === day) &&
+    (!kw || (s.className||'').toLowerCase().includes(kw) || (s.teacherDisplay||'').toLowerCase().includes(kw))
+  );
+
+  const days = day === 'all' ? ['t2','t3','t4','t5','t6','t7','cn'] : [day];
+  const rooms = [...new Set(list.map(s => s.room))].sort();
+
+  let html = '<thead><tr><th class="sched-room-col">Phòng</th>' +
+    days.map(d => `<th>${DAY_LABEL[d]}</th>`).join('') + '</tr></thead><tbody>';
+
+  if (!rooms.length) {
+    html += `<tr><td colspan="${days.length+1}" class="sched-empty-cell">Không có lịch học phù hợp</td></tr>`;
+  } else {
+    rooms.forEach(room => {
+      html += `<tr><td class="sched-room-col">${escapeHTML(room)}</td>`;
+      days.forEach(d => {
+        const slots = list.filter(s => s.room === room && s.day === d);
+        html += '<td>' + (slots.length
+          ? slots.map(s => `
+              <div class="sched-slot" style="background:${s.color}" onclick="openScheduleModal('${s.id}')">
+                <b>${escapeHTML(s.className)}</b>
+                <span>${escapeHTML(s.teacherDisplay||'')}</span>
+                <div class="sched-teacher">(${escapeHTML(s.teacherReal||'')})</div>
+                <div class="sched-teacher">${escapeHTML(s.time||'')}</div>
+              </div>`).join('')
+          : '<div class="sched-empty-cell">—</div>') + '</td>';
+      });
+      html += '</tr>';
+    });
+  }
+  html += '</tbody>';
+  document.getElementById('schedTable').innerHTML = html;
+}
+
+window.openScheduleModal = function(id) {
+  const role = window._state.profile?.role;
+  if (role !== 'admin' && role !== 'leader') { showToast('Chỉ Admin/Leader được chỉnh thời khóa biểu', 'warn'); return; }
+  editingScheduleId = id || null;
+  document.getElementById('schedModalTitle').textContent = id ? 'Sửa lịch học' : 'Thêm lịch học';
+  document.getElementById('schedDeleteBtn').style.display = id ? 'inline-block' : 'none';
+
+  const colorPicker = document.getElementById('schedColorPicker');
+  colorPicker.innerHTML = SCHED_COLORS.map(c =>
+    `<span class="sched-color-swatch" style="background:${c}" onclick="pickSchedColor('${c}', this)"></span>`
+  ).join(' ');
+
+  const s = id ? schedules.find(x => x.id === id) : null;
+  document.getElementById('schedBranch').value = s ? s.branch : 'tk';
+  document.getElementById('schedRoom').value = s ? s.room : '';
+  document.getElementById('schedDay').value = s ? s.day : 't2';
+  document.getElementById('schedClass').value = s ? s.className : '';
+  document.getElementById('schedTeacherDisplay').value = s ? s.teacherDisplay : '';
+  document.getElementById('schedTeacherReal').value = s ? s.teacherReal : '';
+  document.getElementById('schedTime').value = s ? s.time : '';
+  window.pickSchedColor(s ? s.color : SCHED_COLORS[0]);
+
+  openModal('scheduleModal');
+};
+
+window.pickSchedColor = function(color, el) {
+  document.getElementById('schedColorPicker').dataset.color = color;
+  document.querySelectorAll('.sched-color-swatch').forEach(sw => sw.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    const target = [...document.querySelectorAll('.sched-color-swatch')].find(sw => sw.style.backgroundColor === hexToRgbStr(color));
+    if (target) target.classList.add('active');
+  }
+};
+function hexToRgbStr(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+window.saveScheduleSlot = async function() {
+  const data = {
+    branch: document.getElementById('schedBranch').value,
+    room: document.getElementById('schedRoom').value.trim(),
+    day: document.getElementById('schedDay').value,
+    className: document.getElementById('schedClass').value.trim(),
+    teacherDisplay: document.getElementById('schedTeacherDisplay').value.trim(),
+    teacherReal: document.getElementById('schedTeacherReal').value.trim(),
+    time: document.getElementById('schedTime').value.trim(),
+    color: document.getElementById('schedColorPicker').dataset.color || SCHED_COLORS[0],
+  };
+  if (!data.room || !data.className) { showToast('⚠️ Nhập Phòng và Tên lớp', 'warn'); return; }
+
+  try {
+    if (editingScheduleId) {
+      await updateDoc(doc(db, 'schedules', editingScheduleId), data);
+      showToast('Đã lưu thay đổi lịch học ✅', 'success');
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(db, 'schedules'), data);
+      showToast('Đã thêm lịch học mới ✅', 'success');
+    }
+    closeModal('scheduleModal');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.deleteScheduleSlot = async function() {
+  if (!editingScheduleId) return;
+  if (!confirm('Xoá lịch học này?')) return;
+  try {
+    await deleteDoc(doc(db, 'schedules', editingScheduleId));
+    closeModal('scheduleModal');
+    showToast('Đã xoá 🗑️', 'warn');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+// =============================================================
+//  PHASE 5: SỰ KIỆN (Firestore-backed)
+// =============================================================
+function eventStatus(ev) {
+  const d = new Date(); d.setHours(0,0,0,0);
+  const evDate = new Date(ev.date);
+  const steps = ev.steps || [];
+  const doneCount = steps.filter(s => s.done).length;
+  if (doneCount === steps.length && steps.length) return 'done';
+  if (evDate < d) return 'done';
+  if (doneCount > 0) return 'ongoing';
+  return 'upcoming';
+}
+const EVENT_STATUS_LABEL = { upcoming:'Sắp diễn ra', ongoing:'Đang chạy', done:'Hoàn thành' };
+
+function renderEventsPage() {
+  const badge = document.getElementById('eventBadge');
+  if (badge) badge.textContent = events.filter(e => eventStatus(e) !== 'done').length;
+  const grid = document.getElementById('eventGrid');
+  if (!grid) return;
+  grid.innerHTML = events.map(ev => {
+    const status = eventStatus(ev);
+    const steps = ev.steps || [];
+    const doneCount = steps.filter(s => s.done).length;
+    const pct = steps.length ? Math.round(doneCount / steps.length * 100) : 0;
+    return `
+    <div class="event-card">
+      <div class="event-card-head">
+        <h3>${escapeHTML(ev.name)}</h3>
+        <span class="event-status ${status}">${EVENT_STATUS_LABEL[status]}</span>
+      </div>
+      <div class="event-meta">
+        📍 ${ev.branch === 'all' ? 'Cả 3 cơ sở' : (BRANCH_LABEL[ev.branch] || ev.branch)} · 📅 ${formatDateVI(new Date(ev.date))}
+        ${ev.note ? `<br>${escapeHTML(ev.note)}` : ''}
+      </div>
+      <div class="event-progress-wrap"><div class="event-progress-bar" style="width:${pct}%"></div></div>
+      <div class="event-progress-label">${doneCount}/${steps.length} bước hoàn thành (${pct}%)</div>
+      <button class="btn btn-ghost" style="width:100%" onclick="toggleEventTimeline('${ev.id}')">Xem timeline ▾</button>
+      <div class="event-timeline" id="timeline-${ev.id}">
+        ${steps.map((s, idx) => `
+          <div class="event-step ${s.done ? 'done-step' : ''}">
+            <div class="event-step-check ${s.done ? 'checked' : ''}" onclick="toggleEventStep('${ev.id}', ${idx})"></div>
+            <div class="event-step-date">${escapeHTML(s.date||'')}</div>
+            <span>${escapeHTML(s.label||'')}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-muted)">Chưa có sự kiện nào.</p>';
+}
+
+window.toggleEventTimeline = function(id) {
+  document.getElementById('timeline-' + id)?.classList.toggle('open');
+};
+
+window.toggleEventStep = async function(eventId, stepIdx) {
+  const ev = events.find(e => e.id === eventId);
+  if (!ev) return;
+  const steps = [...(ev.steps || [])];
+  steps[stepIdx] = { ...steps[stepIdx], done: !steps[stepIdx].done };
+  try {
+    await updateDoc(doc(db, 'events', eventId), { steps });
+    setTimeout(() => document.getElementById('timeline-' + eventId)?.classList.add('open'), 50);
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.openEventModal = function() {
+  document.getElementById('evName').value = '';
+  document.getElementById('evBranch').value = 'all';
+  document.getElementById('evDate').value = '';
+  document.getElementById('evNote').value = '';
+  document.getElementById('evSteps').value = '';
+  openModal('eventModal');
+};
+
+window.saveEvent = async function() {
+  const name = document.getElementById('evName').value.trim();
+  const date = document.getElementById('evDate').value;
+  if (!name || !date) { showToast('⚠️ Nhập Tên sự kiện và Ngày diễn ra', 'warn'); return; }
+
+  const rawSteps = document.getElementById('evSteps').value.trim();
+  const steps = rawSteps ? rawSteps.split('\n').filter(Boolean).map(line => {
+    const [d, ...rest] = line.split('|');
+    return { date: (d || '').trim(), label: rest.join('|').trim() || (d || '').trim(), done: false };
+  }) : [];
+
+  try {
+    await addDoc(collection(db, 'events'), {
+      name, date,
+      branch: document.getElementById('evBranch').value,
+      note: document.getElementById('evNote').value.trim(),
+      steps,
+      createdAt: serverTimestamp(),
+    });
+    closeModal('eventModal');
+    showToast('Đã thêm sự kiện mới 🎉', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+// =============================================================
+//  ADMIN — QUẢN LÝ TÀI KHOẢN
+// =============================================================
+function renderUsersPage() {
+  const tbody = document.getElementById('usersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = STAFF.map(u => `<tr>
+    <td><strong>${escapeHTML(u.name)}</strong></td>
+    <td style="color:var(--text-muted);font-size:12px">${escapeHTML(u.email||'')}</td>
+    <td><span class="role-chip ${u.role}">${ROLE_LABELS[u.role]||u.role}</span></td>
+    <td>${u.team ? (TEAMS[u.team]?.label||u.team) : '—'}</td>
+    <td>${(u.branch||[]).map(b=>BRANCH_LABEL[b]||b).join(', ')||'—'}</td>
+    <td><span class="status-chip ${u.active===false?'disabled':'active'}">${u.active===false?'Đã khoá':'Hoạt động'}</span></td>
+    <td><button class="icon-btn" title="Sửa" onclick="openAddUserModal('${u.id}')">✏️</button></td>
+  </tr>`).join('') || `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🔐</div><h3>Chưa có tài khoản nào</h3><p>Bấm "+ Tạo tài khoản" để bắt đầu.</p></div></td></tr>`;
+}
+
+window.openAddUserModal = function(id) {
+  editingUserId = id || null;
+  const u = id ? STAFF.find(s => s.id === id) : null;
+  document.getElementById('userModalTitle').textContent = id ? '✏️ Sửa tài khoản' : '+ Tạo tài khoản nhân sự';
+  document.getElementById('newUserName').value = u ? u.name : '';
+  document.getElementById('newUserEmail').value = u ? (u.email || '') : '';
+  document.getElementById('newUserEmail').disabled = !!id;
+  document.getElementById('newUserPasswordGroup').style.display = id ? 'none' : 'block';
+  document.getElementById('newUserPassword').value = '';
+  document.getElementById('newUserRole').value = u ? u.role : 'staff';
+  document.getElementById('newUserTeam').value = u ? (u.team || '') : '';
+  const branchSel = document.getElementById('newUserBranch');
+  [...branchSel.options].forEach(o => { o.selected = u ? (u.branch || []).includes(o.value) : false; });
+  const delBtn = document.getElementById('userDeleteBtn');
+  delBtn.style.display = id ? 'inline-block' : 'none';
+  delBtn.textContent = (u && u.active === false) ? '🔓 Mở khoá tài khoản' : '🔒 Khoá tài khoản';
+  document.getElementById('userSaveBtn').textContent = id ? 'Lưu thay đổi' : 'Tạo tài khoản';
+  openModal('addUserModal');
+};
+
+window.submitAddUser = async function() {
+  const name = document.getElementById('newUserName').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim();
+  const role = document.getElementById('newUserRole').value;
+  const team = document.getElementById('newUserTeam').value;
+  const branch = [...document.getElementById('newUserBranch').selectedOptions].map(o => o.value);
+  if (!name || !email) { showToast('Điền đầy đủ Họ tên và Email', 'error'); return; }
+
+  if (editingUserId) {
+    try {
+      await updateDoc(doc(db, 'users', editingUserId), { name, role, team, branch });
+      showToast('✅ Đã lưu thay đổi', 'success');
+      closeModal('addUserModal');
+    } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+    return;
+  }
+
+  const password = document.getElementById('newUserPassword').value;
+  if (!password || password.length < 6) { showToast('Mật khẩu tối thiểu 6 ký tự', 'error'); return; }
+
+  try {
+    // Tạo bằng app phụ (secondaryAuth) để KHÔNG làm mất phiên đăng nhập Admin hiện tại
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      name, email, role, team, branch, active: true, createdAt: serverTimestamp(),
+    });
+    await signOut(secondaryAuth);
+    showToast(`✅ Đã tạo tài khoản cho ${name}! Gửi email + mật khẩu này cho họ.`, 'success');
+    closeModal('addUserModal');
+  } catch (e) {
+    showToast('Lỗi tạo tài khoản: ' + e.message, 'error');
+  }
+};
+
+window.disableUser = async function() {
+  if (!editingUserId) return;
+  const u = STAFF.find(s => s.id === editingUserId);
+  const nextActive = (u && u.active === false) ? true : false;
+  if (window._state.user.uid === editingUserId && !nextActive) {
+    showToast('Không thể tự khoá tài khoản của chính mình', 'error'); return;
+  }
+  try {
+    await updateDoc(doc(db, 'users', editingUserId), { active: nextActive });
+    showToast(nextActive ? 'Đã mở khoá tài khoản' : 'Đã khoá tài khoản', nextActive ? 'success' : 'warn');
+    closeModal('addUserModal');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+// =============================================================
+//  NẠP DỮ LIỆU MẪU (templates + cơ sở + ví dụ TKB/sự kiện)
+//  — chỉ ghi dữ liệu KHÔNG cần tài khoản đăng nhập thật,
+//  KHÔNG tự tạo tài khoản nhân sự giả — admin tạo tài khoản
+//  thật cho từng người ở mục "+ Tạo tài khoản".
+// =============================================================
+window.seedSampleData = async function() {
+  if (!confirm('Nạp dữ liệu mẫu (template công việc, thông tin 3 cơ sở, vài lịch học & sự kiện ví dụ)?\nDữ liệu hiện có sẽ KHÔNG bị xoá, chỉ thêm mới.')) return;
+  showToast('Đang nạp dữ liệu mẫu...', 'default');
+
+  const sampleTemplates = [
+    { title:'Kiểm tra tin nhắn, báo cáo trao đổi gấp', team:'cskh', freq:'daily', schedule:'', priority:'urgent', assign:'all', note:'Check FB + Zalo nhóm lớp. Trả lời tin nhắn chưa phản hồi.' },
+    { title:'Giao bài tập về nhà cho học sinh', team:'chuyenmon', freq:'daily', schedule:'', priority:'normal', assign:'staff', note:'Kiểm tra GV đã giao BTVN và phiếu chấm chưa.' },
+    { title:'Check CVPS (công việc phát sinh)', team:'all', freq:'daily', schedule:'', priority:'normal', assign:'all', note:'Xem bài đăng FB, confirm thả tim thông báo nhóm.' },
+    { title:'Chấm KPI giáo viên', team:'vanhanh', freq:'weekly', schedule:'thu2', priority:'normal', assign:'all', note:'Ghi Ms nào cover Ms nào, lý do 0đ.' },
+    { title:'Xin danh sách ôn bài trợ giảng (gửi trước 19h CN)', team:'cskh', freq:'weekly', schedule:'cn', priority:'normal', assign:'staff', note:'Nhắn PH danh sách học sinh ôn bài tuần này.' },
+    { title:'Mùng 3-4 hàng tháng: Chấm KPI Giáo viên', team:'vanhanh', freq:'monthly', schedule:'3', priority:'urgent', assign:'leader', note:'Hoàn thành trước ngày 5 hàng tháng.' },
+    { title:'Ngày 15 gửi báo cáo học sinh nghỉ học + tiến độ xử lý', team:'cskh', freq:'monthly', schedule:'15', priority:'normal', assign:'leader', note:'Báo trên nhóm CSKH. Tag chuyên môn.' },
+    { title:'Cuối tháng tạo tab checklist tháng mới', team:'cskh', freq:'monthly', schedule:'29', priority:'normal', assign:'leader', note:'Tạo tab mới trong Google Sheet checklist.' },
+    { title:'Cập nhật danh sách HS mới, chuyển lớp, nghỉ hẳn', team:'vanhanh', freq:'weekly', schedule:'thu3', priority:'normal', assign:'all', note:'Cập nhật web đổi quà.' },
+    { title:'Gửi nhận xét tháng cho phụ huynh', team:'cskh', freq:'monthly', schedule:'1', priority:'normal', assign:'all', note:'Chỉ gửi nhận xét có chữ CHECKED từ chuyên môn.' },
+    { title:'Kiểm tra báo cáo trợ giảng hàng tuần', team:'chuyenmon', freq:'weekly', schedule:'thu2', priority:'normal', assign:'leader', note:'Chia các lớp từng tuần để check.' },
+    { title:"Điểm danh + gọi hs chưa đến", team:'vanhanh', freq:'daily', schedule:'', priority:'urgent', assign:'all', note:"Gọi 2 lần, cách nhau 5 phút." },
+  ];
+
+  const sampleBranches = [
+    { id:'th', name:'Lime Trung Hòa', emoji:'🏠', address:'Số 11, lô 1E, đường Trung Yên 11C', hotline:'0976222792', bankAccount:'BIDV 8887068872 — Lê Thị Nga', cleaning:'Ngày 10, 20, 30 hàng tháng', manager:'' },
+    { id:'tk', name:'Lime Trung Kính', emoji:'🏠', address:'Đang cập nhật địa chỉ chi tiết', hotline:'—', bankAccount:'Theo sao kê chung', cleaning:'Thứ 3 hàng tuần', manager:'' },
+    { id:'md', name:'Lime Mỹ Đình', emoji:'🏠', address:'Đang cập nhật địa chỉ chi tiết', hotline:'0396121145', bankAccount:'BIDV 12310000933581', cleaning:'Theo lịch giáo vụ cơ sở', manager:'' },
+  ];
+
+  const sampleSchedules = [
+    { branch:'md', room:'301', day:'t2', className:'BI0F', teacherDisplay:'Ms Rosie', teacherReal:'', time:'18:00-20:00', color: SCHED_COLORS[2] },
+    { branch:'md', room:'101', day:'t3', className:'BI1D', teacherDisplay:'Ms Mia', teacherReal:'', time:'18:15-20:15', color: SCHED_COLORS[1] },
+  ];
+
+  const sampleEvents = [
+    { name:'Sự kiện KidZania', branch:'all', date: fmt(new Date(today.getFullYear(), today.getMonth()+1, 5)), note:'Ví dụ — sửa hoặc xoá sau khi xem.',
+      steps:[ { date:'B1', label:'Thông báo lên nhóm lớp', done:false }, { date:'B2', label:'Chốt danh sách', done:false } ] },
+  ];
+
+  try {
+    const batch = writeBatch(db);
+    sampleTemplates.forEach(t => batch.set(doc(collection(db,'templates')), { ...t, createdAt: serverTimestamp() }));
+    sampleBranches.forEach(b => batch.set(doc(db, 'branches', b.id), b, { merge: true }));
+    sampleSchedules.forEach(s => batch.set(doc(collection(db,'schedules')), { ...s, createdAt: serverTimestamp() }));
+    sampleEvents.forEach(ev => batch.set(doc(collection(db,'events')), { ...ev, createdAt: serverTimestamp() }));
+    await batch.commit();
+    showToast('✅ Đã nạp dữ liệu mẫu!', 'success');
+  } catch (e) {
+    showToast('Lỗi nạp dữ liệu mẫu: ' + e.message, 'error');
+  }
+};
+// =============================================================
+//  MODAL: đóng khi click ra ngoài
+// =============================================================
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// =============================================================
+//  CHECKBOX CHIPS (generate modal — đội / cơ sở)
+// =============================================================
+document.querySelectorAll('.checkbox-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    this.classList.toggle('selected');
+    const input = this.querySelector('input');
+    if (input) input.checked = this.classList.contains('selected');
+    if (this.closest('#genTeamGroup') || this.closest('#genBranchGroup')) {
+      window.updateGenCount();
+    }
+  });
+});
+
+// =============================================================
+//  PHƠI RA WINDOW — các hàm được gọi trực tiếp từ thuộc tính
+//  onclick/onchange/oninput trong HTML tĩnh nhưng được khai báo
+//  dạng "function ten(){}" thường (không phải window.ten = ...)
+// =============================================================
+window.renderReportPage = renderReportPage;
+window.renderSchedulePage = renderSchedulePage;
+window.renderTemplateTable = renderTemplateTable;
+window.closeModal = closeModal;
+window.openModal = openModal;
+
+// =============================================================
+//  INIT
+// =============================================================
+updateDateDisplay();
+</script>
+</body>
+</html>
