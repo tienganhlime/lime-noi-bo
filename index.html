@@ -2185,9 +2185,9 @@ select.field-input {
 // =============================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail,
+   getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail,
   onAuthStateChanged, updatePassword, createUserWithEmailAndPassword,
-  setPersistence, browserLocalPersistence
+  setPersistence, browserLocalPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
@@ -2210,6 +2210,7 @@ const firebaseConfig = {
   measurementId: "G-Q0FGVKB357"
 }; 
 
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -2219,6 +2220,7 @@ const db = getFirestore(app);
 // phía client — xem ghi chú cuối file hướng dẫn).
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
+setPersistence(secondaryAuth, inMemoryPersistence).catch(() => {});
 
 // =============================================================
 //  GLOBAL STATE
