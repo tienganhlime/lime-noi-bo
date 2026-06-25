@@ -1165,56 +1165,60 @@ select.field-input {
   </div>
 
   <div class="sidebar-nav">
+    <!-- ── CÔNG VIỆC ── visible to all roles based on data-roles -->
     <div class="nav-section-label">Công việc</div>
     <button class="nav-item active" data-page="today" onclick="showPage('today')">
       <span class="nav-icon">📋</span> Hôm nay
       <span class="badge" id="todayBadge">0</span>
     </button>
-    <button class="nav-item" data-page="template" data-roles="admin,leader" onclick="showPage('template')">
-      <span class="nav-icon">⚙️</span> Template gốc
-    </button>
-    <button class="nav-item" data-page="addTask" data-roles="admin,leader,staff" onclick="showPage('addTask')">
-      <span class="nav-icon">➕</span> Thêm việc đột xuất
+    <button class="nav-item" data-page="addTask" onclick="showPage('addTask')">
+      <span class="nav-icon">➕</span> Thêm / Giao việc
     </button>
     <button class="nav-item" data-page="carryover" onclick="showPage('carryover')">
       <span class="nav-icon">🔄</span> Việc tồn
       <span class="badge" id="carryBadge" style="background: var(--carry)">0</span>
     </button>
 
+    <!-- ── ĐỘI NHÓM ── -->
     <div class="nav-section-label">Đội nhóm</div>
-    <button class="nav-item" data-page="crossTask" data-roles="admin,leader,staff" onclick="showPage('crossTask')">
-      <span class="nav-icon">🔀</span> Giao việc chéo đội
-    </button>
-    <button class="nav-item" data-page="report" onclick="showPage('report')">
-      <span class="nav-icon">📊</span> Báo cáo đội
-    </button>
-    <button class="nav-item" data-page="leaderCheck" data-roles="admin,leader" onclick="showPage('leaderCheck')">
-      <span class="nav-icon">🔍</span> Leader cần duyệt
-      <span class="badge" id="leaderCheckBadge" style="background: var(--urgent);display:none">0</span>
-    </button>
     <button class="nav-item" data-page="checklist" onclick="showPage('checklist')">
       <span class="nav-icon">✅</span> Checklist đội
       <span class="badge" id="checklistBadge" style="background:var(--lime-green);display:none">0</span>
     </button>
+    <button class="nav-item" data-page="report" onclick="showPage('report')">
+      <span class="nav-icon">📊</span> Báo cáo đội
+    </button>
+    <button class="nav-item" data-page="crossTask" data-roles="admin,leader,staff" onclick="showPage('crossTask')" style="display:none">
+      <span class="nav-icon">🔀</span> Giao việc chéo đội
+    </button>
 
-    <div class="nav-section-label">Quản lý</div>
-    <button class="nav-item" data-page="schedule" onclick="showPage('schedule')">
-      <span class="nav-icon">📅</span> Thời khóa biểu
+    <!-- ── LEADER & ADMIN ONLY ── -->
+    <div class="nav-section-label" data-roles="admin,leader">Quản lý đội</div>
+    <button class="nav-item" data-page="leaderCheck" data-roles="admin,leader" onclick="showPage('leaderCheck')">
+      <span class="nav-icon">🔍</span> Cần duyệt
+      <span class="badge" id="leaderCheckBadge" style="background: var(--urgent);display:none">0</span>
     </button>
-    <button class="nav-item" data-page="events" onclick="showPage('events')">
-      <span class="nav-icon">🎉</span> Sự kiện
-      <span class="badge" id="eventBadge" style="background: var(--lime-green)">0</span>
+    <button class="nav-item" data-page="template" data-roles="admin,leader" onclick="showPage('template')">
+      <span class="nav-icon">⚙️</span> Template gốc
     </button>
-    <button class="nav-item" data-page="personnel" onclick="showPage('personnel')">
+    <button class="nav-item" data-page="personnel" data-roles="admin,leader" onclick="showPage('personnel')">
       <span class="nav-icon">👥</span> Nhân sự
       <span class="badge" id="leaveBadge" style="background: var(--warn)">0</span>
     </button>
-    <button class="nav-item" data-page="branch" onclick="showPage('branch')">
-      <span class="nav-icon">🏢</span> Cơ sở
+    <button class="nav-item" data-page="schedule" data-roles="admin,leader" onclick="showPage('schedule')">
+      <span class="nav-icon">📅</span> Thời khóa biểu
+    </button>
+    <button class="nav-item" data-page="events" data-roles="admin,leader" onclick="showPage('events')">
+      <span class="nav-icon">🎉</span> Sự kiện
+      <span class="badge" id="eventBadge" style="background: var(--lime-green)">0</span>
     </button>
 
-    <div class="nav-section-label" data-roles="admin,leader">Hệ thống</div>
-    <button class="nav-item" data-page="makeup" data-roles="admin,leader,staff" onclick="showPage('makeup')">
+    <!-- ── ADMIN ONLY ── -->
+    <div class="nav-section-label" data-roles="admin">Hệ thống</div>
+    <button class="nav-item" data-page="branch" data-roles="admin" onclick="showPage('branch')">
+      <span class="nav-icon">🏢</span> Cơ sở
+    </button>
+    <button class="nav-item" data-page="makeup" data-roles="admin,leader" onclick="showPage('makeup')">
       <span class="nav-icon">📚</span> Form bù bài
       <span class="badge" id="makeupBadge" style="background:var(--warn);display:none">0</span>
     </button>
@@ -1429,8 +1433,8 @@ select.field-input {
     <div class="page" id="page-addTask">
       <div class="template-header">
         <div class="template-header-left">
-          <h2>➕ Thêm việc đột xuất</h2>
-          <p>Thêm công việc ngoài checklist cố định — cá nhân hoặc cho cả đội</p>
+          <h2 id="addTaskPageTitle">➕ Thêm / Giao việc</h2>
+          <p>Việc đột xuất cá nhân, giao cho đội mình, hoặc giao chéo sang đội khác</p>
         </div>
       </div>
 
@@ -1454,26 +1458,43 @@ select.field-input {
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-          <div class="field-group">
-            <label class="field-label">Giao cho đội</label>
-            <select class="field-input" id="adhocTeam">
-              <option value="">— Cá nhân (chỉ mình) —</option>
-              <option value="cskh">CSKH</option>
-              <option value="chuyenmon">Chuyên môn</option>
-              <option value="trogiangHT">Trợ giảng</option>
-              <option value="vanhanh">Vận hành</option>
-              <option value="tuyensinh">Tuyển sinh</option>
-              <option value="marketing">Marketing</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label class="field-label">Giao cho người</label>
-            <select class="field-input" id="adhocAssign">
-              <option value="">Cả đội</option>
-              <option value="me">Chỉ mình tôi</option>
-              <option value="specific">Người cụ thể...</option>
-            </select>
+        <!-- Recipient: this team / other team / specific person -->
+        <div class="field-group" style="margin-bottom:14px">
+          <label class="field-label">Giao cho ai?</label>
+          <select class="field-input" id="adhocRecipientType" onchange="updateAdhocRecipient()">
+            <option value="self">👤 Chỉ mình tôi</option>
+            <option value="myteam">👥 Cả đội tôi</option>
+            <option value="person">🔍 Người cụ thể (cùng đội)</option>
+            <option value="cross">🔀 Đội khác (giao chéo)</option>
+          </select>
+        </div>
+
+        <!-- Person picker (same team) -->
+        <div class="field-group" id="adhocPersonWrap" style="display:none;margin-bottom:14px">
+          <label class="field-label">Chọn người</label>
+          <select class="field-input" id="adhocPersonSelect"></select>
+        </div>
+
+        <!-- Cross team picker -->
+        <div id="adhocCrossWrap" style="display:none;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field-group">
+              <label class="field-label">Đội nhận *</label>
+              <select class="field-input" id="adhocCrossTeam">
+                <option value="cskh">CSKH</option>
+                <option value="chuyenmon">Chuyên môn</option>
+                <option value="trogiangHT">Trợ giảng</option>
+                <option value="vanhanh">Vận hành</option>
+                <option value="tuyensinh">Tuyển sinh</option>
+                <option value="marketing">Marketing</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Người nhận (tùy chọn)</label>
+              <select class="field-input" id="adhocCrossPerson">
+                <option value="">— Cả đội —</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -1485,16 +1506,6 @@ select.field-input {
         <div class="field-group" style="margin-bottom:14px">
           <label class="field-label">Link tài liệu (Google Drive, Sheet...)</label>
           <input class="field-input" type="url" id="adhocLink" placeholder="https://docs.google.com/...">
-        </div>
-
-        <div class="field-group" style="margin-bottom:20px">
-          <label class="field-label">Lặp lại?</label>
-          <select class="field-input" id="adhocRepeat">
-            <option value="none">Không lặp</option>
-            <option value="daily">Hàng ngày</option>
-            <option value="weekly">Hàng tuần</option>
-            <option value="monthly">Hàng tháng</option>
-          </select>
         </div>
 
         <div class="field-group" style="margin-bottom:20px;display:flex;align-items:center;gap:8px;flex-direction:row">
@@ -2800,6 +2811,13 @@ window.showPage = function(id) {
   if (id === 'events') renderEventsPage();
   if (id === 'admin') renderUsersPage();
   if (id === 'today') renderTodayPage();
+  if (id === 'addTask') {
+    const d = document.getElementById('adhocDate');
+    if (d && !d.value) d.value = fmt(today);
+    // Reset recipient selector and hide sub-panels
+    const rt = document.getElementById('adhocRecipientType');
+    if (rt) { rt.value = 'self'; updateAdhocRecipient(); }
+  }
   if (id === 'makeup') renderMakeupPage();
 }
 
@@ -2957,6 +2975,33 @@ async function createNotification({ toUid = null, toTeam = null, title, taskId =
   } catch (e) { console.error('Lỗi tạo thông báo:', e); }
 }
 
+
+// ── Notification sound ──
+function playNotifSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Two-tone ding: 880Hz then 1100Hz
+    [880, 1100].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
+      gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + i * 0.12 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.25);
+      osc.start(ctx.currentTime + i * 0.12);
+      osc.stop(ctx.currentTime + i * 0.12 + 0.25);
+    });
+  } catch(e) { /* audio not available */ }
+}
+let _lastNotifCount = 0;
+function checkNewNotifs() {
+  const unread = (window._notifications || []).filter(n => !n.read).length;
+  if (unread > _lastNotifCount) playNotifSound();
+  _lastNotifCount = unread;
+}
+
 window.toggleNotifPanel = function() {
   const panel = document.getElementById('notifPanel');
   if (!panel) return;
@@ -2989,6 +3034,7 @@ function timeAgoVI(ts) {
 }
 
 function renderNotifPanel() {
+  checkNewNotifs();
   const list = document.getElementById('notifList');
   if (!list) return;
   const notifs = window._notifications || [];
@@ -3079,17 +3125,38 @@ function updateBadges() {
 function renderTodayPage() {
   const dateStr = fmt(currentDate);
 
-  const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr);
-  const regularTasks = tasks.filter(t => t.priority !== 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr);
-  const carryTasks = tasks.filter(t => t.isCarry && t.status !== 'done');
-  const doneTasks = tasks.filter(t => t.status === 'done' && t.deadline === dateStr);
+  // Team scope: non-admin users only see tasks for their own team or assigned to them
+  const myTeamId = window._state.profile?.team;
+  const myUid    = window._state.user?.uid;
+  const myEmail  = window._state.profile?.email;
+  const isAdmin  = window._state.profile?.role === 'admin';
+
+  function myTask(t) {
+    if (isAdmin) return true;
+    // Show if assigned directly to me
+    if (t.assignedToUid === myUid || t.assignedEmail === myEmail) return true;
+    // Show if it belongs to my team (and not assigned to someone else specifically)
+    if (t.team === myTeamId) {
+      if (!t.assignedToUid && !t.assignedEmail) return true; // unassigned = whole team
+      if (t.assignedToUid === myUid || t.assignedEmail === myEmail) return true;
+      // Leaders see all team tasks
+      const role = window._state.profile?.role;
+      if (role === 'leader') return true;
+    }
+    return false;
+  }
+
+  const urgentTasks  = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr && myTask(t));
+  const regularTasks = tasks.filter(t => t.priority !== 'urgent' && t.status !== 'done' && !t.isCarry && t.deadline === dateStr && myTask(t));
+  const carryTasks   = tasks.filter(t => t.isCarry && t.status !== 'done' && myTask(t));
+  const doneTasks    = tasks.filter(t => t.status === 'done' && t.deadline === dateStr && myTask(t));
 
   document.getElementById('urgentList').innerHTML = urgentTasks.map(taskHTML).join('') || emptyHTML('Không có việc gấp 🎉');
   document.getElementById('regularList').innerHTML = regularTasks.map(taskHTML).join('') || emptyHTML('Không có việc thêm');
   document.getElementById('carryList').innerHTML = carryTasks.map(taskHTML).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Không có việc tồn ✅</div>';
   document.getElementById('doneList').innerHTML = doneTasks.map(taskHTML).join('');
 
-  const allToday = tasks.filter(t => t.deadline === dateStr || t.isCarry);
+  const allToday = tasks.filter(t => (t.deadline === dateStr || t.isCarry) && myTask(t));
   const doneCount = allToday.filter(t => t.status === 'done').length;
   const total = allToday.length;
   const pct = total ? Math.round(doneCount/total*100) : 0;
@@ -3603,36 +3670,133 @@ window.saveQuickTask = async function() {
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
 
+
+// ── Unified addTask JS (Fix 2) ──
+window.updateAdhocRecipient = function() {
+  const type = document.getElementById('adhocRecipientType').value;
+  const personWrap = document.getElementById('adhocPersonWrap');
+  const crossWrap  = document.getElementById('adhocCrossWrap');
+  personWrap.style.display = type === 'person' ? 'block' : 'none';
+  crossWrap.style.display  = type === 'cross'  ? 'block' : 'none';
+
+  if (type === 'person') {
+    // populate same-team members
+    const myTeam = window._state.profile?.team;
+    const sel = document.getElementById('adhocPersonSelect');
+    const members = STAFF.filter(s => s.team === myTeam && s.id !== window._state.user?.uid);
+    sel.innerHTML = '<option value="">— Chọn người —</option>' +
+      members.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+  }
+  if (type === 'cross') {
+    // update cross person list when team changes
+    document.getElementById('adhocCrossTeam')?.addEventListener('change', updateCrossPersonList);
+    updateCrossPersonList();
+  }
+};
+
+function updateCrossPersonList() {
+  const team = document.getElementById('adhocCrossTeam')?.value;
+  const sel  = document.getElementById('adhocCrossPerson');
+  if (!sel) return;
+  const members = team ? STAFF.filter(s => s.team === team) : [];
+  sel.innerHTML = '<option value="">— Cả đội —</option>' +
+    members.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('');
+}
+
+
 window.saveAdhocTask = async function() {
   const title = document.getElementById('adhocTitle').value.trim();
   if (!title) { showToast('Vui lòng nhập tên công việc', 'error'); return; }
-  const deadline = document.getElementById('adhocDate').value || fmt(today);
-  const priority = document.getElementById('adhocPriority').value;
-  const team = document.getElementById('adhocTeam').value || '';
-  const note = document.getElementById('adhocNote').value;
+  const deadline  = document.getElementById('adhocDate').value || fmt(today);
+  const priority  = document.getElementById('adhocPriority').value;
+  const note      = document.getElementById('adhocNote').value;
   const requiresLeaderCheck = !!document.getElementById('adhocLeaderCheck').checked;
-  const profile = window._state.profile;
+  const profile   = window._state.profile;
+  const type      = document.getElementById('adhocRecipientType')?.value || 'self';
 
   try {
-    const ref = await addDoc(collection(db, 'tasks'), {
-      title, team, freq: 'fixed', priority, status: 'pending',
-      assignedToUid: window._state.user.uid, assignedToName: profile.name,
-      note, deadline, report: null, isCross: false, isCarry: false,
-      branch: currentBranch(), createdAt: serverTimestamp(),
-      requiresLeaderCheck, checkStatus: 'none',
-      checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
-    });
-    if (priority === 'urgent' && team) {
-      createNotification({
-        toTeam: team,
-        title: `🔴 Việc gấp mới: ${title}`,
-        taskId: ref.id, type: 'urgent_task',
+    if (type === 'cross') {
+      // Cross-team task → crossTasks collection
+      const toTeam   = document.getElementById('adhocCrossTeam').value;
+      const toUid    = document.getElementById('adhocCrossPerson')?.value || null;
+      const toMember = toUid ? STAFF.find(s => s.id === toUid) : null;
+      await addDoc(collection(db, 'crossTasks'), {
+        title,
+        fromTeam: profile.team || '',
+        toTeam,
+        fromUserUid : window._state.user.uid,
+        fromUserName: profile.name,
+        assignedToUid : toUid || null,
+        assignedToName: toMember?.name || '',
+        deadline,
+        urgency : priority,
+        note,
+        status  : 'pending',
+        branch  : currentBranch(),
+        createdAt: serverTimestamp(),
       });
+      createNotification({
+        toTeam,
+        toUid: toUid || null,
+        title: priority === 'urgent'
+          ? `🔀🔴 ${TEAMS[profile.team]?.label || profile.team} giao việc gấp: ${title}`
+          : `🔀 ${TEAMS[profile.team]?.label || profile.team} giao việc cho đội bạn: ${title}`,
+        taskId: null, type: 'cross_task',
+      });
+      showToast('🔀 Đã giao việc chéo đội!', 'success');
+    } else {
+      // Same team or personal task → tasks collection
+      let assignedToUid   = window._state.user.uid;
+      let assignedToName  = profile.name;
+      let team            = profile.team || '';
+      let notifTeam       = null;
+
+      if (type === 'myteam') {
+        assignedToUid  = null;
+        assignedToName = '👥 Cả đội';
+        notifTeam      = team;
+      } else if (type === 'person') {
+        const uid = document.getElementById('adhocPersonSelect')?.value;
+        if (!uid) { showToast('Vui lòng chọn người', 'error'); return; }
+        const member = STAFF.find(s => s.id === uid);
+        assignedToUid  = uid;
+        assignedToName = member?.name || '';
+      }
+
+      const ref = await addDoc(collection(db, 'tasks'), {
+        title, team, freq: 'fixed', priority, status: 'pending',
+        assignedToUid, assignedToName,
+        assignedEmail: (type === 'person' ? STAFF.find(s=>s.id===assignedToUid)?.email : null) || null,
+        note, deadline, report: null, isCross: false, isCarry: false,
+        branch: currentBranch(), createdAt: serverTimestamp(),
+        requiresLeaderCheck, checkStatus: 'none',
+        checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
+      });
+
+      if (priority === 'urgent') {
+        createNotification({
+          toTeam: notifTeam || team,
+          toUid : type === 'person' ? assignedToUid : null,
+          title : `🔴 Việc gấp mới: ${title}`,
+          taskId: ref.id, type: 'urgent_task',
+        });
+      } else if (type === 'person' || type === 'myteam') {
+        createNotification({
+          toTeam: type === 'myteam' ? team : null,
+          toUid : type === 'person' ? assignedToUid : null,
+          title : `📌 Bạn được giao việc: ${title}`,
+          taskId: ref.id, type: 'task_assigned',
+        });
+      }
+
+      showToast('✅ Đã thêm vào checklist!', 'success');
     }
-    showToast('✅ Đã thêm vào checklist!', 'success');
+
+    // Reset form
     document.getElementById('adhocTitle').value = '';
-    document.getElementById('adhocNote').value = '';
-    document.getElementById('adhocLink').value = '';
+    document.getElementById('adhocNote').value  = '';
+    const link = document.getElementById('adhocLink');
+    if (link) link.value = '';
     document.getElementById('adhocLeaderCheck').checked = false;
     showPage('today');
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
@@ -3717,13 +3881,14 @@ window.saveCrossTask = async function() {
       branch: currentBranch(),
       createdAt: serverTimestamp(),
     });
-    if (urgency === 'urgent') {
-      createNotification({
-        toTeam,
-        title: `🔀🔴 ${TEAMS[profile.team]?.label || profile.team || 'Một đội'} giao việc gấp: ${title}`,
-        taskId: null, type: 'cross_task',
-      });
-    }
+    // Always notify, urgent gets extra badge
+    createNotification({
+      toTeam,
+      title: urgency === 'urgent'
+        ? `🔀🔴 ${TEAMS[profile.team]?.label || profile.team} giao việc gấp: ${title}`
+        : `🔀 ${TEAMS[profile.team]?.label || profile.team} giao việc cho đội bạn: ${title}`,
+      taskId: null, type: 'cross_task',
+    });
     closeModal('crossModal');
     showToast('🔀 Đã giao việc cho đội!', 'success');
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
