@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lime – Nội Bộ</title>
+<title>Lime Nội Bộ</title>
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1188,6 +1188,14 @@ select.field-input {
     <button class="nav-item" data-page="report" onclick="showPage('report')">
       <span class="nav-icon">📊</span> Báo cáo đội
     </button>
+    <button class="nav-item" data-page="leaderCheck" data-roles="admin,leader" onclick="showPage('leaderCheck')">
+      <span class="nav-icon">🔍</span> Leader cần duyệt
+      <span class="badge" id="leaderCheckBadge" style="background: var(--urgent);display:none">0</span>
+    </button>
+    <button class="nav-item" data-page="checklist" onclick="showPage('checklist')">
+      <span class="nav-icon">✅</span> Checklist đội
+      <span class="badge" id="checklistBadge" style="background:var(--lime-green);display:none">0</span>
+    </button>
 
     <div class="nav-section-label">Quản lý</div>
     <button class="nav-item" data-page="schedule" onclick="showPage('schedule')">
@@ -1238,6 +1246,19 @@ select.field-input {
     </div>
     <div class="topbar-right">
       <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncPillText">Đang kết nối...</span></span>
+      <div class="notif-wrap" style="position:relative">
+        <button class="btn btn-outline" id="notifBellBtn" onclick="toggleNotifPanel()" style="position:relative;padding:6px 10px">
+          🔔
+          <span class="badge" id="notifBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--urgent);min-width:16px;height:16px;font-size:10px;border-radius:10px;line-height:16px;padding:0 4px">0</span>
+        </button>
+        <div id="notifPanel" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:340px;max-height:420px;overflow-y:auto;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);z-index:200">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <strong style="font-size:13px">🔔 Thông báo</strong>
+            <button class="task-btn" style="font-size:11px" onclick="markAllNotifRead()">Đọc tất cả</button>
+          </div>
+          <div id="notifList" style="padding:6px"></div>
+        </div>
+      </div>
       <select class="field-input" style="width:auto;font-size:12px;padding:5px 28px 5px 10px;" id="branchSelect" onchange="onBranchSelectChange()">
         <option value="tk">🏠 Trung Kính</option>
         <option value="th">🏠 Trung Hòa</option>
@@ -1372,6 +1393,7 @@ select.field-input {
             <option value="tuyensinh">Tuyển sinh</option>
             <option value="marketing">Marketing</option>
           </select>
+          <button class="btn btn-outline" onclick="openBulkImportModal()">📥 Import hàng loạt</button>
           <button class="btn btn-primary" onclick="openTemplateAddModal()">+ Thêm template</button>
         </div>
       </div>
@@ -1475,6 +1497,11 @@ select.field-input {
           </select>
         </div>
 
+        <div class="field-group" style="margin-bottom:20px;display:flex;align-items:center;gap:8px;flex-direction:row">
+          <input type="checkbox" id="adhocLeaderCheck" style="width:16px;height:16px">
+          <label class="field-label" style="margin:0" for="adhocLeaderCheck">🔒 Bắt buộc Leader kiểm tra khi hoàn thành</label>
+        </div>
+
         <div style="display:flex;gap:10px;">
           <button class="btn btn-primary" onclick="saveAdhocTask()" style="flex:1">✅ Lưu &amp; thêm vào hôm nay</button>
           <button class="btn btn-outline" onclick="showPage('today')">Huỷ</button>
@@ -1564,6 +1591,63 @@ select.field-input {
       </div>
     </div>
     <!-- end page-report -->
+
+    <!-- ========== PAGE: LEADER CHECK ========== -->
+    <div class="page" id="page-leaderCheck">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>🔍 Leader cần duyệt</h2>
+          <p>Các công việc nhân sự đã submit nhưng cần Leader kiểm tra trước khi tính là hoàn thành</p>
+        </div>
+      </div>
+      <div class="task-list" id="leaderCheckList"></div>
+    </div>
+    <!-- end page-leaderCheck -->
+
+
+    <!-- ========== PAGE: CHECKLIST (Feature 4-8) ========== -->
+    <div class="page" id="page-checklist">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2 id="checklistPageTitle">✅ Checklist đội</h2>
+          <p id="checklistPageSub">Công việc theo nhóm &amp; cá nhân</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center" id="checklistHeaderActions">
+          <!-- dynamically filled -->
+        </div>
+      </div>
+
+      <!-- Tabs row -->
+      <div class="filter-row" id="checklistTabRow" style="margin-bottom:14px"></div>
+
+      <!-- Member picker (leader view) -->
+      <div id="checklistMemberPicker" style="display:none;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">👤 Chọn thành viên để xem checklist:</div>
+        <div class="personnel-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))" id="checklistMemberGrid"></div>
+      </div>
+
+      <!-- Task lists -->
+      <div id="checklistUnassignedBanner" style="display:none;background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;padding:12px 16px;margin-bottom:14px">
+        <strong style="color:var(--warn)">⚠️ Việc chưa phân công (<span id="checklistUnassignedCount">0</span>)</strong>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Các công việc này chưa có người phụ trách — leader có thể chỉ định hoặc nhân sự tự nhận.</p>
+        <div class="task-list" id="checklistUnassignedList" style="margin-top:10px"></div>
+      </div>
+
+      <div id="checklistMainContent">
+        <div class="task-list" id="checklistTeamList"></div>
+      </div>
+
+      <!-- Member detail panel (slide in) -->
+      <div id="memberDetailPanel" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <button class="btn btn-outline" style="font-size:12px" onclick="closeMemberDetail()">← Quay lại</button>
+          <div id="memberDetailHeader" style="font-size:15px;font-weight:700"></div>
+        </div>
+        <div class="task-list" id="memberDetailList"></div>
+      </div>
+    </div>
+    <!-- end page-checklist -->
+
 
     <!-- ========== PAGE: PERSONNEL (Phase 3) ========== -->
     <div class="page" id="page-personnel">
@@ -1842,10 +1926,86 @@ select.field-input {
         <label class="field-label">Ghi chú / Hướng dẫn</label>
         <textarea class="field-input" id="tplNote" placeholder="Hướng dẫn chi tiết cho nhân sự..."></textarea>
       </div>
+      <div class="field-group" style="display:flex;align-items:center;gap:8px;flex-direction:row">
+        <input type="checkbox" id="tplLeaderCheck" style="width:16px;height:16px">
+        <label class="field-label" style="margin:0" for="tplLeaderCheck">🔒 Bắt buộc Leader kiểm tra mỗi lần hoàn thành (việc định kỳ)</label>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('templateAddModal')">Huỷ</button>
       <button class="btn btn-primary" onclick="saveTemplate()">Lưu template</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bulk Import Modal -->
+<div class="modal-overlay" id="bulkImportModal">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-head">
+      <div class="modal-title">📥 Import template hàng loạt</div>
+      <button class="modal-close" onclick="closeModal('bulkImportModal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Step 1: Download template -->
+      <div style="background:var(--lime-bg);border:1px solid var(--lime);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px">📄 Bước 1 — Tải file mẫu CSV</div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">File mẫu có các cột: <strong>title, team, freq, schedule, priority, assign, assignedToEmail, note, requiresLeaderCheck</strong></p>
+        <button class="btn btn-outline" style="font-size:12px" onclick="downloadBulkTemplate()">⬇️ Tải file mẫu .csv</button>
+      </div>
+
+      <!-- Step 2: Upload -->
+      <div class="field-group">
+        <label class="field-label">📂 Bước 2 — Chọn file CSV đã điền</label>
+        <input type="file" id="bulkImportFile" accept=".csv" class="field-input" style="padding:6px"
+          onchange="previewBulkImport(this)">
+      </div>
+
+      <!-- Preview -->
+      <div id="bulkPreviewWrap" style="display:none">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">🔍 Xem trước (<span id="bulkPreviewCount">0</span> dòng)</div>
+        <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead>
+              <tr style="background:var(--lime-bg);position:sticky;top:0">
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Tên CV</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Đội</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Email phân công</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="bulkPreviewBody"></tbody>
+          </table>
+        </div>
+        <div id="bulkImportSummary" style="font-size:12px;margin-top:10px;padding:10px;background:#f8f8f8;border-radius:8px"></div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('bulkImportModal')">Huỷ</button>
+      <button class="btn btn-primary" id="bulkImportBtn" style="display:none" onclick="executeBulkImport()">✅ Import ngay</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Assign Task Modal (claim / leader assign) -->
+<div class="modal-overlay" id="assignTaskModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title" id="assignTaskModalTitle">📌 Phân công công việc</div>
+      <button class="modal-close" onclick="closeModal('assignTaskModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label" id="assignTaskLabel">Phân công cho:</label>
+        <select class="field-input" id="assignTaskSelect"></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('assignTaskModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="confirmAssignTask()">Xác nhận</button>
     </div>
   </div>
 </div>
@@ -1928,6 +2088,16 @@ select.field-input {
       <div class="field-group">
         <label class="field-label">Ai thực hiện</label>
         <input class="field-input" type="text" id="reportWho" value="Khánh Linh" placeholder="Tên người làm">
+      </div>
+      <div class="field-group" style="display:flex;align-items:center;gap:8px;flex-direction:row" id="reportNeedsCheckRow">
+        <input type="checkbox" id="reportNeedsCheck" style="width:16px;height:16px" onchange="window.toggleReportLeaderSelect()">
+        <label class="field-label" style="margin:0" for="reportNeedsCheck">🔒 Cần Leader kiểm tra việc này</label>
+      </div>
+      <div class="field-group" id="reportLeaderSelectWrap" style="display:none">
+        <label class="field-label">Báo cáo cho Leader nào?</label>
+        <select class="field-input" id="reportLeaderSelect">
+          <option value="">— Leader đội phụ trách —</option>
+        </select>
       </div>
     </div>
     <div class="modal-foot">
@@ -2553,6 +2723,7 @@ window.showPage = function(id) {
     today: '📋 Việc hôm nay', template: '⚙️ Template công việc gốc',
     addTask: '➕ Thêm việc đột xuất', carryover: '🔄 Việc tồn đọng',
     crossTask: '🔀 Giao việc chéo đội', report: '📊 Báo cáo đội',
+    leaderCheck: '🔍 Leader cần duyệt',
     personnel: '👥 Nhân sự', branch: '🏢 Cơ sở',
     schedule: '📅 Thời khóa biểu', events: '🎉 Sự kiện',
     admin: '🔐 Quản lý tài khoản',
@@ -2569,6 +2740,8 @@ window.showPage = function(id) {
   if (id === 'carryover') renderCarryoverPage();
   if (id === 'crossTask') renderCrossPage();
   if (id === 'report') renderReportPage();
+  if (id === 'leaderCheck') renderLeaderCheckPage();
+  if (id === 'checklist') renderChecklistPage();
   if (id === 'personnel') renderPersonnelPage();
   if (id === 'branch') renderBranchPage();
   if (id === 'schedule') renderSchedulePage();
@@ -2673,8 +2846,156 @@ function attachAllListeners() {
   }, err => console.error(err));
   window._state.unsubscribers.push(unsubEvents);
 
+  const profileRole = window._state.profile?.role;
+  if (profileRole === 'admin' || profileRole === 'leader') {
+    const qPendingCheck = query(collection(db, 'tasks'), where('checkStatus', '==', 'pending'), limit(300));
+    const unsubPendingCheck = onSnapshot(qPendingCheck, snap => {
+      window._pendingLeaderChecks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (currentPage === 'leaderCheck') renderLeaderCheckPage();
+      if (currentPage === 'checklist') renderChecklistPage();
+      updateChecklistBadge();
+      updateBadges();
+    }, err => console.error(err));
+    window._state.unsubscribers.push(unsubPendingCheck);
+  }
+
+  // ===== NOTIFICATIONS =====
+  window._notifByUid = [];
+  window._notifByTeam = [];
+  const myUid = window._state.user?.uid;
+  const myTeam = window._state.profile?.team;
+
+  if (myUid) {
+    const qNotifUid = query(collection(db, 'notifications'), where('toUid', '==', myUid), orderBy('createdAt', 'desc'), limit(50));
+    const unsubNotifUid = onSnapshot(qNotifUid, snap => {
+      window._notifByUid = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mergeNotifications();
+    }, err => console.error(err));
+    window._state.unsubscribers.push(unsubNotifUid);
+  }
+  if (myTeam) {
+    const qNotifTeam = query(collection(db, 'notifications'), where('toTeam', '==', myTeam), orderBy('createdAt', 'desc'), limit(50));
+    const unsubNotifTeam = onSnapshot(qNotifTeam, snap => {
+      window._notifByTeam = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mergeNotifications();
+    }, err => console.error(err));
+    window._state.unsubscribers.push(unsubNotifTeam);
+  }
+
   setTimeout(() => setSync('online'), 600);
 }
+
+function mergeNotifications() {
+  const map = new Map();
+  [...(window._notifByUid||[]), ...(window._notifByTeam||[])].forEach(n => map.set(n.id, n));
+  window._notifications = [...map.values()].sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+  renderNotifPanel();
+  updateNotifBadge();
+}
+
+async function createNotification({ toUid = null, toTeam = null, title, taskId = null, type = 'urgent_task' }) {
+  try {
+    await addDoc(collection(db, 'notifications'), {
+      toUid, toTeam, title, taskId, type, read: false,
+      createdByName: window._state.profile?.name || '',
+      createdAt: serverTimestamp(),
+    });
+  } catch (e) { console.error('Lỗi tạo thông báo:', e); }
+}
+
+window.toggleNotifPanel = function() {
+  const panel = document.getElementById('notifPanel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+};
+
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notifPanel');
+  const wrap = document.querySelector('.notif-wrap');
+  if (panel && panel.style.display === 'block' && wrap && !wrap.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
+
+function notifIcon(type) {
+  if (type === 'urgent_task') return '🔴';
+  if (type === 'cross_task') return '🔀';
+  if (type === 'leader_check') return '🔍';
+  return '🔔';
+}
+
+function timeAgoVI(ts) {
+  if (!ts?.seconds) return '';
+  const diffMin = Math.floor((Date.now()/1000 - ts.seconds) / 60);
+  if (diffMin < 1) return 'vừa xong';
+  if (diffMin < 60) return `${diffMin} phút trước`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `${diffH} giờ trước`;
+  return `${Math.floor(diffH/24)} ngày trước`;
+}
+
+function renderNotifPanel() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  const notifs = window._notifications || [];
+  if (!notifs.length) { list.innerHTML = emptyHTML('Chưa có thông báo nào'); return; }
+  list.innerHTML = notifs.map(n => `
+    <div onclick="onNotifClick('${n.id}', ${n.taskId ? `'${n.taskId}'` : 'null'})"
+      style="display:flex;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;${n.read ? '' : 'background:var(--lime-light)'}"
+      onmouseover="this.style.background='var(--lime-bg)'" onmouseout="this.style.background='${n.read ? 'transparent' : 'var(--lime-light)'}'">
+      <div style="font-size:16px">${notifIcon(n.type)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:${n.read ? '400' : '600'};line-height:1.4">${escapeHTML(n.title)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${escapeHTML(n.createdByName||'')} · ${timeAgoVI(n.createdAt)}</div>
+      </div>
+      ${!n.read ? '<div style="width:7px;height:7px;border-radius:50%;background:var(--urgent);margin-top:5px;flex-shrink:0"></div>' : ''}
+    </div>`).join('');
+}
+
+window.onNotifClick = async function(notifId, taskId) {
+  try { await updateDoc(doc(db, 'notifications', notifId), { read: true }); } catch (e) { console.error(e); }
+  document.getElementById('notifPanel').style.display = 'none';
+  const n = (window._notifications || []).find(x => x.id === notifId);
+  if (n && n.type === 'cross_task') {
+    showPage('crossTask');
+    return;
+  }
+  if (n && n.type === 'leader_check') {
+    showPage('leaderCheck');
+    return;
+  }
+  if (taskId) {
+    showPage('today');
+    setTimeout(() => {
+      const el = document.getElementById('task-' + taskId);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('expand-'+taskId)?.classList.add('open'); }
+      else showToast('Việc này không nằm trong ngày hôm nay', 'default');
+    }, 200);
+  }
+};
+
+window.markAllNotifRead = async function() {
+  const unread = (window._notifications || []).filter(n => !n.read);
+  if (!unread.length) return;
+  try {
+    for (let i = 0; i < unread.length; i += 450) {
+      const chunk = unread.slice(i, i + 450);
+      const batch = writeBatch(db);
+      chunk.forEach(n => batch.update(doc(db, 'notifications', n.id), { read: true }));
+      await batch.commit();
+    }
+    showToast('Đã đọc tất cả thông báo', 'default');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+function updateNotifBadge() {
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  const count = (window._notifications || []).filter(n => !n.read).length;
+  badge.textContent = count > 9 ? '9+' : count;
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
+}
+
 
 function updateBadges() {
   const dateStr = fmt(currentDate);
@@ -2684,6 +3005,19 @@ function updateBadges() {
   const carryBadge = document.getElementById('carryBadge');
   if (todayBadge) todayBadge.textContent = urgentCount + carryCount;
   if (carryBadge) carryBadge.textContent = carryCount;
+
+  const leaderCheckBadge = document.getElementById('leaderCheckBadge');
+  if (leaderCheckBadge) {
+    const profile = window._state.profile;
+    const source = window._pendingLeaderChecks || [];
+    let count = 0;
+    if (profile?.role === 'admin') count = source.length;
+    else if (profile?.role === 'leader') {
+      count = source.filter(t => t.leaderCheckLeaderId === window._state.user?.uid || (!t.leaderCheckLeaderId && t.team === profile.team)).length;
+    }
+    leaderCheckBadge.textContent = count;
+    leaderCheckBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
 }
 // =============================================================
 //  RENDER: TODAY PAGE
@@ -2744,6 +3078,8 @@ function taskHTML(task) {
   if (task.priority === 'urgent') tags += `<span class="tag tag-urgent">🔴 Gấp</span>`;
   if (task.branch) tags += `<span style="font-size:11px;color:var(--text-muted)">🏠 ${BRANCH_LABEL[task.branch] || task.branch}</span>`;
   if (task.assignedToName) tags += `<span style="font-size:11px;color:var(--text-muted)">👤 ${escapeHTML(task.assignedToName)}</span>`;
+  if (task.checkStatus === 'pending') tags += `<span class="tag" style="background:var(--warn-bg);color:var(--warn)">🕓 Chờ Leader duyệt</span>`;
+  else if (task.checkStatus === 'checked') tags += `<span class="tag" style="background:var(--done-bg);color:var(--done)">✅ Leader đã duyệt${task.checkedByName ? ' · ' + escapeHTML(task.checkedByName) : ''}</span>`;
 
   let reportBlock = '';
   if (task.report) {
@@ -2888,7 +3224,47 @@ window.openReportModal = function(id) {
   document.getElementById('reportLink').value = '';
   document.getElementById('reportResult').value = 'done';
   document.getElementById('reportWho').value = window._state.profile?.name || '';
+
+  const needsCheckBox = document.getElementById('reportNeedsCheck');
+  const needsCheckRow = document.getElementById('reportNeedsCheckRow');
+  if (task.requiresLeaderCheck) {
+    // Bắt buộc từ template/đột xuất — luôn tick, không cho bỏ
+    needsCheckBox.checked = true;
+    needsCheckBox.disabled = true;
+    needsCheckRow.title = 'Việc này bắt buộc Leader kiểm tra (cấu hình từ template)';
+  } else {
+    needsCheckBox.checked = false;
+    needsCheckBox.disabled = false;
+    needsCheckRow.title = '';
+  }
+
+  // Populate leader select:
+  // - Nếu task thuộc trogiangHT → show leader chuyên môn (TA báo cáo lên chuyên môn)
+  // - Nếu task có team cụ thể → show leader cùng team
+  // - Fallback → show tất cả leader
+  const leaderSel = document.getElementById('reportLeaderSelect');
+  const submitterTeam = window._state.profile?.team;
+  let leaders;
+  if (submitterTeam === 'trogiangHT' || task.team === 'trogiangHT') {
+    // TA: show leader chuyên môn
+    leaders = STAFF.filter(s => s.role === 'leader' && s.team === 'chuyenmon');
+    if (!leaders.length) leaders = STAFF.filter(s => s.role === 'leader'); // fallback nếu chưa có
+  } else if (task.team) {
+    leaders = STAFF.filter(s => s.role === 'leader' && s.team === task.team);
+    if (!leaders.length) leaders = STAFF.filter(s => s.role === 'leader');
+  } else {
+    leaders = STAFF.filter(s => s.role === 'leader');
+  }
+  leaderSel.innerHTML = '<option value="">— Chọn Leader —</option>' +
+    leaders.map(l => `<option value="${l.id}">${escapeHTML(l.name)}${l.team ? ' — ' + (TEAMS[l.team]?.label || l.team) : ''}</option>`).join('');
+
+  window.toggleReportLeaderSelect();
   openModal('reportModal');
+};
+
+window.toggleReportLeaderSelect = function() {
+  const checked = document.getElementById('reportNeedsCheck').checked;
+  document.getElementById('reportLeaderSelectWrap').style.display = checked ? 'block' : 'none';
 };
 
 window.submitReport = async function() {
@@ -2900,10 +3276,25 @@ window.submitReport = async function() {
     link: document.getElementById('reportLink').value,
     who: document.getElementById('reportWho').value || window._state.profile?.name || '',
   };
+  const needsCheck = !!task.requiresLeaderCheck || document.getElementById('reportNeedsCheck').checked;
+  const leaderCheckLeaderId = needsCheck ? (document.getElementById('reportLeaderSelect').value || null) : null;
   try {
-    await updateDoc(doc(db, 'tasks', reportingTaskId), { status: 'done', report, isCarry: false });
+    await updateDoc(doc(db, 'tasks', reportingTaskId), {
+      status: 'done', report, isCarry: false,
+      checkStatus: needsCheck ? 'pending' : 'none',
+      leaderCheckLeaderId,
+      checkedBy: null, checkedByName: null, checkedAt: null,
+    });
+    if (needsCheck) {
+      createNotification({
+        toUid: leaderCheckLeaderId || null,
+        toTeam: leaderCheckLeaderId ? null : task.team,
+        title: `🔍 ${report.who} vừa submit "${task.title}" — cần bạn kiểm tra`,
+        taskId: reportingTaskId, type: 'leader_check',
+      });
+    }
     closeModal('reportModal');
-    showToast('✅ Đã submit báo cáo!', 'success');
+    showToast(needsCheck ? '✅ Đã submit — chờ Leader kiểm tra!' : '✅ Đã submit báo cáo!', 'success');
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
 
@@ -2912,6 +3303,69 @@ window.markCarryover = async function() {
   await window.pushCarry(reportingTaskId);
   closeModal('reportModal');
   showToast('🔄 Đã chuyển sang ngày mai', 'warn');
+};
+
+// =============================================================
+//  LEADER CHECK PAGE — nhân sự submit cần Leader kiểm tra
+// =============================================================
+function renderLeaderCheckPage() {
+  const list = document.getElementById('leaderCheckList');
+  if (!list) return;
+  const profile = window._state.profile;
+  if (!profile) { list.innerHTML = ''; return; }
+
+  // Lấy từ pendingLeaderChecks (toàn bộ ngày, không chỉ ngày hiện tại)
+  const source = (window._pendingLeaderChecks && window._pendingLeaderChecks.length)
+    ? window._pendingLeaderChecks
+    : tasks.filter(t => t.checkStatus === 'pending');
+
+  let relevant;
+  if (profile.role === 'admin') {
+    relevant = source;
+  } else {
+    // Leader chỉ thấy: việc gán đích danh cho mình, hoặc chưa chọn leader cụ thể nhưng cùng team mình quản lý
+    relevant = source.filter(t =>
+      t.leaderCheckLeaderId === window._state.user.uid ||
+      (!t.leaderCheckLeaderId && t.team === profile.team)
+    );
+  }
+
+  if (!relevant.length) { list.innerHTML = emptyHTML('🎉 Không có việc nào đang chờ bạn duyệt'); return; }
+
+  list.innerHTML = relevant.map(t => `
+    <div class="task-card" id="leadercheck-${t.id}">
+      <div class="task-top">
+        <div class="task-body">
+          <div class="task-title">${escapeHTML(t.title)}</div>
+          <div class="task-meta">
+            ${t.team ? `<span class="tag tag-team">${TEAMS[t.team]?.label || t.team}</span>` : ''}
+            <span style="font-size:11px;color:var(--text-muted)">👤 ${escapeHTML(t.assignedToName||t.report?.who||'—')}</span>
+            <span style="font-size:11px;color:var(--text-muted)">📅 ${t.deadline}</span>
+          </div>
+          ${t.report ? `<div class="done-report">
+            <strong>${t.report.result === 'done' ? '✅' : t.report.result === 'partial' ? '⚠️' : '🚫'} ${escapeHTML(t.report.who||'')}</strong>
+            ${t.report.note ? ` — ${escapeHTML(t.report.note)}` : ''}
+            ${t.report.link ? ` · <a href="${t.report.link}" target="_blank" style="color:var(--lime-dark)">📎 Tài liệu</a>` : ''}
+          </div>` : ''}
+        </div>
+        <div class="task-actions">
+          <button class="task-btn submit" onclick="leaderApproveTask('${t.id}')">✅ Đã kiểm tra</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.leaderApproveTask = async function(id) {
+  const profile = window._state.profile;
+  try {
+    await updateDoc(doc(db, 'tasks', id), {
+      checkStatus: 'checked',
+      checkedBy: window._state.user.uid,
+      checkedByName: profile?.name || '',
+      checkedAt: serverTimestamp(),
+    });
+    showToast('✅ Đã xác nhận kiểm tra!', 'success');
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
 // =============================================================
 //  TEMPLATE PAGE
@@ -2966,6 +3420,7 @@ window.openTemplateAddModal = function() {
   document.getElementById('tplNote').value = '';
   document.getElementById('tplPriority').value = 'normal';
   document.getElementById('tplFreq').value = 'daily';
+  document.getElementById('tplLeaderCheck').checked = false;
   window.updateScheduleOptions();
   openModal('templateAddModal');
 };
@@ -2981,6 +3436,7 @@ window.editTemplate = function(id) {
   document.getElementById('tplPriority').value = t.priority;
   document.getElementById('tplAssign').value = t.assign;
   document.getElementById('tplNote').value = t.note || '';
+  document.getElementById('tplLeaderCheck').checked = !!t.requiresLeaderCheck;
   window.updateScheduleOptions();
   setTimeout(() => { document.getElementById('tplSchedule').value = t.schedule || ''; }, 50);
   openModal('templateAddModal');
@@ -3006,6 +3462,7 @@ window.saveTemplate = async function() {
     priority: document.getElementById('tplPriority').value,
     assign: document.getElementById('tplAssign').value,
     note: document.getElementById('tplNote').value,
+    requiresLeaderCheck: !!document.getElementById('tplLeaderCheck').checked,
   };
 
   try {
@@ -3056,12 +3513,19 @@ window.saveQuickTask = async function() {
   const profile = window._state.profile;
 
   try {
-    await addDoc(collection(db, 'tasks'), {
+    const ref = await addDoc(collection(db, 'tasks'), {
       title, team, freq: 'fixed', priority, status: 'pending',
       assignedToUid: window._state.user.uid, assignedToName: profile.name,
       note: '', deadline, report: null, isCross: false, isCarry: false,
       branch: currentBranch(), createdAt: serverTimestamp(),
     });
+    if (priority === 'urgent' && team) {
+      createNotification({
+        toTeam: team,
+        title: `🔴 Việc gấp mới: ${title}`,
+        taskId: ref.id, type: 'urgent_task',
+      });
+    }
     closeModal('addModal');
     showToast('✅ Đã thêm việc!', 'success');
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
@@ -3074,19 +3538,30 @@ window.saveAdhocTask = async function() {
   const priority = document.getElementById('adhocPriority').value;
   const team = document.getElementById('adhocTeam').value || '';
   const note = document.getElementById('adhocNote').value;
+  const requiresLeaderCheck = !!document.getElementById('adhocLeaderCheck').checked;
   const profile = window._state.profile;
 
   try {
-    await addDoc(collection(db, 'tasks'), {
+    const ref = await addDoc(collection(db, 'tasks'), {
       title, team, freq: 'fixed', priority, status: 'pending',
       assignedToUid: window._state.user.uid, assignedToName: profile.name,
       note, deadline, report: null, isCross: false, isCarry: false,
       branch: currentBranch(), createdAt: serverTimestamp(),
+      requiresLeaderCheck, checkStatus: 'none',
+      checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
     });
+    if (priority === 'urgent' && team) {
+      createNotification({
+        toTeam: team,
+        title: `🔴 Việc gấp mới: ${title}`,
+        taskId: ref.id, type: 'urgent_task',
+      });
+    }
     showToast('✅ Đã thêm vào checklist!', 'success');
     document.getElementById('adhocTitle').value = '';
     document.getElementById('adhocNote').value = '';
     document.getElementById('adhocLink').value = '';
+    document.getElementById('adhocLeaderCheck').checked = false;
     showPage('today');
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
@@ -3154,20 +3629,29 @@ window.saveCrossTask = async function() {
   const title = document.getElementById('crossTitle').value.trim();
   if (!title) { showToast('Nhập tên việc', 'error'); return; }
   const profile = window._state.profile;
+  const toTeam = document.getElementById('crossTeam').value;
+  const urgency = document.getElementById('crossUrgency').value;
   try {
-    await addDoc(collection(db, 'crossTasks'), {
+    const ref = await addDoc(collection(db, 'crossTasks'), {
       title,
       fromTeam: profile.team || 'cskh',
-      toTeam: document.getElementById('crossTeam').value,
+      toTeam,
       fromUserUid: window._state.user.uid,
       fromUserName: profile.name,
       deadline: document.getElementById('crossDeadline').value,
-      urgency: document.getElementById('crossUrgency').value,
+      urgency,
       note: document.getElementById('crossNote').value,
       status: 'pending',
       branch: currentBranch(),
       createdAt: serverTimestamp(),
     });
+    if (urgency === 'urgent') {
+      createNotification({
+        toTeam,
+        title: `🔀🔴 ${TEAMS[profile.team]?.label || profile.team || 'Một đội'} giao việc gấp: ${title}`,
+        taskId: null, type: 'cross_task',
+      });
+    }
     closeModal('crossModal');
     showToast('🔀 Đã giao việc cho đội!', 'success');
   } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
@@ -3367,6 +3851,7 @@ function renderPersonnelPage() {
         </div>
         <div class="person-actions">
           <button class="task-btn" onclick="quickOpenLeave('${s.id}')">📝 Xin nghỉ</button>
+          ${canAct && (role === 'admin' || role === 'leader') ? `<button class="task-btn" onclick="viewMemberChecklist('${s.id}');showPage('checklist')">📋 Xem checklist</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -3568,8 +4053,12 @@ window.confirmGenerate = async function() {
           freq: p.template.freq,
           priority: p.template.priority,
           status: 'pending',
-          assignedToUid: null,
-          assignedToName: p.template.assign === 'leader' ? '👑 Leader đội' : p.template.assign === 'staff' ? '👤 Staff đội' : 'Cả đội',
+          assignedToUid: p.template.assignedToUid || null,
+          assignedEmail: p.template.assignedToEmail || null,
+          assignedToName: p.template.assignedToUid
+            ? (STAFF.find(s => s.id === p.template.assignedToUid)?.name || p.template.assignedToEmail || '')
+            : (p.template.assign === 'leader' ? '👑 Leader đội' : p.template.assign === 'staff' ? '👤 Staff đội' : 'Cả đội'),
+          unassigned: !p.template.assignedToUid && !p.template.assignedToEmail,
           note: p.template.note || '',
           deadline: p.dateStr,
           report: null,
@@ -3577,6 +4066,9 @@ window.confirmGenerate = async function() {
           isCarry: false,
           branch: p.branch,
           templateId: p.template.id,
+          requiresLeaderCheck: !!p.template.requiresLeaderCheck,
+          checkStatus: p.template.requiresLeaderCheck ? 'none' : 'none',
+          checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
           createdAt: serverTimestamp(),
         });
         count++;
@@ -4000,6 +4492,564 @@ document.querySelectorAll('.checkbox-chip').forEach(chip => {
 window.renderReportPage = renderReportPage;
 window.renderSchedulePage = renderSchedulePage;
 window.renderTemplateTable = renderTemplateTable;
+
+// =============================================================
+//  CHECKLIST PAGE (Features 4-8)
+//  - Per-team tabs: team-shared + personal
+//  - TA: class-based personal + unassigned shared pool
+//  - Marketing/CSKH/Vanhanh: branch-shared + personal
+//  - Checklist visible only to own team (enforced in render)
+//  - Leader: click member → view their checklist
+// =============================================================
+
+// Tab config per team
+const CHECKLIST_TABS = {
+  chuyenmon: [
+    { id: 'team',     label: '📋 Cả đội Chuyên môn' },
+    { id: 'personal', label: '👤 Của tôi' },
+    { id: 'ta',       label: '📚 Trợ giảng' },
+  ],
+  trogiangHT: [
+    { id: 'shared',   label: '⚡ Chung (chưa phân)' },
+    { id: 'personal', label: '👤 Của tôi' },
+  ],
+  cskh: [
+    { id: 'branch',   label: '🏢 Theo cơ sở' },
+    { id: 'personal', label: '👤 Của tôi' },
+  ],
+  marketing: [
+    { id: 'branch',   label: '🏢 Theo cơ sở' },
+    { id: 'personal', label: '👤 Của tôi' },
+  ],
+  vanhanh: [
+    { id: 'branch',   label: '🏢 Theo cơ sở' },
+    { id: 'personal', label: '👤 Của tôi' },
+  ],
+  tuyensinh: [
+    { id: 'team',     label: '📋 Cả đội' },
+    { id: 'personal', label: '👤 Của tôi' },
+  ],
+  _default: [
+    { id: 'team',     label: '📋 Cả đội' },
+    { id: 'personal', label: '👤 Của tôi' },
+  ],
+};
+
+let _clTab = 'team';           // current tab id
+let _clMemberUid = null;       // uid of member being viewed (leader view)
+let _assigningTaskId = null;
+
+function renderChecklistPage() {
+  const profile = window._state.profile;
+  if (!profile) return;
+  const myTeam  = profile.team;
+  const myUid   = window._state.user?.uid;
+  const myRole  = profile.role;
+  const isLeader = myRole === 'admin' || myRole === 'leader';
+
+  // hide member detail panel by default
+  document.getElementById('memberDetailPanel').style.display = 'none';
+  document.getElementById('checklistMainContent').style.display = 'block';
+  document.getElementById('checklistMemberPicker').style.display = 'none';
+  _clMemberUid = null;
+
+  // Build tabs
+  const tabCfg = CHECKLIST_TABS[myTeam] || CHECKLIST_TABS._default;
+  // Leaders also get "Thành viên" tab
+  const tabs = [...tabCfg];
+  if (isLeader) tabs.push({ id: 'members', label: '👥 Thành viên' });
+
+  // Validate current tab
+  if (!tabs.find(t => t.id === _clTab)) _clTab = tabs[0].id;
+
+  const tabRow = document.getElementById('checklistTabRow');
+  tabRow.innerHTML = tabs.map(t => `
+    <button class="filter-chip ${_clTab === t.id ? 'active' : ''}" onclick="switchChecklistTab('${t.id}')">
+      ${t.label}
+    </button>`).join('');
+
+  // Page title
+  const teamLabel = TEAMS[myTeam]?.label || myTeam || '';
+  document.getElementById('checklistPageTitle').textContent = `✅ Checklist — ${teamLabel}`;
+  document.getElementById('checklistPageSub').textContent = tabs.find(t => t.id === _clTab)?.label || '';
+
+  _renderChecklistTab(myTeam, myUid, isLeader, profile);
+}
+
+function _renderChecklistTab(myTeam, myUid, isLeader, profile) {
+  const tab = _clTab;
+  const memberPicker = document.getElementById('checklistMemberPicker');
+  const mainContent  = document.getElementById('checklistMainContent');
+  const unassignedBanner = document.getElementById('checklistUnassignedBanner');
+
+  memberPicker.style.display = 'none';
+  unassignedBanner.style.display = 'none';
+
+  if (tab === 'members') {
+    memberPicker.style.display = 'block';
+    mainContent.style.display = 'none';
+    _renderMemberPicker(myTeam, isLeader);
+    return;
+  }
+  mainContent.style.display = 'block';
+
+  // Filter tasks that belong to this team (privacy gate)
+  let pool = tasks.filter(t => t.team === myTeam || (myTeam === 'chuyenmon' && t.team === 'trogiangHT' && tab === 'ta'));
+
+  // Further filter by tab
+  if (tab === 'personal') {
+    pool = pool.filter(t => t.assignedToUid === myUid || t.assignedEmail === profile.email);
+  } else if (tab === 'team' || tab === 'branch') {
+    // show all team tasks (shared)
+    pool = pool.filter(t => t.team === myTeam);
+    // show unassigned banner for leaders
+    if (isLeader) {
+      const unassigned = pool.filter(t => !t.assignedToUid && !t.assignedEmail);
+      if (unassigned.length) {
+        unassignedBanner.style.display = 'block';
+        document.getElementById('checklistUnassignedCount').textContent = unassigned.length;
+        document.getElementById('checklistUnassignedList').innerHTML = unassigned.map(t => checklistTaskHTML(t, isLeader)).join('');
+      }
+      pool = pool.filter(t => t.assignedToUid || t.assignedEmail); // rest in main list
+    }
+  } else if (tab === 'shared') {
+    // trợ giảng: unassigned pool
+    const unassigned = pool.filter(t => !t.assignedToUid && !t.assignedEmail && t.team === myTeam);
+    if (unassigned.length) {
+      unassignedBanner.style.display = 'block';
+      document.getElementById('checklistUnassignedCount').textContent = unassigned.length;
+      document.getElementById('checklistUnassignedList').innerHTML = unassigned.map(t => checklistTaskHTML(t, isLeader)).join('');
+    }
+    pool = []; // main list empty for shared tab (all shown in banner)
+  } else if (tab === 'ta') {
+    pool = pool.filter(t => t.team === 'trogiangHT');
+  }
+
+  const teamList = document.getElementById('checklistTeamList');
+
+  if (tab === 'branch') {
+    // Group by branch
+    const branches = [...new Set(pool.flatMap(t => t.branch ? [t.branch] : ['']))];
+    teamList.innerHTML = branches.map(br => {
+      const bTasks = pool.filter(t => (t.branch || '') === br);
+      return `<div style="margin-bottom:20px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
+          🏢 ${br ? (BRANCH_LABEL[br] || br) : 'Tất cả cơ sở'}
+        </div>
+        ${bTasks.map(t => checklistTaskHTML(t, isLeader)).join('') || emptyHTML('Không có việc')}
+      </div>`;
+    }).join('') || emptyHTML('Không có công việc nào');
+  } else if (tab === 'ta') {
+    // Group by GV phụ trách
+    const grouped = {};
+    pool.forEach(t => {
+      const key = t.assignedToUid || t.assignedEmail || '__unassigned__';
+      if (!grouped[key]) grouped[key] = { tasks: [], label: '' };
+      grouped[key].tasks.push(t);
+      if (!grouped[key].label) {
+        const s = STAFF.find(x => x.id === t.assignedToUid || x.email === t.assignedEmail);
+        grouped[key].label = s ? s.name : (t.assignedEmail || 'Chưa phân công');
+      }
+    });
+    teamList.innerHTML = Object.entries(grouped).map(([k, g]) => `
+      <div style="margin-bottom:20px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">
+          📚 Trợ giảng: ${escapeHTML(g.label)}
+        </div>
+        ${g.tasks.map(t => checklistTaskHTML(t, isLeader)).join('')}
+      </div>`).join('') || emptyHTML('Không có việc cho trợ giảng');
+  } else {
+    // Flat list, separate urgent vs normal
+    const urgent  = pool.filter(t => t.priority === 'urgent' && t.status !== 'done');
+    const normal  = pool.filter(t => t.priority !== 'urgent' && t.status !== 'done');
+    const done    = pool.filter(t => t.status === 'done');
+    let html = '';
+    if (urgent.length) html += `<div style="font-size:11px;font-weight:700;color:var(--urgent);margin-bottom:6px;text-transform:uppercase">🔴 Gấp</div>` + urgent.map(t => checklistTaskHTML(t, isLeader)).join('');
+    if (normal.length) html += (urgent.length ? '<div style="margin-top:12px"></div>' : '') + normal.map(t => checklistTaskHTML(t, isLeader)).join('');
+    if (!urgent.length && !normal.length) html = emptyHTML('Không có việc đang chờ ✅');
+    if (done.length)  html += `<details style="margin-top:12px"><summary style="font-size:12px;color:var(--text-muted);cursor:pointer">✅ Đã hoàn thành (${done.length})</summary>${done.map(t => checklistTaskHTML(t, isLeader)).join('')}</details>`;
+    teamList.innerHTML = html;
+  }
+  updateChecklistBadge();
+}
+
+function checklistTaskHTML(task, isLeader) {
+  const isDone = task.status === 'done';
+  const isUrgent = task.priority === 'urgent' && !isDone;
+  const assignee = task.assignedToUid ? STAFF.find(s => s.id === task.assignedToUid) : null;
+  const assigneeName = assignee ? assignee.name : (task.assignedEmail || '');
+  const canAssign = isLeader && !isDone;
+  const canClaim  = !task.assignedToUid && !task.assignedEmail && !isDone;
+
+  return `<div class="task-card ${isUrgent ? 'urgent-task' : ''} ${isDone ? 'done-task' : ''}" style="margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;${isDone ? 'text-decoration:line-through;opacity:.6' : ''}">${escapeHTML(task.title)}</div>
+        ${task.deadline ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">📅 ${task.deadline}</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">
+          ${isUrgent ? '<span class="tag" style="background:var(--urgent-bg);color:var(--urgent)">🔴 Gấp</span>' : ''}
+          ${task.checkStatus === 'pending' ? '<span class="tag" style="background:var(--warn-bg);color:var(--warn)">🕓 Chờ Leader duyệt</span>' : ''}
+          ${task.checkStatus === 'checked' ? '<span class="tag" style="background:var(--done-bg);color:var(--done)">✅ Đã duyệt</span>' : ''}
+          ${assigneeName ? `<span class="tag" style="background:#f0f0f0;color:#555">👤 ${escapeHTML(assigneeName)}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${canClaim  ? `<button class="task-btn" onclick="claimChecklistTask('${task.id}')">✋ Nhận việc</button>` : ''}
+        ${canAssign ? `<button class="task-btn" onclick="openAssignTask('${task.id}')">📌 Phân công</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function _renderMemberPicker(myTeam, isLeader) {
+  const members = STAFF.filter(s => s.team === myTeam && s.id !== window._state.user?.uid);
+  const grid = document.getElementById('checklistMemberGrid');
+  if (!members.length) {
+    grid.innerHTML = emptyHTML('Không có thành viên nào trong đội');
+    return;
+  }
+  const team = TEAMS[myTeam] || TEAMS.all;
+  grid.innerHTML = members.map(s => `
+    <div class="person-card" style="cursor:pointer" onclick="viewMemberChecklist('${s.id}')">
+      <div class="person-avatar" style="background:${team.color}">${initials(s.name)}</div>
+      <div class="person-body">
+        <div class="person-name">${escapeHTML(s.name)}</div>
+        <div class="person-role">${ROLE_LABELS[s.role]||s.role}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          ${tasks.filter(t => t.assignedToUid === s.id && t.status !== 'done').length} việc đang chờ
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.viewMemberChecklist = function(uid) {
+  const member = STAFF.find(s => s.id === uid);
+  if (!member) return;
+  _clMemberUid = uid;
+
+  document.getElementById('checklistMemberPicker').style.display = 'none';
+  document.getElementById('checklistMainContent').style.display = 'none';
+  document.getElementById('checklistUnassignedBanner').style.display = 'none';
+
+  const panel = document.getElementById('memberDetailPanel');
+  panel.style.display = 'block';
+
+  const team = TEAMS[member.team] || TEAMS.all;
+  document.getElementById('memberDetailHeader').innerHTML = `
+    <span style="display:inline-flex;align-items:center;gap:8px">
+      <span style="width:32px;height:32px;border-radius:50%;background:${team.color};color:white;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">${initials(member.name)}</span>
+      ${escapeHTML(member.name)} — ${escapeHTML(team.label)}
+    </span>`;
+
+  const memberTasks = tasks.filter(t => t.assignedToUid === uid);
+  const pending = memberTasks.filter(t => t.status !== 'done');
+  const done    = memberTasks.filter(t => t.status === 'done');
+
+  const isLeader = window._state.profile?.role === 'admin' || window._state.profile?.role === 'leader';
+  let html = '';
+  if (pending.length) html += pending.map(t => checklistTaskHTML(t, isLeader)).join('');
+  else html += emptyHTML('Không có việc đang chờ ✅');
+  if (done.length) html += `<details style="margin-top:12px"><summary style="font-size:12px;color:var(--text-muted);cursor:pointer">✅ Đã hoàn thành (${done.length})</summary>${done.map(t => checklistTaskHTML(t, isLeader)).join('')}</details>`;
+
+  document.getElementById('memberDetailList').innerHTML = html;
+};
+
+window.closeMemberDetail = function() {
+  document.getElementById('memberDetailPanel').style.display = 'none';
+  document.getElementById('checklistMemberPicker').style.display = 'block';
+  _clMemberUid = null;
+};
+
+window.switchChecklistTab = function(tabId) {
+  _clTab = tabId;
+  renderChecklistPage();
+};
+
+window.claimChecklistTask = async function(taskId) {
+  const profile = window._state.profile;
+  if (!profile) return;
+  try {
+    await updateDoc(doc(db, 'tasks', taskId), {
+      assignedToUid  : window._state.user.uid,
+      assignedEmail  : profile.email || null,
+      assignedToName : profile.name || '',
+      unassigned     : false,
+    });
+    showToast('✅ Đã nhận việc!', 'success');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.openAssignTask = function(taskId) {
+  _assigningTaskId = taskId;
+  const task = tasks.find(t => t.id === taskId);
+  const myTeam = window._state.profile?.team;
+  const members = STAFF.filter(s => s.team === myTeam || (myTeam === 'chuyenmon' && s.team === 'trogiangHT'));
+  const sel = document.getElementById('assignTaskSelect');
+  sel.innerHTML = `<option value="">— Chọn nhân sự —</option>` +
+    members.map(s => `<option value="${s.id}">${escapeHTML(s.name)} — ${TEAMS[s.team]?.label||s.team} (${ROLE_LABELS[s.role]||s.role})</option>`).join('');
+  if (task?.assignedToUid) sel.value = task.assignedToUid;
+  document.getElementById('assignTaskModalTitle').textContent = `📌 Phân công: ${task?.title || ''}`;
+  openModal('assignTaskModal');
+};
+
+window.confirmAssignTask = async function() {
+  if (!_assigningTaskId) return;
+  const uid = document.getElementById('assignTaskSelect').value;
+  if (!uid) { showToast('Vui lòng chọn nhân sự', 'error'); return; }
+  const member = STAFF.find(s => s.id === uid);
+  try {
+    await updateDoc(doc(db, 'tasks', _assigningTaskId), {
+      assignedToUid  : uid,
+      assignedEmail  : member?.email || null,
+      assignedToName : member?.name || '',
+      unassigned     : false,
+    });
+    // Notify assignee
+    await addDoc(collection(db, 'notifications'), {
+      toUid     : uid,
+      toTeam    : null,
+      type      : 'task_assigned',
+      title     : `📌 Bạn được phân công: ${tasks.find(t=>t.id===_assigningTaskId)?.title||''}`,
+      body      : `Leader ${window._state.profile?.name||''} đã giao cho bạn`,
+      read      : false,
+      createdAt : serverTimestamp(),
+    });
+    closeModal('assignTaskModal');
+    showToast('✅ Đã phân công', 'success');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+function updateChecklistBadge() {
+  const myUid  = window._state.user?.uid;
+  const myTeam = window._state.profile?.team;
+  if (!myTeam) return;
+  const unassigned = tasks.filter(t => t.team === myTeam && !t.assignedToUid && !t.assignedEmail && t.status !== 'done').length;
+  const badge = document.getElementById('checklistBadge');
+  if (badge) {
+    badge.textContent = unassigned;
+    badge.style.display = unassigned > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+window.renderChecklistPage = renderChecklistPage;
+
+
+
+// =============================================================
+//  BULK IMPORT TEMPLATES (Feature 3)
+// =============================================================
+
+// CSV columns: title,team,freq,schedule,priority,assign,assignedToEmail,note,requiresLeaderCheck
+const BULK_CSV_COLS = ['title','team','freq','schedule','priority','assign','assignedToEmail','note','requiresLeaderCheck'];
+
+const BULK_CSV_SAMPLE_ROWS = [
+  ['Kiểm tra cơ sở buổi sáng','vanhanh','daily','','normal','all','nguyen.van.a@limecenter.vn','Kiểm tra phòng học, thiết bị trước 7h30','FALSE'],
+  ['Báo cáo tuyển sinh tuần','tuyensinh','weekly','thu2','normal','staff','tran.thi.b@limecenter.vn','Gửi báo cáo số lượng tư vấn + đăng ký trong tuần','FALSE'],
+  ['Sự kiện khai giảng tháng 9','chuyenmon','fixed','2025-09-01','urgent','all','','Phân công từng GV — xem file nội dung chi tiết','TRUE'],
+];
+
+window.downloadBulkTemplate = function() {
+  const header = BULK_CSV_COLS.join(',');
+  const rows = BULK_CSV_SAMPLE_ROWS.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bulk_template_import.csv'; a.click();
+  URL.revokeObjectURL(url);
+};
+
+let _bulkParsed = [];
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return [];
+  const header = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = [];
+    let cur = ''; let inQ = false;
+    for (const ch of lines[i]) {
+      if (ch === '"') { inQ = !inQ; continue; }
+      if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    header.forEach((h, idx) => { obj[h] = vals[idx] !== undefined ? vals[idx] : ''; });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+const VALID_TEAMS = ['cskh','chuyenmon','trogiangHT','vanhanh','tuyensinh','marketing','all'];
+const VALID_FREQ  = ['daily','weekly','monthly','fixed'];
+
+window.previewBulkImport = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const rows = parseCSV(e.target.result);
+    _bulkParsed = rows;
+    renderBulkPreview(rows);
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+function renderBulkPreview(rows) {
+  const wrap  = document.getElementById('bulkPreviewWrap');
+  const tbody = document.getElementById('bulkPreviewBody');
+  const cntEl = document.getElementById('bulkPreviewCount');
+  const sumEl = document.getElementById('bulkImportSummary');
+  const btnEl = document.getElementById('bulkImportBtn');
+  if (!wrap || !tbody) return;
+
+  // Build email→user map from STAFF
+  const emailMap = {};
+  STAFF.forEach(s => { if (s.email) emailMap[s.email.toLowerCase()] = s; });
+
+  let ok = 0, noEmail = 0, badEmail = 0, badTeam = 0;
+
+  tbody.innerHTML = rows.map((r, idx) => {
+    const issues = [];
+    if (!r.title) issues.push('❌ Thiếu tên CV');
+    if (!VALID_TEAMS.includes(r.team)) { issues.push('❌ Đội không hợp lệ'); badTeam++; }
+    if (!VALID_FREQ.includes(r.freq))  issues.push('⚠️ Tần suất không hợp lệ (để daily)');
+
+    let emailStatus = '';
+    const email = (r.assignedtoemail || r.assignedToEmail || '').toLowerCase().trim();
+    if (!email) {
+      emailStatus = '<span style="color:#B7401A;font-size:11px">⚠️ Chưa có email → vào checklist chung đội</span>';
+      noEmail++;
+    } else if (!emailMap[email]) {
+      emailStatus = `<span style="color:#B7401A;font-size:11px">❌ Email không khớp hệ thống → checklist chung đội</span>`;
+      badEmail++;
+    } else {
+      emailStatus = `<span style="color:#276749;font-size:11px">✅ ${escapeHTML(emailMap[email].name)}</span>`;
+      ok++;
+    }
+
+    const rowBg = issues.length ? 'background:#FFF5F5' : '';
+    return `<tr style="${rowBg}">
+      <td style="padding:5px 8px;border-bottom:1px solid var(--border)">${escapeHTML(r.title||'—')}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid var(--border);font-size:11px">${escapeHTML(r.team||'—')}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid var(--border)">${emailStatus}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text-muted)">${issues.length ? issues.join(', ') : '<span style="color:#276749">✅ OK</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  cntEl.textContent = rows.length;
+  wrap.style.display = 'block';
+  btnEl.style.display = rows.length ? 'inline-flex' : 'none';
+
+  const unassigned = noEmail + badEmail;
+  sumEl.innerHTML = `
+    <strong>Tóm tắt:</strong> ${rows.length} dòng — 
+    <span style="color:#276749">✅ ${ok} có email hợp lệ</span> · 
+    <span style="color:#B7401A">⚠️ ${unassigned} về checklist chung đội${unassigned ? ' (leader sẽ nhận thông báo phân công)' : ''}</span>
+    ${badTeam ? ` · <span style="color:#c00">❌ ${badTeam} đội không hợp lệ (sẽ bỏ qua)</span>` : ''}
+  `;
+}
+
+window.openBulkImportModal = function() {
+  _bulkParsed = [];
+  const fileEl = document.getElementById('bulkImportFile');
+  if (fileEl) fileEl.value = '';
+  const wrap = document.getElementById('bulkPreviewWrap');
+  if (wrap) wrap.style.display = 'none';
+  const btn = document.getElementById('bulkImportBtn');
+  if (btn) btn.style.display = 'none';
+  openModal('bulkImportModal');
+};
+
+window.executeBulkImport = async function() {
+  if (!_bulkParsed.length) return;
+  const btn = document.getElementById('bulkImportBtn');
+  btn.disabled = true; btn.textContent = '⏳ Đang import...';
+
+  // Build email→user map
+  const emailMap = {};
+  STAFF.forEach(s => { if (s.email) emailMap[s.email.toLowerCase()] = s; });
+
+  // Group notifications for leaders by team (send 1 notification per team that has unassigned)
+  const unassignedByTeam = {};
+
+  let imported = 0;
+  let skipped = 0;
+
+  for (const r of _bulkParsed) {
+    const title = r.title?.trim();
+    if (!title) { skipped++; continue; }
+    const team = r.team?.trim();
+    if (!VALID_TEAMS.includes(team)) { skipped++; continue; }
+
+    const freq     = VALID_FREQ.includes(r.freq) ? r.freq : 'daily';
+    const email    = (r.assignedtoemail || r.assignedToEmail || '').toLowerCase().trim();
+    const matched  = email ? emailMap[email] : null;
+
+    const tplObj = {
+      title,
+      team,
+      freq,
+      schedule  : r.schedule?.trim() || '',
+      priority  : r.priority === 'urgent' ? 'urgent' : 'normal',
+      assign    : r.assign?.trim() || 'all',
+      assignedToEmail : email || null,
+      assignedToUid   : matched?.id || null,
+      note      : r.note?.trim() || '',
+      requiresLeaderCheck : String(r.requiresleadercheck||r.requiresLeaderCheck||'').toLowerCase() === 'true',
+      bulkImported: true,
+      createdAt : serverTimestamp(),
+    };
+
+    // If no valid email → flag as unassigned & add to team's checklist (assign = 'all')
+    if (!matched) {
+      tplObj.assignedToEmail = null;
+      tplObj.assignedToUid   = null;
+      tplObj.unassigned      = true;
+      if (!unassignedByTeam[team]) unassignedByTeam[team] = [];
+      unassignedByTeam[team].push(title);
+    }
+
+    try {
+      await addDoc(collection(db, 'templates'), tplObj);
+      imported++;
+    } catch (e) {
+      console.error('Bulk import row error:', e, r);
+      skipped++;
+    }
+  }
+
+  // Send notifications to leaders for unassigned tasks
+  for (const [team, titles] of Object.entries(unassignedByTeam)) {
+    const leaders = STAFF.filter(s => s.role === 'leader' && s.team === team);
+    for (const leader of leaders) {
+      try {
+        await addDoc(collection(db, 'notifications'), {
+          toUid     : leader.id,
+          toTeam    : team,
+          type      : 'unassigned_bulk',
+          title     : `⚠️ ${titles.length} công việc chưa được phân công (import hàng loạt)`,
+          body      : titles.slice(0,5).join(', ') + (titles.length > 5 ? ` … và ${titles.length-5} CV khác` : ''),
+          read      : false,
+          createdAt : serverTimestamp(),
+        });
+      } catch (e) { console.error('Notif error', e); }
+    }
+  }
+
+  btn.disabled = false;
+  closeModal('bulkImportModal');
+  showToast(`✅ Đã import ${imported} template${skipped ? `, bỏ qua ${skipped} dòng lỗi` : ''}`, 'success');
+  if (Object.keys(unassignedByTeam).length) {
+    showToast(`⚠️ ${Object.values(unassignedByTeam).flat().length} CV chưa phân công → đã thông báo leader`, 'warn');
+  }
+  renderTemplateTable();
+  btn.textContent = '✅ Import ngay';
+};
+
+
 window.closeModal = closeModal;
 window.openModal = openModal;
 
