@@ -1222,6 +1222,9 @@ select.field-input {
       <span class="nav-icon">📚</span> Form bù bài
       <span class="badge" id="makeupBadge" style="background:var(--warn);display:none">0</span>
     </button>
+    <button class="nav-item" data-page="history" data-roles="admin,leader" onclick="showPage('history')">
+      <span class="nav-icon">📜</span> Lịch sử giao việc
+    </button>
     <button class="nav-item" data-page="admin" data-roles="admin,leader" onclick="showPage('admin')">
       <span class="nav-icon">🔐</span> Quản lý tài khoản
     </button>
@@ -1521,6 +1524,38 @@ select.field-input {
     </div>
     <!-- end page-addTask -->
 
+
+    <!-- ========== PAGE: HISTORY ========== -->
+    <div class="page" id="page-history">
+      <div class="template-header">
+        <div class="template-header-left">
+          <h2>📜 Lịch sử giao việc</h2>
+          <p>Toàn bộ task + cross task được tạo — ai tạo, lúc nào, giao cho ai</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <select class="field-input" id="historyTeamFilter" style="width:150px" onchange="renderHistoryPage()">
+          <option value="">Tất cả đội</option>
+          <option value="cskh">CSKH</option>
+          <option value="chuyenmon">Chuyên môn</option>
+          <option value="trogiangHT">Trợ giảng</option>
+          <option value="vanhanh">Vận hành</option>
+          <option value="tuyensinh">Tuyển sinh</option>
+          <option value="marketing">Marketing</option>
+        </select>
+        <select class="field-input" id="historyTypeFilter" style="width:150px" onchange="renderHistoryPage()">
+          <option value="">Tất cả loại</option>
+          <option value="task">📋 Task thường</option>
+          <option value="cross">🔀 Giao chéo</option>
+        </select>
+        <input class="field-input" type="date" id="historyDateFrom" style="width:145px" onchange="renderHistoryPage()" placeholder="Từ ngày">
+        <input class="field-input" type="date" id="historyDateTo" style="width:145px" onchange="renderHistoryPage()" placeholder="Đến ngày">
+      </div>
+      <div id="historyList" style="display:flex;flex-direction:column;gap:8px">
+        <div style="color:var(--text-muted);font-size:13px">Đang tải...</div>
+      </div>
+    </div>
+    <!-- end page-history -->
     <!-- ========== PAGE: CARRYOVER ========== -->
     <div class="page" id="page-carryover">
       <div class="template-header">
@@ -1540,11 +1575,20 @@ select.field-input {
       <div class="template-header">
         <div class="template-header-left">
           <h2>🔀 Giao việc chéo đội</h2>
-          <p>Bất kỳ ai cũng có thể giao việc cho đội khác</p>
+          <p>Theo dõi việc bạn giao đi và nhận về từ đội khác</p>
         </div>
-        <button class="btn btn-primary" onclick="openCrossModal()">+ Giao việc mới</button>
+        <button class="btn btn-primary" onclick="showPage('addTask')">+ Giao việc mới</button>
       </div>
-
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="filter-chip active" id="crossTab-out" onclick="switchCrossTab('out')">📤 Tôi đã giao</button>
+        <button class="filter-chip" id="crossTab-in" onclick="switchCrossTab('in')">📥 Nhận từ đội khác</button>
+        <button class="filter-chip" id="crossTab-all" onclick="switchCrossTab('all')">📋 Tất cả</button>
+        <select class="field-input" id="crossStatusFilter" style="width:140px;margin-left:auto" onchange="renderCrossPage()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="pending">⏳ Chờ xử lý</option>
+          <option value="done">✅ Đã xong</option>
+        </select>
+      </div>
       <div class="task-list" id="crossList"></div>
     </div>
     <!-- end page-crossTask -->
@@ -2802,6 +2846,7 @@ window.showPage = function(id) {
   if (id === 'template') renderTemplateTable();
   if (id === 'carryover') renderCarryoverPage();
   if (id === 'crossTask') renderCrossPage();
+  if (id === 'history') { attachHistoryListener(); renderHistoryPage(); }
   if (id === 'report') renderReportPage();
   if (id === 'leaderCheck') renderLeaderCheckPage();
   if (id === 'checklist') renderChecklistPage();
@@ -3250,9 +3295,17 @@ function taskHTML(task) {
           <input class="field-input" type="url" id="link-${task.id}" placeholder="Google Drive..." value="${escapeHTML(task.report?.link || '')}" ${canAct?'':'readonly'}>
         </div>
       </div>
-      ${canAct ? `<div class="expand-actions">
+      ${canAct ? `<div class="expand-actions" style="flex-wrap:wrap;gap:6px">
         <button class="task-btn" onclick="saveNote('${task.id}')">Lưu ghi chú</button>
-        ${!isChecked ? `<button class="task-btn" style="color:var(--carry)" onclick="pushCarry('${task.id}')">🔄 Đẩy sang ngày mai</button>` : ''}
+        ${!isChecked ? `<button class="task-btn" style="color:var(--carry)" onclick="pushCarry('${task.id}')">🔄 Đẩy ngày mai</button>` : ''}
+        ${isLeaderOrAdmin ? `
+          <select class="task-btn" id="branch-sel-${task.id}" onchange="saveTaskBranch('${task.id}',this.value)" title="Sửa cơ sở" style="padding:3px 6px;cursor:pointer">
+            <option value="tk" ${task.branch==='tk'?'selected':''}>🏠 Trung Kính</option>
+            <option value="th" ${task.branch==='th'?'selected':''}>🏠 Trung Hòa</option>
+            <option value="md" ${task.branch==='md'?'selected':''}>🏠 Mỹ Đình</option>
+          </select>
+          <button class="task-btn" style="color:var(--urgent)" onclick="deleteTask('${task.id}')" title="Xoá việc này">🗑️ Xoá</button>
+        ` : ''}
       </div>` : ''}
       <div class="comment-section" id="comments-${task.id}">
         <div class="comment-list" id="comment-list-${task.id}">
@@ -3285,6 +3338,23 @@ window.toggleTask = async function(id) {
   } else {
     openReportModal(id);
   }
+};
+
+
+window.saveTaskBranch = async function(id, branch) {
+  try {
+    await updateDoc(doc(db, 'tasks', id), { branch });
+    showToast('✅ Đã cập nhật cơ sở', 'success');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.deleteTask = async function(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!confirm(`Xoá việc "${task?.title || id}"?`)) return;
+  try {
+    await deleteDoc(doc(db, 'tasks', id));
+    showToast('🗑️ Đã xoá', 'warn');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
 
 window.saveNote = async function(id) {
@@ -3720,7 +3790,8 @@ window.saveAdhocTask = async function() {
       const toTeam   = document.getElementById('adhocCrossTeam').value;
       const toUid    = document.getElementById('adhocCrossPerson')?.value || null;
       const toMember = toUid ? STAFF.find(s => s.id === toUid) : null;
-      await addDoc(collection(db, 'crossTasks'), {
+      // Save to crossTasks for tracking
+      const crossRef = await addDoc(collection(db, 'crossTasks'), {
         title,
         fromTeam: profile.team || '',
         toTeam,
@@ -3735,13 +3806,37 @@ window.saveAdhocTask = async function() {
         branch  : currentBranch(),
         createdAt: serverTimestamp(),
       });
-      createNotification({
-        toTeam,
-        toUid: toUid || null,
-        title: priority === 'urgent'
-          ? `🔀🔴 ${TEAMS[profile.team]?.label || profile.team} giao việc gấp: ${title}`
-          : `🔀 ${TEAMS[profile.team]?.label || profile.team} giao việc cho đội bạn: ${title}`,
-        taskId: null, type: 'cross_task',
+      // ALSO add to tasks collection so it appears in toTeam's checklist
+      await addDoc(collection(db, 'tasks'), {
+        title,
+        team        : toTeam,
+        freq        : 'fixed',
+        priority    : priority,
+        status      : 'pending',
+        assignedToUid : toUid || null,
+        assignedToName: toMember?.name || '',
+        assignedEmail : toMember?.email || null,
+        note,
+        deadline,
+        isCross     : true,
+        crossFrom   : profile.team || '',
+        crossFromName: profile.name || '',
+        crossTaskId : crossRef.id,
+        isCarry     : false,
+        branch      : currentBranch(),
+        createdAt   : serverTimestamp(),
+        requiresLeaderCheck: false,
+        checkStatus : 'none',
+        checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
+      });
+      // Notify receiving team (and specific person if assigned)
+      await createNotification({
+        toTeam : toUid ? null : toTeam,
+        toUid  : toUid || null,
+        title  : priority === 'urgent'
+          ? `🔀🔴 ${TEAMS[profile.team]?.label || profile.team} giao việc gấp cho ${TEAMS[toTeam]?.label || toTeam}: ${title}`
+          : `🔀 ${TEAMS[profile.team]?.label || profile.team} giao việc cho ${TEAMS[toTeam]?.label || toTeam}: ${title}`,
+        taskId : crossRef.id, type: 'cross_task',
       });
       showToast('🔀 Đã giao việc chéo đội!', 'success');
     } else {
@@ -3827,34 +3922,159 @@ window.pushAllToToday = async function() {
 // =============================================================
 //  CROSS TASK PAGE
 // =============================================================
+let _crossTab = 'out';
+function switchCrossTab(tab) {
+  _crossTab = tab;
+  ['out','in','all'].forEach(t => {
+    const btn = document.getElementById(`crossTab-${t}`);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  renderCrossPage();
+}
+
 function renderCrossPage() {
   const list = document.getElementById('crossList');
   if (!list) return;
-  list.innerHTML = crossTasks.map(ct => {
+  const profile  = window._state.profile;
+  const myTeam   = profile?.team || '';
+  const myUid    = window._state.user?.uid;
+  const statusF  = document.getElementById('crossStatusFilter')?.value || '';
+  const role     = profile?.role;
+
+  let items = crossTasks.filter(ct => {
+    if (statusF && ct.status !== statusF) return false;
+    if (_crossTab === 'out') return ct.fromTeam === myTeam || ct.fromUserUid === myUid;
+    if (_crossTab === 'in')  return ct.toTeam === myTeam;
+    return true; // all: admin sees everything, others see in+out
+  });
+
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔀</div>
+      <h3>${_crossTab==='out'?'Chưa giao việc nào':_crossTab==='in'?'Chưa nhận việc nào':'Chưa có việc giao chéo'}</h3>
+      <p>Dùng "Thêm / Giao việc" → chọn "Đội khác" để giao.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(ct => {
     const fromTeam = TEAMS[ct.fromTeam];
-    const toTeam = TEAMS[ct.toTeam];
-    const isDone = ct.status === 'done';
-    return `<div class="task-card ${ct.urgency === 'urgent' ? 'urgent-task' : ''} ${isDone ? 'done-task' : ''}">
+    const toTeam   = TEAMS[ct.toTeam];
+    const isDone   = ct.status === 'done';
+    const isReceiver = ct.toTeam === myTeam;
+    const canToggle  = isReceiver || role === 'admin';
+    const createdAt  = ct.createdAt?.toDate ? ct.createdAt.toDate().toLocaleDateString('vi-VN') : '';
+
+    return `<div class="task-card ${ct.urgency==='urgent'?'urgent-task':''} ${isDone?'done-task':''}">
       <div class="task-top">
-        <div class="task-checkbox ${isDone ? 'checked' : ''}" onclick="toggleCross('${ct.id}')"></div>
+        <div class="task-checkbox ${isDone?'checked':''}" ${canToggle?`onclick="toggleCross('${ct.id}')"`:''}></div>
         <div class="task-body">
           <div class="task-title">${escapeHTML(ct.title)}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${escapeHTML(ct.note||'')}</div>
+          ${ct.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px">${escapeHTML(ct.note)}</div>` : ''}
           <div class="task-meta" style="margin-top:6px">
-            <span class="tag tag-team">Từ: ${fromTeam?.label||ct.fromTeam}</span>
-            <span class="tag" style="background:${toTeam?.bg};color:${toTeam?.color}">→ ${toTeam?.label||ct.toTeam}</span>
-            ${ct.urgency === 'urgent' ? '<span class="tag tag-urgent">🔴 Gấp</span>' : ''}
+            <span class="tag" style="background:${fromTeam?.bg||'#eee'};color:${fromTeam?.color||'#333'}">📤 ${fromTeam?.label||ct.fromTeam}</span>
+            <span style="font-size:13px;color:var(--text-muted)">→</span>
+            <span class="tag" style="background:${toTeam?.bg||'#eee'};color:${toTeam?.color||'#333'}">📥 ${toTeam?.label||ct.toTeam}</span>
+            ${ct.urgency==='urgent'?'<span class="tag tag-urgent">🔴 Gấp</span>':''}
             <span style="font-size:11px;color:var(--text-muted)">📅 ${ct.deadline}</span>
             <span style="font-size:11px;color:var(--text-muted)">👤 ${escapeHTML(ct.fromUserName||'')}</span>
+            ${ct.assignedToName ? `<span style="font-size:11px;color:var(--text-muted)">→ ${escapeHTML(ct.assignedToName)}</span>` : ''}
+            ${createdAt ? `<span style="font-size:10px;color:var(--text-muted)">🕐 ${createdAt}</span>` : ''}
           </div>
         </div>
         <div class="task-actions">
-          ${!isDone ? `<button class="task-btn submit" onclick="toggleCross('${ct.id}')">✅ Xong</button>` : ''}
+          ${!isDone && canToggle ? `<button class="task-btn submit" onclick="toggleCross('${ct.id}')">✅ Xong</button>` : ''}
+          ${isDone ? `<span style="font-size:11px;color:var(--done)">✅ Đã xong</span>` : ''}
         </div>
       </div>
     </div>`;
-  }).join('') || `<div class="empty-state"><div class="empty-icon">🔀</div><h3>Chưa có việc giao chéo</h3><p>Nhấn + Giao việc mới để bắt đầu.</p></div>`;
+  }).join('');
 }
+
+
+// =============================================================
+//  HISTORY PAGE — lịch sử tạo việc (Fix 3)
+// =============================================================
+let _historyItems = [];
+let _historyUnsub = null;
+
+function attachHistoryListener() {
+  if (_historyUnsub) return; // already listening
+  const profile = window._state.profile;
+  const myTeam  = profile?.team;
+  const isAdmin = profile?.role === 'admin';
+
+  // Load last 200 tasks + 100 crossTasks ordered by createdAt
+  const qH = isAdmin
+    ? query(collection(db, 'tasks'), orderBy('createdAt', 'desc'), limit(200))
+    : query(collection(db, 'tasks'), where('team', '==', myTeam), orderBy('createdAt', 'desc'), limit(200));
+
+  _historyUnsub = onSnapshot(qH, snap => {
+    const taskItems = snap.docs.map(d => ({ id: d.id, _type: 'task', ...d.data() }));
+    // merge with crossTasks already in memory
+    const crossItems = crossTasks.map(c => ({ ...c, _type: 'cross' }));
+    _historyItems = [...taskItems, ...crossItems]
+      .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    if (currentPage === 'history') renderHistoryPage();
+  }, err => console.error(err));
+  window._state.unsubscribers.push(_historyUnsub);
+}
+
+window.renderHistoryPage = function() {
+  const listEl    = document.getElementById('historyList');
+  if (!listEl) return;
+  const teamF     = document.getElementById('historyTeamFilter')?.value || '';
+  const typeF     = document.getElementById('historyTypeFilter')?.value || '';
+  const dateFrom  = document.getElementById('historyDateFrom')?.value || '';
+  const dateTo    = document.getElementById('historyDateTo')?.value || '';
+  const profile   = window._state.profile;
+  const isAdmin   = profile?.role === 'admin';
+  const myTeam    = profile?.team;
+
+  let items = _historyItems.filter(item => {
+    if (typeF === 'task'  && item._type !== 'task')  return false;
+    if (typeF === 'cross' && item._type !== 'cross') return false;
+    const itemTeam = item._type === 'cross' ? (item.fromTeam || item.toTeam) : item.team;
+    if (teamF && itemTeam !== teamF) return false;
+    if (!isAdmin && item._type === 'task' && item.team !== myTeam) return false;
+    const createdDate = item.createdAt?.toDate ? item.createdAt.toDate().toISOString().slice(0,10) : '';
+    if (dateFrom && createdDate < dateFrom) return false;
+    if (dateTo   && createdDate > dateTo)   return false;
+    return true;
+  });
+
+  if (!items.length) {
+    listEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:20px">Không có dữ liệu</div>';
+    return;
+  }
+
+  listEl.innerHTML = items.slice(0, 300).map(item => {
+    const createdAt = item.createdAt?.toDate
+      ? item.createdAt.toDate().toLocaleString('vi-VN', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric' })
+      : '—';
+    const isCross = item._type === 'cross';
+    const teamLabel = isCross
+      ? `${TEAMS[item.fromTeam]?.label||item.fromTeam} → ${TEAMS[item.toTeam]?.label||item.toTeam}`
+      : (TEAMS[item.team]?.label || item.team || '—');
+    const assignee = item.assignedToName || (item.assignedToUid ? 'Cá nhân' : 'Cả đội');
+    const status   = item.status === 'done' ? '✅ Xong' : '⏳ Chờ';
+    const typeIcon = isCross ? '🔀' : (item.isCarry ? '🔄' : '📋');
+    const priorityBadge = item.priority === 'urgent' || item.urgency === 'urgent'
+      ? '<span style="font-size:10px;background:#FEE2E2;color:#DC2626;padding:1px 6px;border-radius:10px;font-weight:700">GẤP</span>' : '';
+    return `<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start">
+      <div style="font-size:18px;flex-shrink:0;margin-top:2px">${typeIcon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px">${escapeHTML(item.title)} ${priorityBadge}</div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap">
+          <span>🏷️ ${teamLabel}</span>
+          <span>👤 ${escapeHTML(item.fromUserName || assignee)}</span>
+          <span>📌 Giao cho: ${escapeHTML(assignee)}</span>
+          <span>📅 Deadline: ${item.deadline||'—'}</span>
+          <span>${status}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">${createdAt}</div>
+    </div>`;
+  }).join('');
+};
 
 window.openCrossModal = function() {
   document.getElementById('crossDeadline').value = fmt(today);
@@ -3868,7 +4088,7 @@ window.saveCrossTask = async function() {
   const toTeam = document.getElementById('crossTeam').value;
   const urgency = document.getElementById('crossUrgency').value;
   try {
-    const ref = await addDoc(collection(db, 'crossTasks'), {
+    const crossRef2 = await addDoc(collection(db, 'crossTasks'), {
       title,
       fromTeam: profile.team || 'cskh',
       toTeam,
@@ -3881,13 +4101,35 @@ window.saveCrossTask = async function() {
       branch: currentBranch(),
       createdAt: serverTimestamp(),
     });
-    // Always notify, urgent gets extra badge
-    createNotification({
+    // Mirror into tasks so it shows in toTeam checklist
+    await addDoc(collection(db, 'tasks'), {
+      title,
+      team      : toTeam,
+      freq      : 'fixed',
+      priority  : urgency,
+      status    : 'pending',
+      assignedToUid: null,
+      assignedToName: '',
+      assignedEmail: null,
+      note      : document.getElementById('crossNote').value,
+      deadline  : document.getElementById('crossDeadline').value,
+      isCross   : true,
+      crossFrom : profile.team || 'cskh',
+      crossFromName: profile.name || '',
+      crossTaskId: crossRef2.id,
+      isCarry   : false,
+      branch    : currentBranch(),
+      createdAt : serverTimestamp(),
+      requiresLeaderCheck: false,
+      checkStatus: 'none',
+      checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
+    });
+    await createNotification({
       toTeam,
       title: urgency === 'urgent'
-        ? `🔀🔴 ${TEAMS[profile.team]?.label || profile.team} giao việc gấp: ${title}`
-        : `🔀 ${TEAMS[profile.team]?.label || profile.team} giao việc cho đội bạn: ${title}`,
-      taskId: null, type: 'cross_task',
+        ? `🔀🔴 ${TEAMS[profile.team]?.label || profile.team} giao việc gấp cho ${TEAMS[toTeam]?.label||toTeam}: ${title}`
+        : `🔀 ${TEAMS[profile.team]?.label || profile.team} giao việc cho ${TEAMS[toTeam]?.label||toTeam}: ${title}`,
+      taskId: crossRef2.id, type: 'cross_task',
     });
     closeModal('crossModal');
     showToast('🔀 Đã giao việc cho đội!', 'success');
@@ -4753,37 +4995,28 @@ window.renderTemplateTable = renderTemplateTable;
 // =============================================================
 
 // Tab config per team
-const CHECKLIST_TABS = {
-  chuyenmon: [
-    { id: 'team',     label: '📋 Cả đội Chuyên môn' },
-    { id: 'personal', label: '👤 Của tôi' },
-    { id: 'ta',       label: '📚 Trợ giảng' },
-  ],
-  trogiangHT: [
-    { id: 'shared',   label: '⚡ Chung (chưa phân)' },
-    { id: 'personal', label: '👤 Của tôi' },
-  ],
-  cskh: [
-    { id: 'branch',   label: '🏢 Theo cơ sở' },
-    { id: 'personal', label: '👤 Của tôi' },
-  ],
-  marketing: [
-    { id: 'branch',   label: '🏢 Theo cơ sở' },
-    { id: 'personal', label: '👤 Của tôi' },
-  ],
-  vanhanh: [
-    { id: 'branch',   label: '🏢 Theo cơ sở' },
-    { id: 'personal', label: '👤 Của tôi' },
-  ],
-  tuyensinh: [
-    { id: 'team',     label: '📋 Cả đội' },
-    { id: 'personal', label: '👤 Của tôi' },
-  ],
-  _default: [
-    { id: 'team',     label: '📋 Cả đội' },
-    { id: 'personal', label: '👤 Của tôi' },
-  ],
+// Staff tabs (base)
+const CHECKLIST_TABS_STAFF = {
+  chuyenmon : [{ id:'team', label:'📋 Cả đội CM' }, { id:'personal', label:'👤 Của tôi' }, { id:'ta', label:'📚 Trợ giảng' }],
+  trogiangHT: [{ id:'shared', label:'⚡ Chung' }, { id:'personal', label:'👤 Của tôi' }],
+  cskh      : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'personal', label:'👤 Của tôi' }],
+  marketing : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'personal', label:'👤 Của tôi' }],
+  vanhanh   : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'personal', label:'👤 Của tôi' }],
+  tuyensinh : [{ id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  _default  : [{ id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
 };
+// Leader tabs — always add 'branch' + for chuyenmon also 'ta'
+const CHECKLIST_TABS_LEADER = {
+  chuyenmon : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team', label:'📋 Cả đội CM' }, { id:'ta', label:'📚 Trợ giảng' }, { id:'personal', label:'👤 Của tôi' }],
+  trogiangHT: [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'shared', label:'⚡ Chưa phân' }, { id:'personal', label:'👤 Của tôi' }],
+  cskh      : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  marketing : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  vanhanh   : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  tuyensinh : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  _default  : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+};
+// Keep old name for compatibility
+const CHECKLIST_TABS = CHECKLIST_TABS_STAFF;
 
 let _clTab = 'team';           // current tab id
 let _clMemberUid = null;       // uid of member being viewed (leader view)
@@ -4803,9 +5036,9 @@ function renderChecklistPage() {
   document.getElementById('checklistMemberPicker').style.display = 'none';
   _clMemberUid = null;
 
-  // Build tabs
-  const tabCfg = CHECKLIST_TABS[myTeam] || CHECKLIST_TABS._default;
-  // Leaders also get "Thành viên" tab
+  // Build tabs — leaders get richer tab set
+  const tabSource = isLeader ? CHECKLIST_TABS_LEADER : CHECKLIST_TABS_STAFF;
+  const tabCfg = tabSource[myTeam] || tabSource._default;
   const tabs = [...tabCfg];
   if (isLeader) tabs.push({ id: 'members', label: '👥 Thành viên' });
 
@@ -4878,15 +5111,17 @@ function _renderChecklistTab(myTeam, myUid, isLeader, profile) {
   const teamList = document.getElementById('checklistTeamList');
 
   if (tab === 'branch') {
-    // Group by branch
-    const branches = [...new Set(pool.flatMap(t => t.branch ? [t.branch] : ['']))];
-    teamList.innerHTML = branches.map(br => {
-      const bTasks = pool.filter(t => (t.branch || '') === br);
+    // Group by branch — show ALL team tasks grouped, including unassigned
+    const BRS = ['tk','th','md'];
+    teamList.innerHTML = BRS.map(br => {
+      const bTasks = pool.filter(t => (t.branch || 'tk') === br);
+      if (!bTasks.length) return '';
       return `<div style="margin-bottom:20px">
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
-          🏢 ${br ? (BRANCH_LABEL[br] || br) : 'Tất cả cơ sở'}
+          🏠 ${BRANCH_LABEL[br] || br}
+          <span style="font-weight:400;margin-left:6px">(${bTasks.length} việc · ${bTasks.filter(t=>t.status==='done').length} xong)</span>
         </div>
-        ${bTasks.map(t => checklistTaskHTML(t, isLeader)).join('') || emptyHTML('Không có việc')}
+        ${bTasks.map(t => checklistTaskHTML(t, isLeader)).join('')}
       </div>`;
     }).join('') || emptyHTML('Không có công việc nào');
   } else if (tab === 'ta') {
@@ -5282,20 +5517,35 @@ window.scheduleMidnightCarryover = scheduleMidnightCarryover;
 // CSV columns: title,team,freq,schedule,priority,assign,assignedToEmail,note,requiresLeaderCheck
 const BULK_CSV_COLS = ['title','team','freq','schedule','priority','assign','assignedToEmail','note','requiresLeaderCheck'];
 
-const BULK_CSV_SAMPLE_ROWS = [
-  ['Kiểm tra cơ sở buổi sáng','vanhanh','daily','','normal','all','nguyen.van.a@limecenter.vn','Kiểm tra phòng học, thiết bị trước 7h30','FALSE'],
-  ['Báo cáo tuyển sinh tuần','tuyensinh','weekly','thu2','normal','staff','tran.thi.b@limecenter.vn','Gửi báo cáo số lượng tư vấn + đăng ký trong tuần','FALSE'],
-  ['Sự kiện khai giảng tháng 9','chuyenmon','fixed','2025-09-01','urgent','all','','Phân công từng GV — xem file nội dung chi tiết','TRUE'],
-];
-
 window.downloadBulkTemplate = function() {
-  const header = BULK_CSV_COLS.join(',');
-  const rows = BULK_CSV_SAMPLE_ROWS.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-  const csv = [header, ...rows].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const labels = [
+    'Ten cong viec *',
+    'Doi * (cskh/chuyenmon/trogiangHT/vanhanh/tuyensinh/marketing/all)',
+    'Tan suat * (daily/weekly/monthly/fixed)',
+    'Lich cu the (weekly->thu2..cn | monthly->1-31 | fixed->YYYY-MM-DD | daily->de trong)',
+    'Uu tien (normal/urgent)',
+    'Phan cong (all/leader/staff)',
+    'Email nguoi nhan (hoac de trong)',
+    'Huong dan / Ghi chu',
+    'Can Leader duyet? (TRUE/FALSE)',
+  ];
+  const samples = [
+    ['Kiem tra phong hoc buoi sang','vanhanh','daily','','normal','all','','Kiem tra mic, may chieu truoc 7h30','FALSE'],
+    ['Bao cao tuyen sinh tuan','tuyensinh','weekly','thu2','normal','staff','tran.b@limecenter.vn','So luong tu van + dang ky trong tuan','FALSE'],
+    ['Hop doi chuyen mon','chuyenmon','weekly','thu6','normal','all','','Tong hop phan hoi + ke hoach tuan toi','FALSE'],
+    ['Nop bang cham cong','vanhanh','monthly','25','urgent','leader','','Chot truoc 12h ngay 25, gui ke toan','TRUE'],
+    ['Khai giang lop IELTS thang 9','chuyenmon','fixed','2025-09-01','urgent','all','','Phan cong GV, chuan bi tai lieu','TRUE'],
+  ];
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [
+    labels.map(q).join(','),
+    BULK_CSV_COLS.map(q).join(','),
+    ...samples.map(r => r.map(q).join(','))
+  ];
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'bulk_template_import.csv'; a.click();
+  a.href = url; a.download = 'lime_template_import.csv'; a.click();
   URL.revokeObjectURL(url);
 };
 
@@ -5304,7 +5554,13 @@ let _bulkParsed = [];
 function parseCSV(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (!lines.length) return [];
-  const header = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
+  // Support new format: row 1 = human labels, row 2 = system columns
+  // Detect: if first cell of line[0] doesn't match a known column, skip to line[1]
+  const knownCols = new Set(BULK_CSV_COLS);
+  let headerLine = 0;
+  const firstCells = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
+  if (!firstCells.some(c => knownCols.has(c))) headerLine = 1; // row 0 is labels, row 1 is sys header
+  const header = lines[headerLine].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
     const vals = [];
@@ -5613,6 +5869,7 @@ window.submitMakeupForm = async function() {
   const absentDate = document.getElementById('makeupAbsentDate').value;
   const note = document.getElementById('makeupNote').value.trim();
 
+  const loai = document.querySelector('input[name="makeupLoai"]:checked')?.value || 'bu_bai';
   if (!className || !content || !studentsRaw) {
     showToast('⚠️ Điền đầy đủ Tên lớp, Nội dung và Danh sách học sinh', 'warn'); return;
   }
@@ -5622,7 +5879,7 @@ window.submitMakeupForm = async function() {
   const profile = window._state.profile;
   try {
     await addDoc(collection(db, 'makeupRequests'), {
-      branch, className, content, students, absentDate, note,
+      branch, className, content, students, absentDate, note, loai,
       submittedBy: profile?.name || 'Trợ giảng',
       submittedById: window._state.user.uid,
       createdAt: serverTimestamp(),
@@ -5633,15 +5890,196 @@ window.submitMakeupForm = async function() {
   } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
 
+// Helper: render one makeup card
+function makeupCardHTML(r, role) {
+  const students = r.students || [];
+  const doneCount = students.filter(s => s.done).length;
+  const allDone = doneCount === students.length;
+  const branchLabel = { tk:'Trung Kính', th:'Trung Hòa', md:'Mỹ Đình' }[r.branch] || r.branch;
+  const canTick = role === 'admin' || role === 'leader' ||
+    window._state.profile?.team === 'cskh' || window._state.profile?.team === 'chuyenmon' ||
+    window._state.profile?.team === 'trogiangHT';
+  const loaiIcon = r.loai === 'on_bai' ? '📖' : '📚';
+  const loaiLabel = r.loai === 'on_bai'
+    ? '<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#EDE7F6;color:#6A1B9A">ÔN BÀI</span>'
+    : '<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#FFF3E0;color:#E65100">BÙ BÀI</span>';
+
+  return `<div class="makeup-card ${allDone ? 'done-card' : 'pending-card'}" style="border-left:3px solid ${r.loai==='on_bai'?'#7E57C2':'#FF8A65'}">
+    <div class="makeup-card-head">
+      <div style="flex:1">
+        <div class="makeup-title" style="display:flex;align-items:center;gap:6px">
+          ${loaiLabel} ${loaiIcon} ${escapeHTML(r.className)} · ${escapeHTML(r.content)}
+        </div>
+        <div class="makeup-meta">
+          <span>🏠 ${branchLabel}</span>
+          ${r.absentDate ? `<span>📅 Ngày nghỉ: ${r.absentDate}</span>` : ''}
+          <span>👤 ${escapeHTML(r.submittedBy)}</span>
+          ${r.note ? `<span>📝 ${escapeHTML(r.note)}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="${allDone ? 'badge-ok' : 'badge-warn'}">${doneCount}/${students.length}</span>
+        ${(role==='admin'||role==='leader') ? `<button class="task-btn" style="font-size:10px;color:var(--urgent)" onclick="deleteMakeupRequest('${r.id}')">🗑️</button>` : ''}
+      </div>
+    </div>
+    <div class="makeup-students">
+      ${students.map((s, idx) => `
+        <div class="makeup-student-row">
+          <span class="makeup-student-name">${escapeHTML(s.name)}</span>
+          ${s.done ? `<span style="font-size:11px;color:var(--text-muted)">✅ ${escapeHTML(s.doneBy||'')} ${s.doneAt ? '· '+s.doneAt : ''}</span>` : ''}
+          ${canTick ? `<button class="makeup-check-btn ${s.done ? 'done-btn' : ''}"
+            onclick="toggleMakeupStudent('${r.id}', ${idx})">${s.done ? '↩ Bỏ' : '✔ Xong'}</button>` : ''}
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+window.deleteMakeupRequest = async function(id) {
+  if (!confirm('Xoá phiếu này?')) return;
+  try {
+    await deleteDoc(doc(db, 'makeupRequests', id));
+    showToast('Đã xoá', 'warn');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+
+
+// ─── Makeup CSV Upload (Fix 2) ───────────────────────────────
+window.openMakeupUploadModal = function() {
+  document.getElementById('makeupUploadFile').value = '';
+  document.getElementById('makeupUploadPreview').style.display = 'none';
+  document.getElementById('makeupUploadBtn').style.display = 'none';
+  openModal('makeupUploadModal');
+};
+
+window.downloadMakeupTemplate = function() {
+  const labels = ['loai (bu_bai/on_bai)','branch (tk/th/md)','className (ten lop)','studentName (ten hoc sinh)','absentDate (YYYY-MM-DD)','note (ghi chu)'];
+  const sys    = ['loai','branch','className','studentName','absentDate','note'];
+  const samples = [
+    ['bu_bai','tk','3Dory0T','Nguyen Minh Khoa','2025-06-18','Di thi'],
+    ['bu_bai','tk','3Dory0T','Tran Bao Anh','2025-06-18',''],
+    ['on_bai','th','4Nemo1T','Le Tuan Nam','2025-06-20','On unit 6 vocab'],
+    ['on_bai','th','4Nemo1T','Pham Ha Linh','2025-06-20',''],
+  ];
+  const q = v => '"' + String(v).replace(/"/g,'""') + '"';
+  const lines = [labels.map(q).join(','), sys.map(q).join(','), ...samples.map(r => r.map(q).join(','))];
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'lime_makeup_import.csv'; a.click();
+  URL.revokeObjectURL(url);
+};
+
+let _makeupParsed = [];
+
+window.parseMakeupCSV = function(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) { showToast('File trống hoặc không hợp lệ', 'error'); return; }
+
+    // Detect header row (same logic as bulk import)
+    const knownCols = new Set(['loai','branch','classname','studentname','absentdate','note']);
+    const row0 = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
+    const headerIdx = row0.some(c => knownCols.has(c)) ? 0 : 1;
+    const header = lines[headerIdx].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
+    const dataLines = lines.slice(headerIdx + 1);
+
+    _makeupParsed = dataLines.map(line => {
+      const vals = [];
+      let inQ = false, cur = '';
+      for (const ch of line + ',') {
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+        else cur += ch;
+      }
+      const obj = {};
+      header.forEach((k, i) => { obj[k] = vals[i] || ''; });
+      return obj;
+    }).filter(r => r.classname && r.studentname);
+
+    if (!_makeupParsed.length) {
+      showToast('Không tìm thấy dữ liệu hợp lệ', 'error'); return;
+    }
+
+    // Group for preview
+    const groups = {};
+    _makeupParsed.forEach(r => {
+      const key = `${r.loai||'bu_bai'}|||${r.branch}|||${r.classname}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r.studentname);
+    });
+
+    const tableEl = document.getElementById('makeupUploadTable');
+    tableEl.innerHTML = Object.entries(groups).map(([key, names]) => {
+      const [loai, branch, cls] = key.split('|||');
+      const loaiLabel = loai === 'on_bai' ? '📖 Ôn' : '📚 Bù';
+      const branchLabel = {tk:'TK',th:'TH',md:'MĐ'}[branch] || branch;
+      return `<div style="margin-bottom:8px"><strong>${loaiLabel} · ${branchLabel} · Lớp ${escapeHTML(cls)}</strong> (${names.length} HS)<br>
+        <span style="color:var(--text-muted)">${names.map(n=>escapeHTML(n)).join(', ')}</span></div>`;
+    }).join('');
+
+    document.getElementById('makeupUploadSummary').textContent =
+      `${_makeupParsed.length} học sinh · ${Object.keys(groups).length} phiếu sẽ được tạo`;
+    document.getElementById('makeupUploadPreview').style.display = 'block';
+    document.getElementById('makeupUploadBtn').style.display = 'inline-block';
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+window.executeMakeupUpload = async function() {
+  if (!_makeupParsed.length) return;
+  const profile = window._state.profile;
+
+  // Group by loai + branch + className
+  const groups = {};
+  _makeupParsed.forEach(r => {
+    const key = `${r.loai||'bu_bai'}|||${r.branch||'tk'}|||${r.classname}`;
+    if (!groups[key]) groups[key] = { loai: r.loai||'bu_bai', branch: r.branch||'tk', className: r.classname, absentDate: r.absentdate||'', note: r.note||'', students: [] };
+    groups[key].students.push({ name: r.studentname, done: false, doneBy: '', doneAt: '' });
+  });
+
+  try {
+    for (const g of Object.values(groups)) {
+      await addDoc(collection(db, 'makeupRequests'), {
+        ...g,
+        content: g.loai === 'on_bai' ? 'Ôn bài (upload tự động)' : 'Bù bài (upload tự động)',
+        submittedBy: profile?.name || 'Trợ giảng',
+        submittedById: window._state.user?.uid,
+        createdAt: serverTimestamp(),
+        allDone: false,
+      });
+    }
+    closeModal('makeupUploadModal');
+    showToast(`✅ Đã tạo ${Object.keys(groups).length} phiếu!`, 'success');
+    _makeupParsed = [];
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.updateMakeupTitle = function() {
+  const loai = document.querySelector('input[name="makeupLoai"]:checked')?.value || 'bu_bai';
+  const isBu = loai === 'bu_bai';
+  const titleEl = document.getElementById('makeupModalTitle');
+  if (titleEl) titleEl.textContent = isBu ? '📚 Tạo phiếu bù bài' : '📖 Tạo phiếu ôn bài';
+  const contentLabel = document.getElementById('makeupContentLabel');
+  if (contentLabel) contentLabel.textContent = isBu ? 'Nội dung bù bài *' : 'Nội dung ôn bài *';
+  const submitBtn = document.getElementById('makeupSubmitBtn');
+  if (submitBtn) submitBtn.textContent = isBu ? 'Gửi phiếu bù bài' : 'Gửi phiếu ôn bài';
+};
+
 window.renderMakeupPage = function() {
   const grid = document.getElementById('makeupGrid');
   if (!grid) return;
   const branchFilter = document.getElementById('makeupBranchFilter')?.value || '';
   const statusFilter = document.getElementById('makeupStatusFilter')?.value || 'pending';
+  const loaiFilter   = document.getElementById('makeupLoaiFilter')?.value || '';
   const role = window._state.profile?.role;
 
   let list = makeupRequests.filter(r => {
     if (branchFilter && r.branch !== branchFilter) return false;
+    if (loaiFilter   && (r.loai || 'bu_bai') !== loaiFilter) return false;
     const allDone = (r.students || []).every(s => s.done);
     if (statusFilter === 'pending') return !allDone;
     if (statusFilter === 'done') return allDone;
@@ -5649,41 +6087,31 @@ window.renderMakeupPage = function() {
   });
 
   if (!list.length) {
-    grid.innerHTML = '<div style="color:var(--text-muted);padding:20px 0;text-align:center">Không có phiếu bù bài nào</div>';
+    grid.innerHTML = '<div style="color:var(--text-muted);padding:20px 0;text-align:center">Không có phiếu nào</div>';
     return;
   }
 
-  grid.innerHTML = list.map(r => {
-    const students = r.students || [];
-    const doneCount = students.filter(s => s.done).length;
-    const allDone = doneCount === students.length;
-    const branchLabel = { tk:'Trung Kính', th:'Trung Hòa', md:'Mỹ Đình' }[r.branch] || r.branch;
-    const canTick = role === 'admin' || role === 'leader' || window._state.profile?.team === 'cskh' || window._state.profile?.team === 'chuyenmon';
+  // Group: Bù bài first, then Ôn bài, each sub-grouped by className
+  const groups = { bu_bai: {}, on_bai: {} };
+  list.forEach(r => {
+    const loai = r.loai || 'bu_bai';
+    if (!groups[loai][r.className]) groups[loai][r.className] = [];
+    groups[loai][r.className].push(r);
+  });
 
-    return `<div class="makeup-card ${allDone ? 'done-card' : 'pending-card'}">
-      <div class="makeup-card-head">
-        <div>
-          <div class="makeup-title">📖 ${escapeHTML(r.className)} · ${escapeHTML(r.content)}</div>
-          <div class="makeup-meta">
-            <span>🏠 ${branchLabel}</span>
-            ${r.absentDate ? `<span>📅 Nghỉ: ${r.absentDate}</span>` : ''}
-            <span>👤 ${escapeHTML(r.submittedBy)}</span>
-            ${r.note ? `<span>📝 ${escapeHTML(r.note)}</span>` : ''}
-          </div>
-        </div>
-        <span class="${allDone ? 'badge-ok' : 'badge-warn'}">${doneCount}/${students.length}</span>
-      </div>
-      <div class="makeup-students">
-        ${students.map((s, idx) => `
-          <div class="makeup-student-row">
-            <span class="makeup-student-name">${escapeHTML(s.name)}</span>
-            ${s.done ? `<span style="font-size:11px;color:var(--text-muted)">✅ ${escapeHTML(s.doneBy||'')} ${s.doneAt ? '· '+s.doneAt : ''}</span>` : ''}
-            ${canTick && !allDone ? `<button class="makeup-check-btn ${s.done ? 'done-btn' : ''}"
-              onclick="toggleMakeupStudent('${r.id}', ${idx})">${s.done ? '↩ Bỏ tick' : '✔ Xong'}</button>` : ''}
-          </div>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
+  let html = '';
+  for (const [loaiKey, classes] of Object.entries(groups)) {
+    if (!Object.keys(classes).length) continue;
+    const loaiTitle = loaiKey === 'bu_bai'
+      ? '<div style="font-size:13px;font-weight:700;color:#E65100;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid #FF8A65">📚 BÙ BÀI</div>'
+      : '<div style="font-size:13px;font-weight:700;color:#6A1B9A;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid #7E57C2">📖 ÔN BÀI</div>';
+    html += loaiTitle;
+    for (const [className, items] of Object.entries(classes)) {
+      html += `<div style="font-size:12px;font-weight:600;color:var(--text-muted);margin:8px 0 4px">🏫 Lớp ${escapeHTML(className)}</div>`;
+      html += items.map(r => makeupCardHTML(r, role)).join('');
+    }
+  }
+  grid.innerHTML = html;
 };
 
 window.toggleMakeupStudent = async function(reqId, idx) {
@@ -5713,19 +6141,25 @@ updateDateDisplay();
 <!-- ===== MAKEUP PAGE (Form bù bài — Trợ giảng submit → CSKH nhận) ===== -->
 <div class="page" id="page-makeup">
   <div class="makeup-header">
-    <select class="field-input" id="makeupBranchFilter" style="width:150px" onchange="renderMakeupPage()">
+    <select class="field-input" id="makeupLoaiFilter" style="width:130px" onchange="renderMakeupPage()">
+      <option value="">Tất cả loại</option>
+      <option value="bu_bai">📚 Bù bài</option>
+      <option value="on_bai">📖 Ôn bài</option>
+    </select>
+    <select class="field-input" id="makeupBranchFilter" style="width:130px" onchange="renderMakeupPage()">
       <option value="">Tất cả cơ sở</option>
       <option value="tk">Trung Kính</option>
       <option value="th">Trung Hòa</option>
       <option value="md">Mỹ Đình</option>
     </select>
-    <select class="field-input" id="makeupStatusFilter" style="width:150px" onchange="renderMakeupPage()">
-      <option value="pending">Chưa bù xong</option>
+    <select class="field-input" id="makeupStatusFilter" style="width:140px" onchange="renderMakeupPage()">
+      <option value="pending">Chưa xong</option>
       <option value="done">Đã hoàn thành</option>
       <option value="all">Tất cả</option>
     </select>
     <div style="flex:1"></div>
-    <button class="btn btn-primary" data-roles="staff,leader,admin" onclick="openMakeupModal()">+ Tạo phiếu bù bài</button>
+    <button class="btn btn-outline" onclick="openMakeupUploadModal()" style="font-size:12px">📥 Upload danh sách</button>
+    <button class="btn btn-primary" onclick="openMakeupModal()">+ Tạo phiếu</button>
   </div>
   <div class="makeup-grid" id="makeupGrid">
     <div style="color:var(--text-muted);font-size:13px">Đang tải...</div>
@@ -5736,10 +6170,23 @@ updateDateDisplay();
 <div class="modal-overlay" id="makeupModal">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">📚 Tạo phiếu bù bài</div>
+      <div class="modal-title" id="makeupModalTitle">📚 Tạo phiếu bù/ôn bài</div>
       <button class="modal-close" onclick="closeModal('makeupModal')">✕</button>
     </div>
     <div class="modal-body">
+      <div class="field-group" style="margin-bottom:12px">
+        <label class="field-label">Loại *</label>
+        <div style="display:flex;gap:12px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="makeupLoai" id="makeupLoaiBu" value="bu_bai" checked onchange="updateMakeupTitle()">
+            📚 Bù bài <span style="font-size:11px;color:var(--text-muted)">(học sinh nghỉ, cần bù)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="makeupLoai" id="makeupLoaiOn" value="on_bai" onchange="updateMakeupTitle()">
+            📖 Ôn bài <span style="font-size:11px;color:var(--text-muted)">(ôn tập, luyện thi)</span>
+          </label>
+        </div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="field-group">
           <label class="field-label">Cơ sở *</label>
@@ -5755,7 +6202,7 @@ updateDateDisplay();
         </div>
       </div>
       <div class="field-group">
-        <label class="field-label">Nội dung bù bài *</label>
+        <label class="field-label" id="makeupContentLabel">Nội dung bù bài *</label>
         <textarea class="field-input" id="makeupContent" rows="2" placeholder="VD: Unit 5 từ vựng + cấu trúc, ôn bài test 1..."></textarea>
       </div>
       <div class="field-group">
@@ -5776,9 +6223,41 @@ updateDateDisplay();
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('makeupModal')">Huỷ</button>
-      <button class="btn btn-primary" onclick="submitMakeupForm()">Gửi phiếu bù bài</button>
+      <button class="btn btn-primary" id="makeupSubmitBtn" onclick="submitMakeupForm()">Gửi phiếu bù bài</button>
     </div>
   </div>
 </div>
+
+<!-- Makeup Upload Modal (Fix 2) -->
+<div class="modal-overlay" id="makeupUploadModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-title">📥 Upload danh sách ôn/bù bài</div>
+      <button class="modal-close" onclick="closeModal('makeupUploadModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+        Upload file CSV chứa danh sách học sinh cần bù/ôn bài. Hệ thống sẽ tự tạo phiếu theo từng lớp.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn btn-outline" style="font-size:12px" onclick="downloadMakeupTemplate()">⬇️ Tải file mẫu CSV</button>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Chọn file CSV *</label>
+        <input type="file" id="makeupUploadFile" accept=".csv" class="field-input" style="padding:6px" onchange="parseMakeupCSV(this)">
+      </div>
+      <div id="makeupUploadPreview" style="display:none;margin-top:12px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px">Xem trước:</div>
+        <div id="makeupUploadTable" style="max-height:200px;overflow-y:auto;font-size:12px;border:1px solid var(--border);border-radius:8px;padding:8px"></div>
+        <div id="makeupUploadSummary" style="font-size:12px;margin-top:8px;color:var(--text-muted)"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('makeupUploadModal')">Huỷ</button>
+      <button class="btn btn-primary" id="makeupUploadBtn" style="display:none" onclick="executeMakeupUpload()">✅ Import ngay</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
