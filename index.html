@@ -2983,19 +2983,20 @@ function attachAllListeners() {
   const myTeam = window._state.profile?.team;
 
   if (myUid) {
-    const qNotifUid = query(collection(db, 'notifications'), where('toUid', '==', myUid), orderBy('createdAt', 'desc'), limit(50));
+    const qNotifUid = query(collection(db, 'notifications'), where('toUid', '==', myUid), limit(80));
     const unsubNotifUid = onSnapshot(qNotifUid, snap => {
       window._notifByUid = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       mergeNotifications();
-    }, err => console.error(err));
+    }, err => console.error('notif-uid:', err));
     window._state.unsubscribers.push(unsubNotifUid);
   }
   if (myTeam) {
-    const qNotifTeam = query(collection(db, 'notifications'), where('toTeam', '==', myTeam), orderBy('createdAt', 'desc'), limit(50));
+    // No orderBy → avoids composite index requirement; sort in JS
+    const qNotifTeam = query(collection(db, 'notifications'), where('toTeam', '==', myTeam), limit(80));
     const unsubNotifTeam = onSnapshot(qNotifTeam, snap => {
       window._notifByTeam = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       mergeNotifications();
-    }, err => console.error(err));
+    }, err => console.error('notif-team:', err));
     window._state.unsubscribers.push(unsubNotifTeam);
   }
 
@@ -4003,9 +4004,10 @@ function attachHistoryListener() {
   const isAdmin = profile?.role === 'admin';
 
   // Load last 200 tasks + 100 crossTasks ordered by createdAt
+  // Avoid composite index: fetch without orderBy, sort in JS
   const qH = isAdmin
     ? query(collection(db, 'tasks'), orderBy('createdAt', 'desc'), limit(200))
-    : query(collection(db, 'tasks'), where('team', '==', myTeam), orderBy('createdAt', 'desc'), limit(200));
+    : query(collection(db, 'tasks'), where('team', '==', myTeam), limit(200));
 
   _historyUnsub = onSnapshot(qH, snap => {
     const taskItems = snap.docs.map(d => ({ id: d.id, _type: 'task', ...d.data() }));
@@ -4330,7 +4332,7 @@ function renderPersonnelPage() {
         </div>
         <div class="person-actions">
           <button class="task-btn" onclick="quickOpenLeave('${s.id}')">📝 Xin nghỉ</button>
-          ${canAct && (role === 'admin' || role === 'leader') ? `<button class="task-btn" onclick="viewMemberChecklist('${s.id}');showPage('checklist')">📋 Xem checklist</button>` : ''}
+          ${(role === 'admin' || role === 'leader') ? `<button class="task-btn" onclick="viewMemberChecklist('${s.id}');showPage('checklist')">📋 Xem checklist</button>` : ''}
         </div>
       </div>
     </div>`;
