@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lime Nội Bộ</title>
+<title>Lime – Phase 3: Báo cáo · Nhân sự · Cơ sở</title>
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1905,6 +1905,20 @@ select.field-input {
           <option value="">— Mỗi ngày —</option>
         </select>
       </div>
+      <div class="field-group" id="dateRangeField" style="display:none">
+        <label class="field-label">📅 Khoảng thời gian thực hiện (tùy chọn)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="field-label" style="font-size:11px;color:var(--text-muted)">Bắt đầu từ ngày</label>
+            <input class="field-input" type="date" id="tplStartDate">
+          </div>
+          <div>
+            <label class="field-label" style="font-size:11px;color:var(--text-muted)">Hạn cuối hoàn thành</label>
+            <input class="field-input" type="date" id="tplEndDate">
+          </div>
+        </div>
+        <div class="modal-note">Nhân sự sẽ thấy đếm ngược số ngày còn lại đến hạn cuối.</div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="field-group">
           <label class="field-label">Ưu tiên</label>
@@ -2006,6 +2020,41 @@ select.field-input {
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('assignTaskModal')">Huỷ</button>
       <button class="btn btn-primary" onclick="confirmAssignTask()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Follow-up Modal -->
+<div class="modal-overlay" id="followupModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title">📅 Tạo lịch follow-up</div>
+      <button class="modal-close" onclick="closeModal('followupModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text-muted)">
+        Tạo lịch nhắc theo dõi cho: <span id="followupTaskTitle" style="color:var(--text)"></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center">
+          <input class="field-input" type="date" id="followup1Date" style="font-size:12px">
+          <input class="field-input" id="followup1Label" placeholder="Nhắc lần 1 — hỏi kết quả" style="font-size:12px">
+        </div>
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center">
+          <input class="field-input" type="date" id="followup2Date" style="font-size:12px">
+          <input class="field-input" id="followup2Label" placeholder="Nhắc lần 2 — đôn đốc" style="font-size:12px">
+        </div>
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center">
+          <input class="field-input" type="date" id="followup3Date" style="font-size:12px">
+          <input class="field-input" id="followup3Label" placeholder="Nhắc lần 3 — báo quản lý" style="font-size:12px">
+        </div>
+      </div>
+      <div class="modal-note" style="margin-top:10px">Để trống ngày nào thì bỏ qua bước đó.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('followupModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveFollowupTasks()">📅 Tạo lịch</button>
     </div>
   </div>
 </div>
@@ -2670,6 +2719,9 @@ async function initApp() {
   subscribeToMakeup();
   showPage('today');
   setSync('online');
+  // Auto-carryover: run 3s after login (listeners need time to load tasks first)
+  setTimeout(() => { if (typeof runAutoCarryover === 'function') runAutoCarryover(); }, 3000);
+  scheduleMidnightCarryover();
 }
 
 function setupBranchSelect() {
@@ -2768,7 +2820,9 @@ function mergeTasks() {
   if (currentPage === 'today') renderTodayPage();
   if (currentPage === 'carryover') renderCarryoverPage();
   if (currentPage === 'report') renderReportPage();
+  if (currentPage === 'checklist') renderChecklistPage();
   updateBadges();
+  checkAllDoneToday();
 }
 
 let _unsubTasksToday = null;
@@ -3061,6 +3115,7 @@ function taskHTML(task) {
   const isChecked = task.status === 'done';
   const role = window._state.profile?.role || 'viewer';
   const canAct = role !== 'viewer';
+  const isLeaderOrAdmin = role === 'admin' || role === 'leader';
 
   let cardClass = 'task-card';
   if (task.priority === 'urgent' && !isChecked) cardClass += ' urgent-task';
@@ -3080,6 +3135,17 @@ function taskHTML(task) {
   if (task.assignedToName) tags += `<span style="font-size:11px;color:var(--text-muted)">👤 ${escapeHTML(task.assignedToName)}</span>`;
   if (task.checkStatus === 'pending') tags += `<span class="tag" style="background:var(--warn-bg);color:var(--warn)">🕓 Chờ Leader duyệt</span>`;
   else if (task.checkStatus === 'checked') tags += `<span class="tag" style="background:var(--done-bg);color:var(--done)">✅ Leader đã duyệt${task.checkedByName ? ' · ' + escapeHTML(task.checkedByName) : ''}</span>`;
+  // Date-range countdown
+  if (task.endDate && task.status !== 'done') {
+    const daysLeft = Math.ceil((new Date(task.endDate) - new Date(fmt(new Date()))) / 86400000);
+    if (daysLeft <= 0) {
+      tags += `<span class="tag" style="background:var(--urgent-bg);color:var(--urgent)">🔴 Quá hạn ${Math.abs(daysLeft)} ngày</span>`;
+    } else if (daysLeft <= 3) {
+      tags += `<span class="tag" style="background:#fff3cd;color:#856404">⏰ Còn ${daysLeft} ngày</span>`;
+    } else {
+      tags += `<span class="tag" style="background:#e8f4f8;color:#0c5460">📅 Hạn: ${daysLeft} ngày nữa</span>`;
+    }
+  }
 
   let reportBlock = '';
   if (task.report) {
@@ -3102,6 +3168,7 @@ function taskHTML(task) {
       </div>
       <div class="task-actions">
         ${!isChecked && canAct ? `<button class="task-btn submit" onclick="openReportModal('${task.id}')">📝 Submit</button>` : ''}
+        ${isLeaderOrAdmin && !isChecked ? `<button class="task-btn" style="font-size:11px;padding:3px 8px" onclick="openFollowupModal('${task.id}')" title="Tạo lịch follow-up">📅 Follow</button>` : ''}
         <button class="task-btn" onclick="toggleExpand('${task.id}')">···</button>
       </div>
     </div>
@@ -3463,6 +3530,8 @@ window.saveTemplate = async function() {
     assign: document.getElementById('tplAssign').value,
     note: document.getElementById('tplNote').value,
     requiresLeaderCheck: !!document.getElementById('tplLeaderCheck').checked,
+    startDate: document.getElementById('tplStartDate')?.value || null,
+    endDate  : document.getElementById('tplEndDate')?.value   || null,
   };
 
   try {
@@ -3494,6 +3563,9 @@ window.updateScheduleOptions = function() {
   } else {
     sel.innerHTML = '<option value="">Nhập ngày cụ thể bên dưới</option>';
   }
+  // Show date-range picker only for fixed tasks
+  const rangeField = document.getElementById('dateRangeField');
+  if (rangeField) rangeField.style.display = freq === 'fixed' ? 'block' : 'none';
 };
 
 // =============================================================
@@ -4068,6 +4140,8 @@ window.confirmGenerate = async function() {
           templateId: p.template.id,
           requiresLeaderCheck: !!p.template.requiresLeaderCheck,
           checkStatus: p.template.requiresLeaderCheck ? 'none' : 'none',
+          startDate : p.template.startDate || null,
+          endDate   : p.template.endDate   || null,
           checkedBy: null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
           createdAt: serverTimestamp(),
         });
@@ -4310,9 +4384,9 @@ function renderUsersPage() {
   // Leader chỉ thấy user trong team mình; admin thấy tất cả
   const list = isAdmin ? STAFF : STAFF.filter(u => u.team === me?.team);
 
-  // Ẩn/hiện nút "Tạo tài khoản" — chỉ admin được tạo mới
+  // Leader cũng được tạo tài khoản — nhưng chỉ cho đội mình (enforce trong modal)
   const createBtn = document.getElementById('createUserBtn');
-  if (createBtn) createBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  if (createBtn) createBtn.style.display = 'inline-flex';
 
   tbody.innerHTML = list.map(u => {
     const canEdit = isAdmin || (me?.role === 'leader' && u.team === me?.team && u.role !== 'admin' && u.role !== 'leader');
@@ -4346,7 +4420,16 @@ window.openAddUserModal = function(id) {
     roleSel.innerHTML = '<option value="admin">Admin</option><option value="leader">Leader</option><option value="staff">Nhân viên (Staff)</option><option value="viewer">Chỉ xem (Viewer)</option>';
   }
   roleSel.value = (u ? u.role : 'staff');
-  document.getElementById('newUserTeam').value = u ? (u.team || '') : '';
+  const teamSel = document.getElementById('newUserTeam');
+  if (meRole === 'leader') {
+    // Pre-fill & lock team to leader's own team
+    const leaderTeam = window._state.profile?.team || '';
+    teamSel.value = u ? (u.team || leaderTeam) : leaderTeam;
+    teamSel.disabled = true;
+  } else {
+    teamSel.value = u ? (u.team || '') : '';
+    teamSel.disabled = false;
+  }
   const branchSel = document.getElementById('newUserBranch');
   [...branchSel.options].forEach(o => { o.selected = u ? (u.branch || []).includes(o.value) : false; });
   const delBtn = document.getElementById('userDeleteBtn');
@@ -4367,10 +4450,12 @@ window.submitAddUser = async function() {
   if (meRole2 === 'leader' && (role === 'admin' || role === 'leader')) {
     showToast('Leader không thể gán quyền Admin hoặc Leader', 'error'); return;
   }
+  // Leader: enforce team = their own team regardless of select value
+  const finalTeam = (meRole2 === 'leader') ? (window._state.profile?.team || team) : team;
 
   if (editingUserId) {
     try {
-      await updateDoc(doc(db, 'users', editingUserId), { name, role, team, branch });
+      await updateDoc(doc(db, 'users', editingUserId), { name, role, team: finalTeam, branch });
       showToast('✅ Đã lưu thay đổi', 'success');
       closeModal('addUserModal');
     } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
@@ -4384,7 +4469,7 @@ window.submitAddUser = async function() {
     // Tạo bằng app phụ (secondaryAuth) để KHÔNG làm mất phiên đăng nhập Admin hiện tại
     const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     await setDoc(doc(db, 'users', cred.user.uid), {
-      name, email, role, team, branch, active: true, createdAt: serverTimestamp(),
+      name, email, role, team: finalTeam, branch, active: true, createdAt: serverTimestamp(),
     });
     await signOut(secondaryAuth);
     showToast(`✅ Đã tạo tài khoản cho ${name}! Gửi email + mật khẩu này cho họ.`, 'success');
@@ -4832,6 +4917,196 @@ function updateChecklistBadge() {
 }
 
 window.renderChecklistPage = renderChecklistPage;
+
+// =============================================================
+//  FIX 4A: "Tạo lịch follow" for test/event tasks
+//  Creates 3 follow-up tasks at +14, +21, +28 days
+// =============================================================
+
+let _followSourceTaskId = null;
+
+window.openFollowupModal = function(taskId) {
+  _followSourceTaskId = taskId;
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  document.getElementById('followupTaskTitle').textContent = task.title;
+  const base = task.deadline || fmt(new Date());
+  // Pre-fill dates
+  const d1 = addDays(base, 14), d2 = addDays(base, 21), d3 = addDays(base, 28);
+  document.getElementById('followup1Date').value = d1;
+  document.getElementById('followup2Date').value = d2;
+  document.getElementById('followup3Date').value = d3;
+  openModal('followupModal');
+};
+
+function addDays(dateStr, n) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + n);
+  return fmt(d);
+}
+
+window.saveFollowupTasks = async function() {
+  const task = tasks.find(t => t.id === _followSourceTaskId);
+  if (!task) return;
+
+  const steps = [
+    { date: document.getElementById('followup1Date').value, label: document.getElementById('followup1Label').value || 'Nhắc lần 1 — hỏi kết quả' },
+    { date: document.getElementById('followup2Date').value, label: document.getElementById('followup2Label').value || 'Nhắc lần 2 — đôn đốc' },
+    { date: document.getElementById('followup3Date').value, label: document.getElementById('followup3Label').value || 'Nhắc lần 3 — báo quản lý' },
+  ].filter(s => s.date);
+
+  if (!steps.length) { showToast('Chọn ít nhất 1 ngày follow', 'error'); return; }
+
+  try {
+    for (const step of steps) {
+      await addDoc(collection(db, 'tasks'), {
+        title         : `[Follow] ${task.title} — ${step.label}`,
+        team          : task.team || '',
+        freq          : 'fixed',
+        priority      : 'normal',
+        status        : 'pending',
+        deadline      : step.date,
+        assignedToUid : task.assignedToUid || null,
+        assignedEmail : task.assignedEmail || null,
+        assignedToName: task.assignedToName || '',
+        note          : `Follow-up tự động từ: ${task.title}`,
+        parentTaskId  : _followSourceTaskId,
+        isFollowup    : true,
+        isCross       : false,
+        isCarry       : false,
+        requiresLeaderCheck: false,
+        checkStatus   : 'none',
+        checkedBy     : null, checkedByName: null, checkedAt: null, leaderCheckLeaderId: null,
+        createdAt     : serverTimestamp(),
+      });
+    }
+    closeModal('followupModal');
+    showToast(`✅ Đã tạo ${steps.length} lịch follow-up`, 'success');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+// FIX 4B: Periodic task auto-date update
+// Leaders can trigger "Reset lịch tháng này" for monthly tasks from template page
+window.resetMonthlyDates = async function() {
+  const profile = window._state.profile;
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'leader')) {
+    showToast('Chỉ Leader/Admin mới có thể reset lịch', 'error'); return;
+  }
+  const confirm = window.confirm('Reset tất cả ngày cho công việc định kỳ hàng tháng của đội bạn sang tháng tới?');
+  if (!confirm) return;
+
+  const myTeam = profile.team;
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const monthStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth()+1).padStart(2,'0')}`;
+
+  showToast('⏳ Đang kiểm tra...', 'default');
+
+  // Find monthly templates for this team
+  const monthlyTpls = templates.filter(t => t.freq === 'monthly' && (t.team === myTeam || t.team === 'all'));
+  if (!monthlyTpls.length) { showToast('Không có template hàng tháng nào', 'default'); return; }
+
+  showToast(`📅 Tháng tới sẽ được generate ${monthlyTpls.length} công việc định kỳ. Dùng nút "Generate tháng mới" để tạo.`, 'success');
+};
+
+
+
+// =============================================================
+//  AUTO CARRYOVER + DAILY COMPLETION DETECTION
+// =============================================================
+
+// Run once on load and once at midnight to auto-carry overdue tasks
+async function runAutoCarryover() {
+  const todayStr = fmt(new Date());
+  const myUid  = window._state?.user?.uid;
+  const myTeam = window._state?.profile?.team;
+  if (!myUid) return;
+
+  // Find tasks that are overdue (deadline < today) and not done and not already carry
+  const overdue = tasks.filter(t =>
+    t.deadline && t.deadline < todayStr &&
+    t.status !== 'done' &&
+    !t.isCarry &&
+    (t.assignedToUid === myUid || t.assignedEmail === window._state.profile?.email ||
+     t.team === myTeam || !t.assignedToUid)
+  );
+
+  if (!overdue.length) return;
+
+  try {
+    // Batch update: mark them carry + set deadline to today
+    for (let i = 0; i < overdue.length; i += 450) {
+      const batch = writeBatch(db);
+      overdue.slice(i, i + 450).forEach(t => {
+        batch.update(doc(db, 'tasks', t.id), { isCarry: true, deadline: todayStr });
+      });
+      await batch.commit();
+    }
+
+    // Notify leaders of their team about carryover tasks
+    const profile = window._state.profile;
+    if (profile?.role !== 'leader' && profile?.role !== 'admin') {
+      // Staff: notify their leader
+      const leaders = STAFF.filter(s =>
+        (s.role === 'leader' || s.role === 'admin') &&
+        s.team === myTeam
+      );
+      for (const leader of leaders) {
+        await addDoc(collection(db, 'notifications'), {
+          toUid    : leader.id,
+          toTeam   : myTeam,
+          type     : 'carryover_alert',
+          title    : `⚠️ ${overdue.length} việc tồn từ ${profile.name || 'nhân sự'} chưa hoàn thành`,
+          body     : overdue.slice(0, 3).map(t => t.title).join(', ') +
+                     (overdue.length > 3 ? ` … và ${overdue.length - 3} việc khác` : ''),
+          read     : false,
+          createdAt: serverTimestamp(),
+        });
+      }
+    }
+
+    if (overdue.length) {
+      showToast(`🔄 ${overdue.length} việc quá hạn đã được chuyển vào hôm nay`, 'warn');
+    }
+  } catch (e) { console.error('Auto carryover error:', e); }
+}
+
+// Schedule midnight auto-carryover
+function scheduleMidnightCarryover() {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+  const msUntilMidnight = midnight - now;
+  setTimeout(() => {
+    runAutoCarryover();
+    setInterval(runAutoCarryover, 24 * 60 * 60 * 1000);
+  }, msUntilMidnight);
+}
+
+// All-done celebration
+function checkAllDoneToday() {
+  const dateStr = fmt(new Date());
+  const myUid  = window._state?.user?.uid;
+  const myEmail = window._state?.profile?.email;
+  if (!myUid) return;
+
+  const myTasks = tasks.filter(t =>
+    t.deadline === dateStr &&
+    (t.assignedToUid === myUid || t.assignedEmail === myEmail)
+  );
+
+  if (!myTasks.length) return;
+  const allDone = myTasks.every(t => t.status === 'done');
+  if (allDone && !window._celebratedToday) {
+    window._celebratedToday = dateStr;
+    showToast('🎉 Xuất sắc! Bạn đã hoàn thành tất cả việc hôm nay!', 'success');
+  }
+}
+
+window.runAutoCarryover = runAutoCarryover;
+window.checkAllDoneToday = checkAllDoneToday;
+window.scheduleMidnightCarryover = scheduleMidnightCarryover;
+
+
 
 
 
