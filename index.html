@@ -3023,10 +3023,22 @@ async function createNotification({ toUid = null, toTeam = null, title, taskId =
 
 
 // ── Notification sound ──
+// ── Notification sound ──
+let _audioCtx = null;
+
+function getAudioCtx() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume();
+  }
+  return _audioCtx;
+}
+
 function playNotifSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // Two-tone ding: 880Hz then 1100Hz
+    const ctx = getAudioCtx();
     [880, 1100].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
