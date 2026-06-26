@@ -1839,6 +1839,36 @@ select.field-input {
     </div>
     <!-- end page-admin -->
 
+
+    <!-- ===== MAKEUP PAGE (Form bù bài — Trợ giảng submit → CSKH nhận) ===== -->
+    <div class="page" id="page-makeup">
+      <div class="makeup-header">
+        <select class="field-input" id="makeupLoaiFilter" style="width:130px" onchange="renderMakeupPage()">
+          <option value="">Tất cả loại</option>
+          <option value="bu_bai">📚 Bù bài</option>
+          <option value="on_bai">📖 Ôn bài</option>
+        </select>
+        <select class="field-input" id="makeupBranchFilter" style="width:130px" onchange="renderMakeupPage()">
+          <option value="">Tất cả cơ sở</option>
+          <option value="tk">Trung Kính</option>
+          <option value="th">Trung Hòa</option>
+          <option value="md">Mỹ Đình</option>
+        </select>
+        <select class="field-input" id="makeupStatusFilter" style="width:160px" onchange="renderMakeupPage()">
+          <option value="pending">⏳ Chưa xong (đến hạn)</option>
+          <option value="all">📋 Tất cả (kể cả chưa đến ngày)</option>
+          <option value="done">✅ Đã hoàn thành</option>
+        </select>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline" onclick="openMakeupUploadModal()" style="font-size:12px">📥 Upload danh sách</button>
+        <button class="btn btn-primary" onclick="openMakeupModal()">+ Tạo phiếu</button>
+      </div>
+      <div class="makeup-grid" id="makeupGrid">
+        <div style="color:var(--text-muted);font-size:13px">Đang tải...</div>
+      </div>
+    </div>
+    <!-- end page-makeup -->
+
   </div>
   <!-- end content -->
 
@@ -6277,33 +6307,6 @@ window.saveReschedule = async function(reqId, idx) {
 updateDateDisplay();
 </script>
 
-<!-- ===== MAKEUP PAGE (Form bù bài — Trợ giảng submit → CSKH nhận) ===== -->
-<div class="page" id="page-makeup">
-  <div class="makeup-header">
-    <select class="field-input" id="makeupLoaiFilter" style="width:130px" onchange="renderMakeupPage()">
-      <option value="">Tất cả loại</option>
-      <option value="bu_bai">📚 Bù bài</option>
-      <option value="on_bai">📖 Ôn bài</option>
-    </select>
-    <select class="field-input" id="makeupBranchFilter" style="width:130px" onchange="renderMakeupPage()">
-      <option value="">Tất cả cơ sở</option>
-      <option value="tk">Trung Kính</option>
-      <option value="th">Trung Hòa</option>
-      <option value="md">Mỹ Đình</option>
-    </select>
-    <select class="field-input" id="makeupStatusFilter" style="width:160px" onchange="renderMakeupPage()">
-      <option value="pending">⏳ Chưa xong (đến hạn)</option>
-      <option value="all">📋 Tất cả (kể cả chưa đến ngày)</option>
-      <option value="done">✅ Đã hoàn thành</option>
-    </select>
-    <div style="flex:1"></div>
-    <button class="btn btn-outline" onclick="openMakeupUploadModal()" style="font-size:12px">📥 Upload danh sách</button>
-    <button class="btn btn-primary" onclick="openMakeupModal()">+ Tạo phiếu</button>
-  </div>
-  <div class="makeup-grid" id="makeupGrid">
-    <div style="color:var(--text-muted);font-size:13px">Đang tải...</div>
-  </div>
-</div>
 
 <!-- Makeup submit modal -->
 <div class="modal-overlay" id="makeupModal">
