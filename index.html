@@ -1414,6 +1414,7 @@ select.field-input {
             <option value="vanhanh">Vận hành</option>
             <option value="tuyensinh">Tuyển sinh</option>
             <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
           </select>
           <button class="btn btn-outline" onclick="openBulkImportModal()">📥 Import hàng loạt</button>
           <button class="btn btn-primary" onclick="openTemplateAddModal()">+ Thêm template</button>
@@ -1505,6 +1506,7 @@ select.field-input {
                 <option value="vanhanh">Vận hành</option>
                 <option value="tuyensinh">Tuyển sinh</option>
                 <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
               </select>
             </div>
             <div class="field-group">
@@ -1557,6 +1559,7 @@ select.field-input {
           <option value="vanhanh">Vận hành</option>
           <option value="tuyensinh">Tuyển sinh</option>
           <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
         </select>
         <select class="field-input" id="historyTypeFilter" style="width:150px" onchange="renderHistoryPage()">
           <option value="">Tất cả loại</option>
@@ -1738,6 +1741,7 @@ select.field-input {
           <button class="filter-chip" onclick="filterPersonnel(this,'chuyenmon')">Chuyên môn</button>
           <button class="filter-chip" onclick="filterPersonnel(this,'trogiangHT')">Trợ giảng</button>
           <button class="filter-chip" onclick="filterPersonnel(this,'vanhanh')">Vận hành</button>
+          <button class="filter-chip" onclick="filterPersonnel(this,'nhansu')">Nhân sự</button>
         </div>
         <span style="font-size:12px;color:var(--text-muted)" id="personnelCount"></span>
       </div>
@@ -1911,6 +1915,7 @@ select.field-input {
           <option value="trogiangHT">Trợ giảng</option>
           <option value="vanhanh">Vận hành</option>
           <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
         </select>
       </div>
     </div>
@@ -1942,6 +1947,7 @@ select.field-input {
           <label class="checkbox-chip selected"><input type="checkbox" data-team="vanhanh" checked> Vận hành</label>
           <label class="checkbox-chip selected"><input type="checkbox" data-team="tuyensinh" checked> Tuyển sinh</label>
           <label class="checkbox-chip selected"><input type="checkbox" data-team="marketing" checked> Marketing</label>
+          <label class="checkbox-chip selected"><input type="checkbox" data-team="nhansu" checked> Nhân sự</label>
         </div>
       </div>
       <div class="field-group">
@@ -1986,6 +1992,7 @@ select.field-input {
             <option value="vanhanh">Vận hành</option>
             <option value="tuyensinh">Tuyển sinh</option>
             <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
             <option value="all">Tất cả đội</option>
           </select>
         </div>
@@ -2181,6 +2188,7 @@ select.field-input {
             <option value="trogiangHT">Trợ giảng</option>
             <option value="tuyensinh">Tuyển sinh</option>
             <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
           </select>
         </div>
         <div class="field-group">
@@ -2445,6 +2453,7 @@ select.field-input {
             <option value="vanhanh">Vận hành</option>
             <option value="tuyensinh">Tuyển sinh</option>
             <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
           </select>
         </div>
       </div>
@@ -2458,6 +2467,7 @@ select.field-input {
           <option value="vanhanh">Vận hành</option>
           <option value="tuyensinh">Tuyển sinh</option>
           <option value="marketing">Marketing</option>
+            <option value="nhansu">Nhân sự</option>
         </select>
         <div class="modal-note">Đội chính đã chọn ở trên sẽ tự bị loại trừ khỏi danh sách này.</div>
       </div>
@@ -2590,6 +2600,7 @@ const TEAMS = {
   vanhanh: { label: 'Vận hành', color: '#744210', bg: '#FFFAF0' },
   tuyensinh: { label: 'Tuyển sinh', color: '#702459', bg: '#FFF5F7' },
   marketing: { label: 'Marketing', color: '#B7401A', bg: '#FFF3EB' },
+  nhansu   : { label: 'Nhân sự', color: '#0D6EFD', bg: '#EFF6FF' },
   all: { label: 'Tất cả đội', color: '#1A202C', bg: '#F7FAFC' },
 };
 const FREQ_LABELS = {
@@ -4298,7 +4309,7 @@ async function renderReportPage() {
     </div>`;
 
   // ----- Team progress (theo % hoàn thành tuần) -----
-  const teamKeys = ['cskh','chuyenmon','trogiangHT','vanhanh','tuyensinh'];
+  const teamKeys = ['cskh','chuyenmon','trogiangHT','vanhanh','tuyensinh','nhansu'];
   const teamProgressList = document.getElementById('teamProgressList');
   if (teamProgressList) teamProgressList.innerHTML = teamKeys.map(tk => {
     const team = TEAMS[tk];
@@ -5057,6 +5068,14 @@ window.seedSampleData = async function() {
     { title:'Gửi nhận xét tháng cho phụ huynh', team:'cskh', freq:'monthly', schedule:'1', priority:'normal', assign:'all', note:'Chỉ gửi nhận xét có chữ CHECKED từ chuyên môn.' },
     { title:'Kiểm tra báo cáo trợ giảng hàng tuần', team:'chuyenmon', freq:'weekly', schedule:'thu2', priority:'normal', assign:'leader', note:'Chia các lớp từng tuần để check.' },
     { title:"Điểm danh + gọi hs chưa đến", team:'vanhanh', freq:'daily', schedule:'', priority:'urgent', assign:'all', note:"Gọi 2 lần, cách nhau 5 phút." },
+    // Nhân sự
+    { title:'Xếp lịch làm việc nhân sự parttime', team:'nhansu', freq:'monthly', schedule:'22', priority:'normal', assign:'leader', note:'Ngày 22,24 hàng tháng xếp lịch tháng sau.' },
+    { title:'Kiểm tra chấm công nhân sự', team:'nhansu', freq:'monthly', schedule:'1', priority:'normal', assign:'all', note:'Nhân sự chấm công từ ngày 1 đến trước ngày 5 hàng tháng.' },
+    { title:'Hỏi lịch nhân sự parttime tháng tới', team:'nhansu', freq:'monthly', schedule:'13', priority:'normal', assign:'leader', note:'Ngày 13, 20 hàng tháng.' },
+    { title:'Gọi người dọn cơ sở Trung Kính', team:'nhansu', freq:'weekly', schedule:'thu3', priority:'normal', assign:'staff', note:'Thứ 3 hàng tuần.' },
+    { title:'Gọi người dọn cơ sở Trung Hòa', team:'nhansu', freq:'monthly', schedule:'10', priority:'normal', assign:'staff', note:'Ngày 10-20-30 hàng tháng.' },
+    { title:'Đọc Affirmation + Xây dựng văn hóa đội nhóm', team:'nhansu', freq:'daily', schedule:'', priority:'normal', assign:'all', note:'Đi làm đập tay chào nhau, đọc Affirmation cá nhân.' },
+    { title:'Kiểm tra CSKH gửi video test từng lớp', team:'nhansu', freq:'monthly', schedule:'6', priority:'normal', assign:'leader', note:'Ngày 6,13,20 hàng tháng — kiểm tra báo cáo CSKH.' },
   ];
 
   const sampleBranches = [
@@ -5137,6 +5156,7 @@ const CHECKLIST_TABS_STAFF = {
   marketing : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'personal', label:'👤 Của tôi' }],
   vanhanh   : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'personal', label:'👤 Của tôi' }],
   tuyensinh : [{ id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  nhansu    : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'personal', label:'👤 Của tôi' }],
   _default  : [{ id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
 };
 // Leader tabs — always add 'branch' + for chuyenmon also 'ta'
@@ -5147,6 +5167,7 @@ const CHECKLIST_TABS_LEADER = {
   marketing : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
   vanhanh   : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
   tuyensinh : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
+  nhansu    : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
   _default  : [{ id:'branch', label:'🏢 Theo cơ sở' }, { id:'team',   label:'📋 Cả đội' },    { id:'personal', label:'👤 Của tôi' }],
 };
 // Keep old name for compatibility
@@ -5720,7 +5741,7 @@ function parseCSV(text) {
   return rows;
 }
 
-const VALID_TEAMS = ['cskh','chuyenmon','trogiangHT','vanhanh','tuyensinh','marketing','all'];
+const VALID_TEAMS = ['cskh','chuyenmon','trogiangHT','vanhanh','tuyensinh','marketing','nhansu','all'];
 const VALID_FREQ  = ['daily','weekly','monthly','fixed'];
 
 window.previewBulkImport = function(input) {
