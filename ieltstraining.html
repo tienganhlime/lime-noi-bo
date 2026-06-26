@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IELTS Writing Trainer 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* 🌸 Sakura Study — warm, bright, cute */
+  --bg:        #FFF9F7;
+  --bg2:       #FFFFFF;
+  --bg3:       #FFF3F0;
+  --border:    #FFD8D0;
+  --text:      #3A1A2E;
+  --text2:     #9E7080;
+  --text3:     #D5B8C0;
+  --primary:   #FF6B9D;
+  --primary-l: #FFF0F6;
+  --primary-d: #E84D84;
+  --success:   #00C896;
+  --success-l: #E0FFF5;
+  --warn:      #FF9F43;
+  --warn-l:    #FFF4E3;
+  --danger:    #FF5252;
+  --danger-l:  #FFF0F0;
+  --pink:      #FF85C2;
+  --pink-l:    #FFF5FD;
+  --teal:      #00C9A7;
+  --teal-l:    #E0FFF9;
+  --r:         20px;
+  --rs:        14px;
+  --shadow:    0 2px 20px rgba(255,107,157,.09);
+  --shadow-md: 0 8px 32px rgba(255,107,157,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:var(--primary)}
+
+/* ─── Layout ───────────────────────── */
+#app{display:flex;flex-direction:column;min-height:100vh;max-width:780px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,249,247,.95);backdrop-filter:blur(8px);z-index:50}
+.header-title{font-size:1.1rem;font-weight:800;letter-spacing:-.3px;color:var(--text)}
+.header-title span{color:var(--primary)}
+.header-meta{font-size:.72rem;color:var(--text2);margin-top:1px}
+main{flex:1;padding:16px 16px 96px}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:flex;z-index:50;max-width:780px;margin:0 auto;backdrop-filter:blur(10px);box-shadow:0 -4px 20px rgba(255,107,157,.07)}
+#bottom-nav button{flex:1;padding:10px 4px 10px;background:none;border:none;color:var(--text2);font-size:.62rem;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.2s;position:relative;-webkit-tap-highlight-color:transparent}
+#bottom-nav button .ico{font-size:1.3rem}
+#bottom-nav button.active{color:var(--primary)}
+#bottom-nav button.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:24px;height:3px;background:var(--primary);border-radius:3px 3px 0 0}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ─── Cards ─────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.card+.card{margin-top:12px}
+.card-title{font-weight:700;font-size:.95rem;margin-bottom:6px;color:var(--text)}
+.card-sub{font-size:.78rem;color:var(--text2);margin-bottom:10px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700}
+.badge-blue{background:var(--primary-l);color:var(--primary)}
+.badge-green{background:var(--success-l);color:var(--success)}
+.badge-yellow{background:var(--warn-l);color:var(--warn)}
+.badge-red{background:var(--danger-l);color:var(--danger)}
+.badge-purple{background:var(--pink-l);color:var(--pink)}
+.badge-teal{background:var(--teal-l);color:var(--teal)}
+
+/* ─── Buttons ───────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--r);font-size:.875rem;font-weight:700;cursor:pointer;border:1.5px solid transparent;transition:.2s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 3px 12px rgba(255,107,157,.28)}
+.btn-primary:hover{background:var(--primary-d)}
+.btn-secondary{background:var(--bg2);color:var(--text);border-color:var(--border)}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-ghost{background:var(--primary-l);color:var(--primary);border-color:var(--primary-l)}
+.btn-sm{padding:6px 14px;font-size:.78rem}
+.btn-block{width:100%;justify-content:center}
+.btn-pink{background:var(--pink);color:#fff;box-shadow:0 3px 12px rgba(255,133,194,.3)}
+
+/* ─── Forms ─────────────────────────── */
+input,textarea,select{background:var(--bg3);color:var(--text);border:1.5px solid var(--border);border-radius:var(--rs);padding:9px 12px;font-size:.875rem;width:100%;font-family:inherit;transition:.2s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);background:var(--bg2);box-shadow:0 0 0 3px var(--primary-l)}
+textarea{resize:vertical;min-height:80px}
+label{font-size:.78rem;color:var(--text2);display:block;margin-bottom:4px;font-weight:600}
+.form-group{margin-bottom:14px}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+
+/* ─── HOME ───────────────────────────── */
+.streak-bar{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FF6B9D,#FF9F43);border-radius:var(--r);padding:16px 18px;margin-bottom:16px;box-shadow:0 8px 28px rgba(255,107,157,.30);color:#fff}
+.streak-num{font-size:2.2rem;font-weight:900;line-height:1}
+.streak-label{font-size:.78rem;opacity:.85}
+.streak-flame{font-size:2.2rem}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-box{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;box-shadow:var(--shadow)}
+.stat-num{font-size:1.5rem;font-weight:900;color:var(--primary)}
+.stat-sub{font-size:.68rem;color:var(--text2);margin-top:2px}
+.due-banner{background:linear-gradient(135deg,#fff5f8,#fff4e3);border:1.5px solid var(--warn);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(255,159,67,.12)}
+.due-banner .due-count{font-size:1.8rem;font-weight:900;color:var(--warn)}
+.due-banner .due-label{font-size:.82rem;color:var(--text);font-weight:600}
+.due-banner .due-sub{font-size:.72rem;color:var(--text2)}
+.session-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.session-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 12px;cursor:pointer;transition:.2s;text-align:center;box-shadow:var(--shadow)}
+.session-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.session-card.due-highlight{border-color:var(--warn);background:var(--warn-l)}
+.session-card .ico{font-size:1.6rem;margin-bottom:6px}
+.session-card .label{font-weight:700;font-size:.9rem}
+.session-card .sub{font-size:.7rem;color:var(--text2);margin-top:2px}
+
+/* ─── PRACTICE ───────────────────────── */
+.progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.progress-bar{flex:1;height:8px;background:var(--bg3);border-radius:4px;margin:0 12px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--pink));border-radius:4px;transition:.4s}
+.progress-text{font-size:.8rem;color:var(--text2);min-width:40px;text-align:right;font-weight:600}
+.ex-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:var(--shadow)}
+.ex-category{font-size:.72rem;margin-bottom:12px}
+.ex-question{font-size:.92rem;line-height:1.65;margin-bottom:16px;white-space:pre-wrap;color:var(--text)}
+.ex-hint{font-size:.78rem;color:var(--text2);background:var(--bg3);border-radius:var(--rs);padding:9px 12px;margin-bottom:12px;border-left:3px solid var(--border)}
+.ex-template{font-size:.75rem;color:var(--primary);font-style:italic;margin-bottom:12px;padding:8px 12px;border-left:3px solid var(--primary);background:var(--primary-l);border-radius:0 var(--rs) var(--rs) 0}
+.ex-due-badge{display:inline-block;font-size:.65rem;padding:2px 8px;background:var(--warn-l);color:var(--warn);border-radius:20px;font-weight:700;margin-left:6px}
+.answer-area textarea{min-height:60px}
+.mcq-opts{display:flex;flex-direction:column;gap:9px}
+.mcq-opt{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rs);padding:11px 14px;cursor:pointer;font-size:.85rem;transition:.2s;text-align:left;color:var(--text)}
+.mcq-opt:hover{border-color:var(--primary);background:var(--primary-l)}
+.mcq-opt.selected{border-color:var(--primary);background:var(--primary-l);color:var(--primary)}
+.mcq-opt.correct{border-color:var(--success);background:var(--success-l);color:var(--success)}
+.mcq-opt.wrong{border-color:var(--danger);background:var(--danger-l);color:var(--danger)}
+.fill-blank-container .blank-word{display:inline-block;min-width:80px;border-bottom:2px solid var(--primary);margin:0 4px;color:var(--primary);font-weight:700}
+.answer-reveal{background:var(--success-l);border:1.5px solid var(--success);border-radius:var(--rs);padding:14px;margin:14px 0}
+.answer-reveal .label{font-size:.7rem;color:var(--success);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.answer-reveal .answer{font-size:.9rem;line-height:1.65;color:var(--text)}
+.explanation{background:var(--warn-l);border:1.5px solid var(--warn);border-radius:var(--rs);padding:10px 14px;margin:10px 0;font-size:.8rem;color:var(--text);line-height:1.55}
+.explanation strong{color:var(--warn)}
+.rating-btns{display:flex;gap:8px;margin-top:14px}
+.rating-btns button{flex:1;padding:11px 6px;border-radius:var(--rs);font-size:.75rem;font-weight:800;cursor:pointer;border:none;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:2px}
+.rating-btns button:active{transform:scale(.95)}
+.rating-btns .r-easy{background:var(--teal-l);color:var(--teal);border:1.5px solid var(--teal)}
+.rating-btns .r-good{background:var(--success-l);color:var(--success);border:1.5px solid var(--success)}
+.rating-btns .r-hard{background:var(--warn-l);color:var(--warn);border:1.5px solid var(--warn)}
+.rating-btns .r-bad{background:var(--danger-l);color:var(--danger);border:1.5px solid var(--danger)}
+.rating-interval{font-size:.6rem;font-weight:600;opacity:.8}
+.session-complete{text-align:center;padding:24px 0}
+.complete-score{font-size:3.5rem;font-weight:900;margin:16px 0 4px;color:var(--primary)}
+.complete-sub{font-size:.88rem;color:var(--text2);margin-bottom:22px}
+.score-breakdown{display:flex;justify-content:center;gap:22px;margin-bottom:26px}
+.score-item{text-align:center}
+.score-item .num{font-size:1.6rem;font-weight:800}
+.score-item .lbl{font-size:.68rem;color:var(--text2)}
+
+/* ─── STUDY ─────────────────────────── */
+.category-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
+.category-tabs::-webkit-scrollbar{display:none}
+.cat-tab{padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);white-space:nowrap;transition:.2s}
+.cat-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 3px 10px rgba(255,107,157,.25)}
+.frame-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.frame-num{font-size:.68rem;color:var(--text3);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.frame-name{font-weight:800;font-size:.92rem;margin-bottom:8px;color:var(--text)}
+.frame-template{background:var(--primary-l);border-radius:var(--rs);padding:10px 14px;font-size:.82rem;color:var(--primary-d);font-family:monospace;margin-bottom:8px;border-left:3px solid var(--primary);font-weight:600}
+.frame-note{font-size:.75rem;color:var(--text2);margin-bottom:10px;line-height:1.55}
+.frame-examples{display:flex;flex-direction:column;gap:6px}
+.frame-ex{font-size:.78rem;background:var(--success-l);border-radius:var(--rs);padding:9px 12px;border-left:3px solid var(--success);color:var(--text)}
+.vocab-group{margin-bottom:20px}
+.vocab-group-title{font-size:.85rem;font-weight:800;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.vocab-item{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rs);padding:9px 12px;margin-bottom:6px;font-size:.8rem;line-height:1.5;box-shadow:var(--shadow)}
+.vocab-item .vi{color:var(--text2);font-size:.72rem;margin-top:2px}
+
+/* ─── ERROR LOG ─────────────────────── */
+.error-form{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.error-list{display:flex;flex-direction:column;gap:10px}
+.error-item{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
+.error-item.mastered{border-color:var(--success);opacity:.75}
+.error-wrong{font-size:.83rem;color:var(--danger);margin-bottom:6px;padding:8px 12px;background:var(--danger-l);border-radius:var(--rs)}
+.error-correction{font-size:.83rem;color:var(--success);margin-bottom:6px;padding:8px 12px;background:var(--success-l);border-radius:var(--rs)}
+.error-note{font-size:.75rem;color:var(--text2);margin-bottom:8px}
+.error-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+
+/* ─── HISTORY ─────────────────────── */
+.history-item{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.history-date{font-size:.78rem;color:var(--text2)}
+.history-score-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:8px}
+.history-score-fill{height:100%;background:var(--success);border-radius:3px}
+.history-detail{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+.history-detail span{font-size:.72rem;color:var(--text2)}
+
+/* ─── SETTINGS ───────────────────────── */
+.settings-section{margin-bottom:22px}
+.settings-title{font-size:.92rem;font-weight:800;margin-bottom:12px;color:var(--primary)}
+.firebase-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--rs);font-size:.8rem;margin-bottom:12px}
+.firebase-status.connected{background:var(--success-l);border:1.5px solid var(--success);color:var(--success)}
+.firebase-status.disconnected{background:var(--danger-l);border:1.5px solid var(--danger);color:var(--danger)}
+
+/* ─── AI GENERATOR MODAL ─────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,26,46,.40);backdrop-filter:blur(4px);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--bg2);border-radius:var(--r) var(--r) 0 0;padding:24px 20px 32px;width:100%;max-width:780px;max-height:85vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(255,107,157,.20)}
+.modal-handle{width:36px;height:4px;background:var(--text3);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:1.1rem;font-weight:800;margin-bottom:6px;color:var(--text)}
+.modal-sub{font-size:.8rem;color:var(--text2);margin-bottom:20px}
+.ai-result-card{background:var(--primary-l);border:1.5px solid var(--primary);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.ai-result-card .ai-type{font-size:.68rem;color:var(--primary);font-weight:800;text-transform:uppercase;margin-bottom:6px;letter-spacing:.5px}
+.ai-result-card .ai-q{font-size:.85rem;line-height:1.55;margin-bottom:8px;white-space:pre-wrap;color:var(--text)}
+.ai-result-card .ai-ans{font-size:.78rem;color:var(--success);font-weight:700;background:var(--success-l);padding:6px 10px;border-radius:var(--rs)}
+
+/* ─── SR INDICATOR ───────────────────── */
+.sr-pill{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px}
+.sr-new{background:var(--teal-l);color:var(--teal)}
+.sr-due{background:var(--warn-l);color:var(--warn)}
+.sr-learned{background:var(--success-l);color:var(--success)}
+
+/* ─── Login overlay ──────────────────── */
+#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
+#login-overlay.show{display:flex}
+.login-box{text-align:center;max-width:340px;width:100%}
+.login-logo{font-size:4rem;margin-bottom:12px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.login-title{font-size:1.7rem;font-weight:900;color:var(--text);margin-bottom:6px}
+.login-title span{color:var(--primary)}
+.login-sub{font-size:.88rem;color:var(--text2);margin-bottom:28px;line-height:1.65}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:15px 20px;border:1.5px solid var(--border);border-radius:var(--r);background:#fff;font-size:.95rem;font-weight:800;cursor:pointer;transition:.2s;color:var(--text);box-shadow:var(--shadow);font-family:inherit}
+.btn-google:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.btn-google:active{transform:scale(.98)}
+.login-skip{margin-top:18px;font-size:.78rem;color:var(--text2);cursor:pointer;text-decoration:underline}
+.login-skip:hover{color:var(--primary)}
+.login-note{margin-top:24px;font-size:.72rem;color:var(--text3);line-height:1.6;padding:12px;background:var(--bg3);border-radius:var(--rs)}
+
+/* ─── User avatar in header ──────────── */
+.user-btn{display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:4px 0}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--warn));color:#fff;font-size:.78rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.user-name{font-size:.75rem;font-weight:700;color:var(--text2);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#header-right{display:flex;align-items:center;gap:8px}
+@media print {
+  #bottom-nav,header,.btn,button,.rating-btns,#screen-home,#screen-study,#screen-errors,#screen-settings{display:none!important}
+  body{background:#fff;color:#000}
+  .card,.frame-card,.ex-card,.history-item,.error-item{border:1px solid #ddd;break-inside:avoid}
+  .screen.active{display:block!important}
+  #print-header{display:block!important;margin-bottom:16px;font-size:14pt;font-weight:700}
+}
+#print-header{display:none}
+
+/* ─── Utils ─────────────────────────── */
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}
+.text-sm{font-size:.8rem}.text-xs{font-size:.72rem}.text-2{color:var(--text2)}.fw-600{font-weight:700}
+
+/* ─── Mobile-first base ──────────────── */
+html { font-size: 16px; }
+body { font-size: 1rem; line-height: 1.6; }
+
+/* ─── Mobile responsive ──────────────── */
+@media (max-width: 600px) {
+  html { font-size: 15px; }
+
+  main { padding: 14px 14px 96px; }
+
+  /* Header */
+  header { padding: 12px 14px 10px; }
+  .header-title { font-size: 1.05rem; }
+  .header-meta { font-size: .7rem; }
+  #btn-ai { font-size: .72rem; padding: 7px 12px; }
+
+  /* Bottom nav — taller for thumb reach */
+  #bottom-nav button { padding: 12px 4px 10px; font-size: .65rem; }
+  #bottom-nav button .ico { font-size: 1.35rem; }
+
+  /* Cards — more breathing room */
+  .card { border-radius: 16px; padding: 16px 14px; }
+  .card-title { font-size: 1rem; }
+
+  /* Streak bar */
+  .streak-num { font-size: 2.5rem; }
+  .streak-flame { font-size: 2.2rem; }
+  .streak-label { font-size: .78rem; }
+
+  /* Stats row */
+  .stat-num { font-size: 1.6rem; }
+  .stat-sub { font-size: .7rem; }
+
+  /* Session cards */
+  .session-card { padding: 16px 10px; }
+  .session-card .ico { font-size: 1.8rem; margin-bottom: 8px; }
+  .session-card .label { font-size: .95rem; }
+  .session-card .sub { font-size: .72rem; }
+
+  /* Exercise */
+  .ex-card { padding: 18px 14px; }
+  .ex-question { font-size: 1rem !important; line-height: 1.75; }
+  .ex-category { margin-bottom: 14px; }
+  .badge { font-size: .7rem; padding: 4px 12px; }
+
+  /* MCQ options — large touch targets */
+  .mcq-opt {
+    padding: 14px 16px;
+    font-size: .92rem;
+    min-height: 52px;
+    border-radius: 14px;
+  }
+
+  /* Fill blank input */
+  #ans-input, input[type=text], textarea, select {
+    font-size: 16px !important; /* Prevent iOS zoom */
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  /* Answer reveal */
+  .answer-reveal { padding: 16px; }
+  .answer-reveal .answer { font-size: .95rem; line-height: 1.7; }
+  .explanation { font-size: .85rem; padding: 12px 14px; }
+
+  /* Rating buttons — big enough for thumbs */
+  .rating-btns { gap: 6px; margin-top: 16px; }
+  .rating-btns button {
+    padding: 14px 4px;
+    font-size: .8rem;
+    min-height: 64px;
+    border-radius: 14px;
+  }
+  .rating-interval { font-size: .65rem; }
+
+  /* Progress bar */
+  .progress-bar { height: 10px; }
+  .progress-text { font-size: .82rem; }
+  .progress-header { margin-bottom: 16px; }
+
+  /* Buttons */
+  .btn { padding: 12px 20px; font-size: .9rem; border-radius: 14px; }
+  .btn-sm { padding: 8px 14px; font-size: .78rem; }
+  .btn-block { padding: 14px 20px; font-size: .95rem; }
+
+  /* Forms */
+  label { font-size: .82rem; margin-bottom: 6px; }
+  .form-group { margin-bottom: 16px; }
+
+  /* Category tabs */
+  .cat-tab { padding: 8px 16px; font-size: .8rem; }
+
+  /* Frame cards */
+  .frame-template { font-size: .85rem; padding: 12px 14px; }
+  .frame-name { font-size: .96rem; }
+  .frame-note { font-size: .8rem; }
+  .frame-ex { font-size: .83rem; padding: 10px 12px; }
+
+  /* Error items */
+  .error-wrong, .error-correction { font-size: .88rem; padding: 10px 12px; }
+  .error-note { font-size: .8rem; }
+
+  /* Due banner */
+  .due-count { font-size: 2rem !important; }
+  .due-label { font-size: .88rem !important; }
+  .due-sub { font-size: .75rem !important; }
+
+  /* Session complete */
+  .complete-score { font-size: 4rem; }
+  .score-item .num { font-size: 1.8rem; }
+  .score-item .lbl { font-size: .72rem; }
+
+  /* Modal */
+  .modal-box { padding: 20px 16px 40px; }
+  .modal-title { font-size: 1.1rem; }
+  .ai-result-card { padding: 14px; }
+  .ai-result-card .ai-q { font-size: .9rem; }
+
+  /* History */
+  .history-detail span { font-size: .76rem; }
+
+  /* Topic buttons */
+  .topic-btn { padding: 8px 16px; font-size: .78rem; }
+}
+
+/* Tablet range: slightly looser */
+@media (min-width: 601px) and (max-width: 780px) {
+  .mcq-opt { font-size: .9rem; padding: 12px 14px; }
+  .ex-question { font-size: .96rem !important; }
+  .rating-btns button { min-height: 56px; }
+}
+.divider{height:1px;background:var(--border);margin:18px 0}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty-state .ico{font-size:3.5rem;margin-bottom:14px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade-in{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.topic-btn{padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);transition:.2s}
+.topic-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-l)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <div class="header-title">IELTS <span>Writing</span> Trainer</div>
+      <div class="header-meta" id="header-meta">💾 Local only</div>
+    </div>
+    <div id="header-right">
+      <button class="btn btn-sm btn-ghost" id="btn-ai" onclick="openAIModal()">🤖 Tạo bài mới</button>
+      <div id="user-info" style="display:none">
+        <button class="user-btn" onclick="showUserMenu()" title="Tài khoản">
+          <div class="user-avatar" id="user-avatar-el">?</div>
+          <div class="user-name" id="user-name-el"></div>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- ══ HOME ══════════════════════════════ -->
+    <section id="screen-home" class="screen">
+      <div id="print-header">IELTS Writing Trainer — Báo cáo luyện tập</div>
+
+      <div class="streak-bar">
+        <div class="streak-flame">🔥</div>
+        <div>
+          <div class="streak-num" id="streak-num">0</div>
+          <div class="streak-label">ngày liên tiếp</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="text-sm" id="home-last" style="color:#fff">Chưa luyện</div>
+          <div class="text-xs" style="opacity:.75">lần gần nhất</div>
+        </div>
+      </div>
+
+      <div id="due-banner" class="due-banner" style="display:none">
+        <div>
+          <div class="due-count" id="due-count">0</div>
+        </div>
+        <div>
+          <div class="due-label">thẻ cần ôn hôm nay 🗓️</div>
+          <div class="due-sub">Spaced Repetition — lặp đúng lúc ✨</div>
+        </div>
+        <button class="btn btn-sm btn-warn" style="margin-left:auto;white-space:nowrap" onclick="startSession('due')">Ôn ngay →</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-sub">bài đã làm</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-accuracy">—</div>
+          <div class="stat-sub">chính xác</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-errors">0</div>
+          <div class="stat-sub">lỗi đã lưu</div>
+        </div>
+      </div>
+
+      <div class="card-title mb-2">Chọn buổi luyện</div>
+      <div class="session-grid">
+        <div class="session-card" onclick="startSession('quick')">
+          <div class="ico">⚡</div>
+          <div class="label">Nhanh</div>
+          <div class="sub">5 câu · ~5 phút</div>
+        </div>
+        <div class="session-card" onclick="startSession('medium')">
+          <div class="ico">🎯</div>
+          <div class="label">Trung bình</div>
+          <div class="sub">12 câu · ~15 phút</div>
+        </div>
+        <div class="session-card" onclick="startSession('long')">
+          <div class="ico">📚</div>
+          <div class="label">Đầy đủ</div>
+          <div class="sub">25 câu · ~30 phút</div>
+        </div>
+        <div class="session-card" onclick="startSession('errors')" id="session-errors-card">
+          <div class="ico">🔴</div>
+          <div class="label">Ôn lỗi</div>
+          <div class="sub" id="error-count-sub">0 lỗi chưa thuộc</div>
+        </div>
+      </div>
+
+      <div class="card-title mb-2">Luyện theo chủ đề</div>
+      <div id="topic-btns" class="flex" style="gap:6px;flex-wrap:wrap;margin-bottom:16px"></div>
+
+      <div class="card mb-3" style="background:linear-gradient(135deg,var(--teal-l),var(--primary-l));border-color:var(--teal)">
+        <div style="font-size:.82rem;font-weight:800;color:var(--teal);margin-bottom:4px">🧠 Spaced Repetition đang hoạt động!</div>
+        <div class="text-xs text-2">Mỗi lần ôn, bạn tự chấm 🌊 Dễ / ✅ Nhớ / 🔄 Khó / ❌ Quên → app tính ngày ôn lại tối ưu (kiểu Anki). Bài dễ → lặp sau 1 tuần. Bài quên → lặp ngay ngày mai.</div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="card-title mb-2">Lịch sử gần đây</div>
+      <div id="recent-history"></div>
+    </section>
+
+    <!-- ══ PRACTICE ══════════════════════════ -->
+    <section id="screen-practice" class="screen">
+      <div id="practice-setup">
+        <div class="card" style="text-align:center;padding:36px 20px">
+          <div style="font-size:2.4rem">🎯</div>
+          <div class="card-title mt-2">Bắt đầu luyện tập</div>
+          <div class="text-sm text-2 mt-2">Chọn buổi luyện từ trang chủ hoặc chủ đề cụ thể bên dưới.</div>
+          <div class="mt-3" id="practice-topic-btns" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"></div>
+        </div>
+        <div class="card mt-3" style="background:linear-gradient(135deg,var(--primary-l),var(--warn-l));border-color:var(--primary)">
+          <div style="font-size:1.4rem;margin-bottom:6px">🤖✨</div>
+          <div class="card-title" style="color:var(--primary)">Hết bài ôn? Tạo bài mới với AI!</div>
+          <div class="text-sm text-2 mt-1 mb-3">Chọn frame hoặc chủ đề → Claude tạo ngay 5–10 bài MCQ/điền từ mới với câu văn khác nhau. Cùng pattern, nội dung mới để tư duy không bị nhàm.</div>
+          <button class="btn btn-primary btn-block" onclick="openAIModal()">✨ Tạo bài tập mới với AI</button>
+        </div>
+      </div>
+
+      <div id="practice-active" style="display:none">
+        <div class="progress-header">
+          <span class="text-xs text-2 fw-600" id="session-label">Nhanh · 5 câu</span>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          <span class="progress-text" id="progress-text">0/5</span>
+        </div>
+        <div id="exercise-container" class="fade-in"></div>
+        <div id="action-area"></div>
+      </div>
+
+      <div id="practice-complete" style="display:none">
+        <div class="session-complete">
+          <div style="font-size:3.5rem">🏆</div>
+          <div class="complete-score" id="complete-score">0%</div>
+          <div class="complete-sub" id="complete-sub">Tốt lắm!</div>
+          <div class="score-breakdown">
+            <div class="score-item"><div class="num" id="score-easy" style="color:var(--teal)">0</div><div class="lbl">🌊 Dễ</div></div>
+            <div class="score-item"><div class="num" id="score-good" style="color:var(--success)">0</div><div class="lbl">✅ Nhớ</div></div>
+            <div class="score-item"><div class="num" id="score-hard" style="color:var(--warn)">0</div><div class="lbl">🔄 Khó</div></div>
+            <div class="score-item"><div class="num" id="score-bad" style="color:var(--danger)">0</div><div class="lbl">❌ Quên</div></div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="startSession('quick')">Luyện tiếp ⚡</button>
+            <button class="btn btn-secondary" onclick="exportSessionPDF()">📄 Xuất PDF</button>
+            <button class="btn btn-secondary" onclick="showScreen('home')">🏠 Trang chủ</button>
+          </div>
+          <div id="session-review-area" class="mt-4" style="text-align:left"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ STUDY ═════════════════════════════ -->
+    <section id="screen-study" class="screen">
+      <div class="category-tabs" id="study-tabs"></div>
+      <div id="study-content"></div>
+    </section>
+
+    <!-- ══ ERROR LOG ═════════════════════════ -->
+    <section id="screen-errors" class="screen">
+      <div class="error-form">
+        <div class="card-title mb-3">➕ Ghi lỗi mới</div>
+        <div class="form-group">
+          <label>Câu/từ sai của mình</label>
+          <textarea id="err-wrong" rows="2" placeholder='VD: "Brazil witnessed the lowest CO2..."' ></textarea>
+        </div>
+        <div class="form-group">
+          <label>Sửa thành</label>
+          <textarea id="err-correction" rows="2" placeholder='VD: "Brazil recorded the lowest CO2..."' ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Loại lỗi</label>
+            <select id="err-type">
+              <option value="vocabulary">Từ vựng</option>
+              <option value="grammar">Ngữ pháp</option>
+              <option value="frame">Dùng frame</option>
+              <option value="collocation">Collocation</option>
+              <option value="preposition">Giới từ</option>
+              <option value="paraphrase">Paraphrase</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Task</label>
+            <select id="err-task">
+              <option value="task1">Task 1</option>
+              <option value="task2">Task 2</option>
+              <option value="both">Cả hai</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Ghi chú / Giải thích</label>
+          <textarea id="err-note" rows="2" placeholder="Giải thích tại sao sai, cách nhớ..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="addError()">💾 Lưu lỗi & tạo bài tập</button>
+      </div>
+
+      <div class="flex justify-between items-center mb-2">
+        <div class="card-title">Nhật ký lỗi (<span id="error-total-count">0</span>)</div>
+        <div class="flex gap-2">
+          <button class="btn btn-sm btn-secondary" onclick="filterErrors('all')" id="filter-all">Tất cả</button>
+          <button class="btn btn-sm btn-secondary" onclick="filterErrors('active')" id="filter-active">Chưa thuộc</button>
+        </div>
+      </div>
+      <div class="error-list" id="error-list"></div>
+    </section>
+
+    <!-- ══ SETTINGS ═══════════════════════════ -->
+    <section id="screen-settings" class="screen">
+      <div class="settings-section">
+        <div class="settings-title">🤖 AI (Tạo bài tập mới)</div>
+        <div class="card mb-3">
+          <div class="card-sub">Nhấn nút <strong>"🤖 Tạo bài mới"</strong> ở trên đầu trang để dùng Claude AI sinh bài tập variation mới cho các frame bạn đang học. Bài tập được lưu vào bộ sưu tập cá nhân.</div>
+          <div class="mt-2 text-xs text-2">Tổng bài custom: <strong id="custom-ex-count">0</strong> bài</div>
+          <button class="btn btn-sm btn-danger mt-3" onclick="clearCustomExercises()">🗑️ Xóa bài custom</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">🔥 Firebase (Lưu cloud)</div>
+        <div id="firebase-status-box" class="firebase-status disconnected">
+          <span>⚠️ Chưa kết nối — đang lưu local</span>
+        </div>
+        <div id="auth-actions" style="display:none;margin-bottom:12px">
+          <button class="btn btn-sm btn-danger" onclick="signOut()">🚪 Đăng xuất</button>
+        </div>
+        <div class="card mb-3">
+          <div class="card-sub">Dán Firebase config JSON (Project Settings → Web app):</div>
+          <div class="form-group">
+            <textarea id="firebase-config-input" rows="7" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "..."
+}'></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()">💾 Lưu & kết nối</button>
+          <button class="btn btn-secondary btn-sm" onclick="disconnectFirebase()" style="margin-left:8px">Ngắt</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">🗂️ Dữ liệu</div>
+        <div class="flex gap-2" style="flex-wrap:wrap">
+          <button class="btn btn-sm btn-secondary" onclick="exportAllPDF()">📄 Xuất PDF</button>
+          <button class="btn btn-sm btn-danger" onclick="clearLocalData()">🗑️ Xóa local</button>
+        </div>
+        <div class="mt-3 text-xs text-2">Tổng bài tập: <strong id="total-ex-count">—</strong></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="settings-section">
+        <div class="settings-title">📊 Spaced Repetition</div>
+        <div class="card">
+          <div class="text-sm text-2">
+            App dùng thuật toán <strong style="color:var(--primary)">SM-2</strong> (giống Anki).<br><br>
+            • <span class="badge badge-teal">Mới</span> = chưa từng làm<br>
+            • <span class="badge badge-yellow">Sắp đến hạn</span> = cần ôn hôm nay<br>
+            • <span class="badge badge-green">Đã thuộc</span> = đã đúng nhiều lần<br><br>
+            Rating: 🌊 Dễ (+interval dài) · ✅ Nhớ (+interval vừa) · 🔄 Khó (+interval ngắn) · ❌ Quên (reset về ngày mai)
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav id="bottom-nav">
+    <button onclick="showScreen('home')" id="nav-home"><span class="ico">🏠</span>Trang chủ</button>
+    <button onclick="showScreen('practice')" id="nav-practice"><span class="ico">🎯</span>Luyện tập</button>
+    <button onclick="showScreen('study')" id="nav-study"><span class="ico">📚</span>Tham khảo</button>
+    <button onclick="showScreen('errors')" id="nav-errors"><span class="ico">🔴</span>Nhật ký lỗi</button>
+    <button onclick="showScreen('settings')" id="nav-settings"><span class="ico">⚙️</span>Cài đặt</button>
+  </nav>
+</div>
+
+<!-- ══ AI GENERATOR MODAL ══════════════════════════════════════ -->
+<div class="modal-overlay" id="ai-modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🤖 Tạo bài tập mới với AI</div>
+    <div class="modal-sub">Claude sẽ tạo variation mới dựa trên frame/chủ đề bạn chọn — cùng cấu trúc nhưng nội dung câu hoàn toàn khác để tránh học vẹt.</div>
+
+    <div class="form-group">
+      <label>Chọn chủ đề / Frame</label>
+      <select id="ai-topic">
+        <option value="nom-f1">F1: acts as a catalyst for (nguyên nhân → kết quả)</option>
+        <option value="nom-f2">F2: is largely attributable to (giải thích nguyên nhân)</option>
+        <option value="nom-f3">F3: has profoundly disrupted/reshaped (xu hướng → tác động)</option>
+        <option value="nom-f4">F4: plays a pivotal role in the mitigation of (giải pháp)</option>
+        <option value="nom-f5">F5: serves as an effective antidote to (liều thuốc giải)</option>
+        <option value="nom-f6">F6: lies in the enhancement of (lợi ích chính)</option>
+        <option value="nom-f7-8">F7-8: gradual degradation / widening disparity (hệ quả tiêu cực)</option>
+        <option value="nom-advanced">F9-15: Các frame nâng cao (contingency, emblematic, reconfiguration...)</option>
+        <option value="task1-intro">Task 1: Câu mở bài (intro verbs, relative clauses)</option>
+        <option value="task1-trend">Task 1: Xu hướng (B1-B4: Having V3, only to, multiplier)</option>
+        <option value="task1-compare">Task 1: So sánh (A3, A5, C1-C2, percentage points)</option>
+        <option value="task2-thesis">Task 2: Thesis (B-E: defend, partial, refute)</option>
+        <option value="task2-body">Task 2: Body (I-R: mechanisms, concession-rebuttal, cleft)</option>
+        <option value="common-errors">Lỗi thường gặp (far from, well-being, witnessed vs recorded...)</option>
+        <option value="custom">Tùy chỉnh (nhập yêu cầu riêng)</option>
+      </select>
+    </div>
+
+    <div id="ai-custom-prompt-wrap" style="display:none" class="form-group">
+      <label>Mô tả yêu cầu của bạn</label>
+      <textarea id="ai-custom-prompt" rows="3" placeholder="VD: Tạo bài tập về cách dùng nominalization với topic Education và Technology"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Số lượng bài tập</label>
+      <select id="ai-count">
+        <option value="3">3 bài (nhanh)</option>
+        <option value="5" selected>5 bài (chuẩn)</option>
+        <option value="8">8 bài (nhiều)</option>
+      </select>
+    </div>
+
+    <div id="ai-result-area"></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+      <button class="btn btn-primary" id="ai-gen-btn" onclick="generateExercises()">✨ Tạo bài tập</button>
+      <button class="btn btn-secondary" onclick="closeAIModal()">Đóng</button>
+      <button class="btn btn-ghost" id="ai-save-btn" onclick="saveGeneratedExercises()" style="display:none">💾 Lưu vào bộ sưu tập</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 1. EXERCISE DATABASE
+// ═══════════════════════════════════════════════════════════════
+// ─── EXERCISES ──────────────────────────────────────────────────
+const EXERCISES = [
+  // ══ NOMINALIZATION ══
+  {id:'n1-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 1: Nguyên nhân → Kết quả',
+   q:'Chọn cụm từ ĐÚNG để hoàn thành:\n"The government\'s tax cuts in business sectors ___ the economic expansion."',
+   opts:['act as a catalyst for','result in the increase of','lead to','cause'],ans:0,
+   exp:'Frame 1: "acts as a catalyst for" — dùng khi Y là một sự thay đổi/transformation. "lead to/cause" quá đơn giản cho band 8.',
+   tpl:'The [N] of X acts as a catalyst for the [N] of Y.'},
+  {id:'n1-02',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 1: Nguyên nhân → Kết quả',
+   q:'Trái đất nóng lên ngày càng nghiêm trọng → thay đổi mô hình thời tiết toàn cầu.',
+   hint:'(escalating global warming / alteration / global weather patterns)',
+   sentence:'The escalating global warming acts as a ___ for the alteration of global weather patterns.',
+   blanks:['catalyst'],ans:'The escalating global warming acts as a catalyst for the alteration of global weather patterns.',
+   exp:'"catalyst" — danh từ cố định trong frame này. Luôn đi với "acts as a catalyst for".',
+   tpl:'The [N] of X acts as a catalyst for the [N] of Y.'},
+  {id:'n1-03',type:'translate',cat:'nom',catLabel:'🔑 Frame 1: Nguyên nhân → Kết quả',
+   q:'Viết câu Band 8.0 bằng Frame 1:\nLàm việc từ xa áp dụng rộng → thay đổi văn hoá văn phòng truyền thống.',
+   hint:'(widespread adoption of remote working / transformation / traditional office culture)',
+   ans:'The widespread adoption of remote working acts as a catalyst for the transformation of traditional office culture.',
+   exp:'Danh từ hóa: "adopt remote working widely" → "widespread adoption of remote working", "change office culture" → "transformation of office culture".',
+   tpl:'The [N] of X acts as a catalyst for the [N] of Y.'},
+  {id:'n2-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 2: Giải thích nguyên nhân',
+   q:'Chọn cụm học thuật nhất để diễn đạt "phần lớn là do":',
+   opts:['is largely attributable to','is mostly because of','happens due to','comes from'],ans:0,
+   exp:'"largely attributable to" — khách quan, học thuật. Các phương án khác quá thông thường cho Task 2 band 8.',
+   tpl:'The [N of problem] is largely attributable to the [N of cause].'},
+  {id:'n2-02',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 2: Giải thích nguyên nhân',
+   q:'Tắc đường kinh khủng ở các thành phố lớn — vì người dân cứ mua xe cá nhân mãi.',
+   hint:'(traffic congestion / urban areas / proliferation / private vehicles)',
+   sentence:'The traffic congestion in urban areas is largely ___ to the proliferation of private vehicles.',
+   blanks:['attributable'],ans:'The traffic congestion in urban areas is largely attributable to the proliferation of private vehicles.',
+   exp:'"attributable" — từ cố định trong frame, không thể thay thế bằng từ khác.',
+   tpl:'The [N of problem] is largely attributable to the [N of cause].'},
+  {id:'n2-03',type:'translate',cat:'nom',catLabel:'🔑 Frame 2: Giải thích nguyên nhân',
+   q:'Viết câu Band 8.0 bằng Frame 2:\nNhiều thanh thiếu niên có vấn đề sức khỏe tâm thần — vì dùng mạng xã hội quá mức.',
+   hint:'(mental health crises / youth / excessive consumption / social media platforms)',
+   ans:'The mental health crises among youth are largely attributable to the excessive consumption of social media platforms.',
+   exp:'Danh từ hóa: "have mental health problems" → "mental health crises", "use social media excessively" → "excessive consumption of social media".',
+   tpl:'The [N of problem] is largely attributable to the [N of cause].'},
+  {id:'n3-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 3: Xu hướng tăng → Tác động',
+   q:'AI phát triển với tốc độ chóng mặt → xáo trộn sâu sắc thị trường lao động.\n\n"A sudden surge in artificial intelligence capabilities has profoundly ___ the stability of the global job market."',
+   opts:['disrupted','reshaped','transformed','affected'],ans:0,
+   exp:'"disrupted" = gây xáo trộn tiêu cực. "reshaped" = thay đổi trung tính/tích cực. "transformed" = biến đổi lớn. Đề nói "xáo trộn" → disrupted.',
+   tpl:'A sudden surge / steady rise in [N] has profoundly reshaped/disrupted/transformed [N].'},
+  {id:'n3-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 3: Xu hướng tăng → Tác động',
+   q:'Viết câu Band 8.0 bằng Frame 3:\nĐặt đồ ăn online ngày càng phổ biến → làm thay đổi hoàn toàn cách nhà hàng truyền thống vận hành.',
+   hint:'(online food delivery services / operational dynamics of traditional dining establishments)',
+   ans:'A steady rise in online food delivery services has profoundly transformed the operational dynamics of traditional dining establishments.',
+   exp:'Chọn "transformed" vì đây là sự biến đổi lớn, có tính hệ thống. Danh từ hóa: "how restaurants operate" → "operational dynamics".',
+   tpl:'A sudden surge / steady rise in [N] has profoundly reshaped/disrupted/transformed [N].'},
+  {id:'n4-01',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 4: Giải pháp → Giảm thiểu',
+   q:'Đánh thuế đồ ngọt → giảm tỉ lệ béo phì cộng đồng.',
+   hint:'(a sugar tax / public health crises such as obesity)',
+   sentence:'The implementation of a sugar tax plays a pivotal role in the ___ of public health crises such as obesity.',
+   blanks:['mitigation'],ans:'The implementation of a sugar tax plays a pivotal role in the mitigation of public health crises such as obesity.',
+   exp:'"mitigation" = giảm nhẹ (học thuật). "plays a pivotal role in" + danh từ — không dùng "in reducing".',
+   tpl:'The implementation of [N] plays a pivotal role in the mitigation of [N].'},
+  {id:'n4-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 4: Giải pháp → Giảm thiểu',
+   q:'Viết câu Band 8.0 bằng Frame 4:\nXây thêm công viên cây xanh trong đô thị → giảm hiệu ứng đảo nhiệt đô thị.',
+   hint:'(urban green spaces / urban heat island effect)',
+   ans:'The implementation of urban green spaces plays a pivotal role in the mitigation of the urban heat island effect.',
+   exp:'"implementation of" + danh từ (green spaces). Không cần dùng verb "build" ở đây — danh từ hóa hoàn toàn.',
+   tpl:'The implementation of [N] plays a pivotal role in the mitigation of [N].'},
+  {id:'n5-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 5 vs 4',
+   q:'Frame 5 khác Frame 4 ở điểm gì?',
+   opts:['Frame 5 nhấn "tính hiệu quả"; Frame 4 nhấn "vai trò then chốt" — dùng xen kẽ để tránh lặp','Frame 5 dùng cho giải pháp cá nhân; Frame 4 cho chính phủ','Frame 5 mạnh hơn vì "antidote" mạnh hơn "mitigation"','Hai frame hoàn toàn giống nhau'],ans:0,
+   exp:'Frame 4: "plays a pivotal role" = vai trò then chốt. Frame 5: "serves as an effective antidote" = tính hiệu quả. Dùng xen kẽ để tránh lặp trong bài.',
+   tpl:'The adoption of [N] serves as an effective antidote to [N].'},
+  {id:'n5-02',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 5: Liều thuốc giải',
+   q:'Cho phép giờ làm việc linh hoạt → giải quyết kiệt sức nơi làm việc.',
+   sentence:'The adoption of flexible working arrangements serves as an effective ___ to workplace burnout.',
+   blanks:['antidote'],ans:'The adoption of flexible working arrangements serves as an effective antidote to workplace burnout.',
+   exp:'"antidote to" — luôn đi với "to". Không dùng "antidote for" hay "antidote against".',
+   tpl:'The adoption of [N] serves as an effective antidote to [N].'},
+  {id:'n6-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 6: Lợi ích chính',
+   q:'Khi nào dùng "enhancement" và khi nào dùng "optimization"?',
+   opts:['"enhancement" cho skills/awareness/quality; "optimization" CHỈ cho systems/processes (không dùng cho người)','Hai từ đồng nghĩa hoàn toàn','"optimization" mạnh hơn nên dùng khi muốn nhấn mạnh','"enhancement" chỉ dùng cho giáo dục'],ans:0,
+   exp:'"optimization of employees" → SAI, nghe rất kỳ. Đúng: "enhancement of employee skills/performance".',
+   tpl:'The primary merit of [N] lies in the enhancement of [N].'},
+  {id:'n6-02',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 6: Lợi ích chính',
+   q:'Học ở nước ngoài tốt vì nâng cao nhận thức văn hóa.',
+   sentence:'The primary merit of overseas education ___ in the enhancement of cross-cultural awareness.',
+   blanks:['lies'],ans:'The primary merit of overseas education lies in the enhancement of cross-cultural awareness.',
+   exp:'"lies in" — động từ cố định trong frame này. Không dùng "is" hay "comes from".',
+   tpl:'The primary merit of [N] lies in the enhancement of [N].'},
+  {id:'n7-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 7: Hệ quả tiêu cực',
+   q:'Chọn danh từ đi SAI với "degradation":',
+   opts:['family bonds → phải dùng "deterioration"','moral values → đúng','natural habitats → đúng','cognitive faculties → đúng'],ans:0,
+   exp:'"degradation" + moral values/cognitive faculties/natural habitats/soil quality. Dùng "deterioration" cho: family bonds, immune system, physical condition.',
+   tpl:'A major repercussion of [N] is the gradual degradation of [N].'},
+  {id:'n7-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 7: Hệ quả tiêu cực',
+   q:'Viết câu Band 8.0 bằng Frame 7:\nNgười ta phụ thuộc vào máy tính quá nhiều → trí nhớ và tư duy kém dần.',
+   hint:'(over-reliance on technology / human cognitive faculties)',
+   ans:'A major repercussion of over-reliance on technology is the gradual degradation of human cognitive faculties.',
+   exp:'"cognitive faculties" = trí nhớ và tư duy tổng hợp. "degradation" phù hợp vì đây là quá trình suy giảm dần, không đột ngột.',
+   tpl:'A major repercussion of [N] is the gradual degradation of [N].'},
+  {id:'n10-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 10: Thống trị → Lấn át',
+   q:'"The dominance of e-commerce giants has gradually ___ independent local retailers."',
+   opts:['marginalised','replaced','affected','changed'],ans:0,
+   exp:'"marginalised" = đẩy ra rìa xã hội/thị trường. Mạnh và chính xác hơn "replaced" hay "affected".',
+   tpl:'The dominance of [N] has gradually marginalised [N].'},
+  {id:'n12-01',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 12: Thành công phụ thuộc vào',
+   q:'Thoả thuận khí hậu Paris muốn có hiệu quả thực sự thì cần cơ chế ràng buộc.',
+   sentence:'The effectiveness of the Paris Agreement is ___ upon the establishment of binding enforcement mechanisms.',
+   blanks:['contingent'],ans:'The effectiveness of the Paris Agreement is contingent upon the establishment of binding enforcement mechanisms.',
+   exp:'"contingent upon" = phụ thuộc vào. Luôn đi với "upon" (không phải "on"). Rất học thuật.',
+   tpl:'The [N] is contingent upon [N].'},
+  {id:'n14-01',type:'translate',cat:'nom',catLabel:'🔑 Frame 14: Xu hướng phản ánh xã hội',
+   q:'Viết câu Band 8.0 bằng Frame 14:\nNgành công nghiệp wellness trị giá nghìn tỷ đô → phản ánh dịch bệnh căng thẳng mãn tính trong xã hội hiện đại.',
+   hint:'(trillion-dollar wellness industry / epidemic of chronic stress and disconnection)',
+   ans:'The trillion-dollar wellness industry is emblematic of an epidemic of chronic stress and disconnection in modern society.',
+   exp:'"emblematic of" = là biểu trưng của / phản ánh rõ rệt. Mạnh và học thuật hơn "reflects" hay "shows".',
+   tpl:'The [N] is emblematic of [N of broader social phenomenon].'},
+
+  // ══ TASK 2 INTRO ══
+  {id:'t2i-01',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Mở bài',
+   q:'Frame "has become a subject of considerable debate" phù hợp nhất với dạng đề nào?',
+   opts:['Opinion (Agree/Disagree) — đề đưa 1 claim, hỏi "to what extent do you agree?"','Discuss both views','Advantages & Disadvantages','Problem & Solution'],ans:0,
+   exp:'Frame 1 chỉ có 1 "claim" → Opinion. Frame 2 "continues to divide opinion" phù hợp với Discuss vì có 2 quan điểm đối lập.',tpl:''},
+  {id:'t2i-02',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Lỗi thường gặp',
+   q:'Câu nào SAI (lỗi thực tế từ bài làm)?\n"As ___ become increasingly prevalent among young people..."',
+   opts:['"celebrities" — SAI: "prevalent" không đi với người','"celebrity culture" — ĐÚNG','"the admiration of stars" — ĐÚNG','"the influence of celebrities" — ĐÚNG'],ans:0,
+   exp:'"prevalent" đi với hiện tượng/xu hướng, KHÔNG với người. Phải là "As celebrity culture becomes..." hoặc "As the admiration of stars becomes..."',tpl:''},
+  {id:'t2i-03',type:'fillBlank',cat:'task2-intro',catLabel:'✍️ Task 2: Mở bài Frame 2',
+   q:'Đề: Some think printed books are no longer needed. Others think they still play an important role. (Discuss both views)',
+   hint:'Dùng frame "continues to divide opinion"',
+   sentence:'The role of printed books in today\'s society is an issue that continues to ___ opinion, with some maintaining that they are no longer necessary, while others ___ that they remain beneficial.',
+   blanks:['divide','contend'],ans:'The role of printed books in today\'s society is an issue that continues to divide opinion, with some maintaining that they are no longer necessary, while others contend that they remain beneficial.',
+   exp:'"divide opinion" + "maintaining that" + "contend that" — ba cụm này đi cùng nhau. "contend" thay cho "argue" để tránh lặp.',tpl:''},
+  {id:'t2i-04',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Thesis',
+   q:'Thesis đúng cho Opinion Essay:',
+   opts:['This essay disagrees with this view, and will argue that [R1] and [R2].','This essay will discuss both sides of this debate.','This essay thinks that the topic is very important.','This essay will show the advantages and disadvantages.'],ans:0,
+   exp:'Thesis Opinion phải: (1) nêu rõ agrees/disagrees, (2) báo trước 2 lý do. Không dùng "thinks" — quá informal.',tpl:''},
+  {id:'t2i-05',type:'fillBlank',cat:'task2-intro',catLabel:'✍️ Task 2: Thesis nuanced',
+   q:'Điền vào thesis nuanced về nuclear energy:',
+   sentence:'While it is true that nuclear energy carries inherent safety risks, the weight of evidence ___ that it remains the most viable path to reducing carbon emissions at scale.',
+   blanks:['suggests'],ans:'While it is true that nuclear energy carries inherent safety risks, the weight of evidence suggests that it remains the most viable path to reducing carbon emissions at scale.',
+   exp:'"the weight of evidence suggests that" — cụm cố định. "While it is true that" luôn là nhượng bộ (concession).',tpl:''},
+
+  // ══ TASK 2 BODY ══
+  {id:'t2b-01',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Nhượng bộ–Phản bác',
+   q:'Chọn cấu trúc đúng cho nhượng bộ–phản bác:',
+   opts:['While it is true that [X], this argument overlooks the fact that [Y].','Although [X], but [Y].','On the other hand, [Y].','Firstly, [X]. Secondly, [Y].'],ans:0,
+   exp:'"While it is true that... overlooks the fact that" — cấu trúc nhượng bộ–phản bác chuẩn. "Although... but" sai ngữ pháp.',tpl:''},
+  {id:'t2b-02',type:'fillBlank',cat:'task2-body',catLabel:'🏗️ Task 2: Cleft Sentence',
+   q:'Viết câu nhấn mạnh: "Không phải thiếu tham vọng, mà chính là thiếu nhà trẻ giá rẻ khiến phụ nữ rời bỏ thị trường lao động."',
+   sentence:'It is precisely a lack of affordable childcare — not a lack of ___ — that explains why so many qualified women exit the workforce.',
+   blanks:['ambition'],ans:'It is precisely a lack of affordable childcare — not a lack of ambition — that explains why so many qualified women exit the workforce.',
+   exp:'Cleft sentence: "It is precisely [nhân tố A] — not [nhân tố B hiển nhiên hơn] — that [explains outcome]".',tpl:''},
+
+  // ══ TASK 1 FRAMES ══
+  {id:'t1a-01',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A1 Mở bài',
+   q:'Chọn từ phù hợp nhất cho mở bài biểu đồ phân chia chi tiêu theo danh mục:',
+   opts:['provides a breakdown of','illustrates','shows','presents'],ans:0,
+   exp:'"provides a breakdown of" — dùng khi biểu đồ phân chia dữ liệu theo nhiều loại/danh mục. "illustrates" cũng đúng nhưng ít specific hơn.',tpl:''},
+  {id:'t1a-02',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A2 Mệnh đề quan hệ',
+   q:'"Housing accounted for 40%, ___ all other spending categories."\nChọn cụm đúng:',
+   opts:['a figure that exceeded','which figure exceeded','the figure exceeded','a figure which exceeded'],ans:0,
+   exp:'"a figure that exceeded" — "a figure" là antecedent của "that". Sau con số dùng "a figure/level that..." Không bắt đầu bằng "which" trực tiếp.',tpl:''},
+  {id:'t1a-03',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A3 So sánh chéo',
+   q:'Cụm nào nhấn mạnh TỶ LỆ hơn là số tuyệt đối?',
+   opts:['relative to','compared with','as against','measured against'],ans:0,
+   exp:'"relative to" = nhấn tỉ lệ, không phải số tuyệt đối. "as against" = nhấn tương phản mạnh, thường kèm con số cụ thể.',tpl:''},
+  {id:'t1a-04',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A4 Nhấn mạnh',
+   q:'Cụm nào KHÔNG phù hợp trong Task 1 academic (quá informal)?',
+   opts:['streets ahead of','by far the highest','easily surpassed','by a considerable margin'],ans:0,
+   exp:'"streets ahead of" — khá informal. Trong Task 1 academic, ưu tiên: "by far the highest", "easily surpassed", "by a considerable margin", "comfortably exceeded".',tpl:''},
+  {id:'t1a-05',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A5 Tương phản',
+   q:'"___ City A nearly quadrupled, City B grew only modestly."\nChọn liên từ đúng:',
+   opts:['Whereas','By contrast,','In contrast to City A,','Unlike City A,'],ans:0,
+   exp:'"Whereas" + mệnh đề hoàn chỉnh + "," + mệnh đề 2. "By contrast" đứng đầu câu mới. "In contrast to" / "Unlike" đi với danh từ, không phải mệnh đề.',tpl:''},
+  {id:'t1b-01',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B1 Having+V3',
+   q:'Frame B1 "Having + V3" dùng khi nào?',
+   opts:['Mô tả giai đoạn TRƯỚC rồi nói điều xảy ra SAU — tránh lặp chủ ngữ','Mô tả hai xu hướng xảy ra đồng thời','Dự đoán xu hướng tương lai','So sánh hai đối tượng'],ans:0,
+   exp:'Cấu trúc: "Having [V3]..., X then [V]..." Ví dụ: "Having peaked at 50% in 2010, the figure subsequently declined."',tpl:''},
+  {id:'t1b-02',type:'fillBlank',cat:'task1-b',catLabel:'📈 Task 1: B1 Having+V3',
+   q:'Sau khi đi ngang suốt thập niên 1980, xuất khẩu sau đó tăng vọt.',
+   sentence:'___ flat throughout the 1980s, exports then surged.',
+   blanks:['Having remained'],ans:'Having remained flat throughout the 1980s, exports then surged.',
+   exp:'"Having remained flat" = sau khi duy trì đi ngang. "flat" = không thay đổi, thường dùng cho đường biểu đồ nằm ngang.',tpl:''},
+  {id:'t1b-03',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B2 only to + V',
+   q:'"Doanh số tăng đều đến 2015, rồi bất ngờ rơi về mức ban đầu."\nCụm nào nhấn mạnh SỰ BẤT NGỜ hơn?',
+   opts:['only to fall back to their original level','before falling back to their original level','then fell back to their original level','after which they fell back'],ans:0,
+   exp:'"only to + V" nhấn mạnh sự đảo chiều BẤT NGỜ hoặc đáng tiếc. "before V-ing" chỉ nêu sự kiện kế tiếp, không có sắc thái ngạc nhiên.',tpl:''},
+  {id:'t1b-04',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B3 Mức độ tăng/giảm',
+   q:'Tỉ lệ tăng từ 2% lên 3%. Chọn từ ĐÚNG:',
+   opts:['edged up slightly','surged','soared','increased dramatically'],ans:0,
+   exp:'Tăng từ 2% lên 3% = tăng rất nhỏ → "edged up". "surge/soar" chỉ dùng khi tăng >50% hoặc rất đột ngột.',tpl:''},
+  {id:'t1b-05',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B3 Từ vựng biểu đồ TĨNH',
+   q:'Lỗi từ bài làm thực tế:\n"Brazil ___ by far the lowest amount of carbon emissions."\nTừ nào ĐÚNG cho biểu đồ TĨNH?',
+   opts:['recorded','witnessed','saw','experienced'],ans:0,
+   exp:'"witnessed/saw/experienced" ngụ ý có yếu tố thời gian/trải nghiệm. Biểu đồ tĩnh (so sánh các nước tại 1 mốc) → dùng "recorded" hoặc "had".',tpl:''},
+  {id:'t1b-06',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B6 Nhân số',
+   q:'Giá trị tăng từ 4 lên 17. Cách diễn đạt nào ĐÚNG nhất?',
+   opts:['nearly quadrupled (≈ gấp 4.25 lần)','more than doubled','grew by a factor of 2','tripled'],ans:0,
+   exp:'17/4 = 4.25 lần → "nearly quadrupled" là chính xác nhất. Ví dụ thực tế: USA ~18 tấn CO2 vs Brazil ~4 tấn → "nearly quadrupled".',tpl:''},
+  {id:'t1b-07',type:'fillBlank',cat:'task1-b',catLabel:'📈 Task 1: B4 Danh từ hóa',
+   q:'Viết lại bằng danh từ hóa (tránh dùng "increased dramatically"):',
+   sentence:'There was a ___ increase in renewable energy use after 2015.',
+   blanks:['dramatic'],ans:'There was a dramatic increase in renewable energy use after 2015.',
+   exp:'Thay "increased dramatically" → "a dramatic increase in". Đa dạng hóa cấu trúc câu, tránh lặp "V + adverb".',tpl:''},
+  {id:'t1c-01',type:'mcq',cat:'task1-c',catLabel:'🥧 Task 1: Pie Chart C1',
+   q:'Động từ QUAN TRỌNG NHẤT khi mô tả pie chart:',
+   opts:['accounted for (+ tỉ lệ %)','increased','reached','showed'],ans:0,
+   exp:'"accounted for" — luôn đi với tỉ lệ phần trăm trong pie chart. Biến thể: made up, represented, comprised.',tpl:''},
+  {id:'t1c-02',type:'mcq',cat:'task1-c',catLabel:'🥧 Task 1: Lỗi ngữ pháp',
+   q:'PHÂN BIỆT: "percentage points" vs "percent".\nInternet access rose from 38% to 60%. Cách đúng:',
+   opts:['rose by 22 percentage points (38+22=60 — tính tuyệt đối)','rose by 22 percent','increased by 22%','grew by 22 percentage'],ans:0,
+   exp:'"percentage points" = độ chênh tuyệt đối (60-38=22pp). "percent" = thay đổi tương đối so với gốc (22/38≈58%). Lỗi này rất phổ biến và là band-killer.',tpl:''},
+
+  // ══ COMMON ERRORS (từ bài làm thực tế) ══
+  {id:'err-01',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi thực tế từ bài làm',
+   q:'"far ___ necessary" — điền giới từ đúng để có nghĩa "không còn cần thiết":',
+   opts:['from (far from necessary = hoàn toàn không cần thiết)','beyond (far beyond necessary = RẤT cần thiết — ngược nghĩa!)','above','over'],ans:0,
+   exp:'LỖI THỰC TẾ: "far beyond necessary" → ngược nghĩa! "beyond" = vượt quá → RẤT cần thiết. Muốn nói KHÔNG cần thiết → "far FROM necessary".',tpl:''},
+  {id:'err-02',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi thực tế từ bài làm',
+   q:'"nurturing people\'s ___ in reading from an early age" — điền danh từ đúng:',
+   opts:['interest (số ít — khái niệm chung)','interests (số nhiều — nhiều sở thích khác nhau)','interesting','interestingness'],ans:0,
+   exp:'LỖI THỰC TẾ: "interests" (số nhiều) dùng khi nói về nhiều lĩnh vực. Ở đây "interest in reading" = sở thích đọc sách (một khái niệm chung) → số ít.',tpl:''},
+  {id:'err-03',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi thực tế từ bài làm',
+   q:'"electronic" hay "electronical"?',
+   opts:['"electronic" — ĐÚNG ("electronical" không tồn tại)','Cả hai đều đúng','"electronical" khi đứng trước danh từ','"electronic" chỉ dùng với devices'],ans:0,
+   exp:'LỖI THỰC TẾ: "electronical" KHÔNG TỒN TẠI trong tiếng Anh. Luôn dùng "electronic storage", "electronic books".',tpl:''},
+  {id:'err-04',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi thực tế từ bài làm',
+   q:'"boosts young people\'s well-being_"\nwell-being là từ đếm được hay không đếm được?',
+   opts:['Không đếm được → "well-being" (không có "s")','Đếm được → "well-beings"','Cả hai đều được','Phụ thuộc vào ngữ cảnh'],ans:0,
+   exp:'LỖI THỰC TẾ: "well-being" KHÔNG ĐẾM ĐƯỢC. Không bao giờ dùng "well-beings". Tương tự: "knowledge", "information", "advice" đều không đếm được.',tpl:''},
+  {id:'err-05',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi thực tế từ bài làm',
+   q:'Khi paraphrase đề về "young people admiring celebrities" — đâu là lỗi?',
+   opts:['Đổi chủ ngữ sang celebrity hành động → lệch đề','Giữ nguyên cấu trúc của đề','Paraphrase quá ngắn','Không dùng frame intro'],ans:0,
+   exp:'LỖI THỰC TẾ: Luôn tự hỏi "chủ thể hành động chính trong đề là ai?" — ở đây là NGƯỜI TRẺ ngưỡng mộ, không phải celebrity. Nếu đổi chủ ngữ sang celebrity → lệch đề.',tpl:''},
+  {id:'err-06',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi thực tế từ bài làm',
+   q:'Lỗi "Idol admiration is an issue that continues to divide opinion, with some maintaining that it boosts young people\'s ___."\nTừ nào đúng?',
+   opts:['well-being (không đếm được)','well-beings (lỗi!)','wellbeings','wellness'],ans:0,
+   exp:'"well-being" là danh từ không đếm được — không bao giờ thêm "s". Đây là lỗi thực tế xuất hiện trong bài làm.',tpl:''},
+
+  // ══ VOCABULARY ══
+  {id:'v-01',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Kinh tế',
+   q:'"Tiền được phân bổ cho nghiên cứu và phát triển vẫn ở mức thấp nhất."\nChọn cách diễn đạt HAY nhất:',
+   opts:['Funding allocated to R&D remained the lowest.','The money for R&D was still the lowest.','R&D spending stayed the lowest.','The cost of R&D was lowest.'],ans:0,
+   exp:'"Funding allocated to" + N — cụm học thuật chuyên ngành. "money for" quá thông thường.',tpl:''},
+  {id:'v-02',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Năng lượng',
+   q:'Cụm nào KHÔNG phù hợp để diễn đạt "CO2 thải ra tính theo đầu người"?',
+   opts:['the personal carbon level of each citizen — SAI','per capita carbon output — ĐÚNG','carbon emissions per head — ĐÚNG','the amount of CO2 emitted per person — ĐÚNG'],ans:0,
+   exp:'Các cụm chuẩn: per capita carbon output / carbon emissions per head / the amount of CO2 emitted per person / the level of CO2 emitted by each person.',tpl:''},
+  {id:'v-03',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Dân số',
+   q:'"Tỉ lệ người làm trong ngành nông nghiệp giảm." Chọn cụm ĐÚNG:',
+   opts:['The proportion of workers in agriculture declined.','Agricultural workers have declined.','Agriculture employment was declining.','People in agriculture decreased.'],ans:0,
+   exp:'"The proportion of workers in [sector]" — cụm chuẩn cho biểu đồ so sánh tỷ lệ lao động theo ngành.',tpl:''},
+  {id:'v-04',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Giao thông',
+   q:'"Sở hữu xe riêng tăng trong khi xe buýt sụt giảm." Cụm nào diễn đạt đúng nhất?',
+   opts:['Preference for private cars grew at the expense of buses.','People preferred cars more than buses.','Private cars became more popular while bus usage fell.','Car ownership grew and bus use declined.'],ans:0,
+   exp:'"at the expense of" = A tăng đánh đổi bằng sự giảm sút của B. Cụm này rất học thuật và súc tích.',tpl:''},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// 2. APP STATE
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  screen: 'home',
+  session: null,
+  userErrors: [],
+  history: [],
+  stats: { streak: 0, lastDate: '', totalEx: 0, totalGood: 0 },
+  db: null,
+  userId: null,
+  firebaseReady: false,
+  currentSessionExercises: [],
+  sessionIndex: 0,
+  sessionRatings: [],
+  currentExState: 'question',
+  selectedMcq: null,
+  studyCat: 'nom',
+  errorFilter: 'active',
+  cardStates: {},     // SM-2 states keyed by exercise id
+  customExercises: [], // AI-generated exercises
+  pendingAIExercises: [], // newly generated, not yet saved
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 3. STORAGE
+// ═══════════════════════════════════════════════════════════════
+function ls(key, val) {
+  if (val === undefined) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+  }
+  if (val === null) { localStorage.removeItem(key); return; }
+  localStorage.setItem(key, JSON.stringify(val));
+}
+
+function initStorage() {
+  state.userErrors      = ls('ielts_errors')        || [];
+  state.history         = ls('ielts_history')       || [];
+  state.stats           = ls('ielts_stats')         || { streak: 0, lastDate: '', totalEx: 0, totalGood: 0 };
+  state.cardStates      = ls('ielts_card_states')   || {};
+  state.customExercises = ls('ielts_custom_ex')     || [];
+
+  // Điền sẵn lỗi thực tế từ bài làm (chỉ khi lần đầu dùng app)
+  if (state.userErrors.length === 0) {
+    state.userErrors = [
+      { id:'default-1', wrong:'far beyond necessary', correction:'far from necessary', errorType:'preposition', task:'task2',
+        note:'"beyond" = vượt quá → RẤT cần thiết. "from" = cách xa → KHÔNG cần thiết. Hai cụm ngược nghĩa hoàn toàn!', mastered:false, createdAt:'2024-01-01T00:00:00Z' },
+      { id:'default-2', wrong:'electronical devices / electronical books', correction:'electronic devices / electronic books', errorType:'vocabulary', task:'both',
+        note:'"electronical" không tồn tại trong tiếng Anh. Luôn dùng "electronic". Tương tự: electrical (liên quan điện), electronic (thiết bị điện tử).', mastered:false, createdAt:'2024-01-01T00:00:00Z' },
+      { id:'default-3', wrong:'boosts young people\'s well-beings', correction:'boosts young people\'s well-being', errorType:'grammar', task:'task2',
+        note:'"well-being" là danh từ KHÔNG ĐẾM ĐƯỢC — không bao giờ thêm "s". Giống: knowledge, information, advice, evidence.', mastered:false, createdAt:'2024-01-01T00:00:00Z' },
+      { id:'default-4', wrong:'Brazil witnessed the lowest amount of carbon emissions', correction:'Brazil recorded the lowest amount of carbon emissions', errorType:'vocabulary', task:'task1',
+        note:'"witnessed / saw / experienced" ngụ ý có thời gian trôi qua. Biểu đồ TĨNH (bar chart 1 mốc) → dùng "recorded" hoặc "had". Biểu đồ ĐỘNG (line chart) → mới dùng "saw/witnessed".', mastered:false, createdAt:'2024-01-01T00:00:00Z' },
+      { id:'default-5', wrong:'nurturing people\'s interests in reading from an early age', correction:'nurturing people\'s interest in reading from an early age', errorType:'grammar', task:'task2',
+        note:'"interest in [activity]" = sở thích với 1 hoạt động cụ thể → số ĐƠN. "interests" (số nhiều) chỉ dùng khi nói về nhiều lĩnh vực khác nhau: "her diverse interests".', mastered:false, createdAt:'2024-01-01T00:00:00Z' },
+      { id:'default-6', wrong:'Celebrities admire young people → [paraphrase lệch chủ ngữ]', correction:'Young people admire celebrities → [giữ đúng chủ ngữ khi paraphrase]', errorType:'paraphrase', task:'task2',
+        note:'Khi paraphrase luôn hỏi: "Chủ thể hành động chính trong đề là AI?" Nếu đề nói "young people admire" → chủ ngữ PHẢI là young people, không được đổi sang celebrity.', mastered:false, createdAt:'2024-01-01T00:00:00Z' },
+    ];
+    saveErrors();
+  }
+
+  // Firebase được init trong boot(), không cần gọi ở đây
+}
+
+function saveErrors()     { ls('ielts_errors', state.userErrors); syncFirestore('errors', { errors: state.userErrors }); }
+function saveHistory()    { ls('ielts_history', state.history.slice(-50)); syncFirestore('history', { history: state.history.slice(-50) }); }
+function saveStats()      { ls('ielts_stats', state.stats); syncFirestore('stats', state.stats); }
+function saveCardStates() { ls('ielts_card_states', state.cardStates); syncFirestore('card_states', { cardStates: state.cardStates }); }
+function saveCustomEx()   { ls('ielts_custom_ex', state.customExercises); syncFirestore('custom_ex', { exercises: state.customExercises }); }
+
+function syncFirestore(col, data) {
+  if (state.db && state.userId) {
+    try { state.db.collection('users').doc(state.userId).collection(col).doc('data').set(data); } catch(e) {}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 4. FIREBASE + GOOGLE AUTH
+// ═══════════════════════════════════════════════════════════════
+function signInWithGoogle() {
+  if (typeof firebase === 'undefined') { alert('Firebase chưa được khởi động.'); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).catch(e => {
+    alert('Đăng nhập thất bại: ' + e.message);
+  });
+}
+
+function signOut() {
+  if (!confirm('Đăng xuất?')) return;
+  firebase.auth().signOut().then(() => {
+    state.firebaseReady = false;
+    state.userId = null;
+    document.getElementById('user-info').style.display = 'none';
+    document.getElementById('header-meta').textContent = '💾 Local only';
+    document.getElementById('login-overlay').classList.add('show');
+  });
+}
+
+function showUserMenu() {
+  const user = firebase.auth?.()?.currentUser;
+  if (!user) return;
+  if (confirm(`Đang đăng nhập:\n${user.email}\n\nĐăng xuất?`)) signOut();
+}
+
+function updateUserHeader(user) {
+  const infoEl = document.getElementById('user-info');
+  const avatarEl = document.getElementById('user-avatar-el');
+  const nameEl = document.getElementById('user-name-el');
+  if (!infoEl) return;
+  infoEl.style.display = 'block';
+  avatarEl.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
+  nameEl.textContent = user.displayName?.split(' ').pop() || user.email?.split('@')[0] || '';
+}
+
+function useLocalMode() {
+  document.getElementById('login-overlay').classList.remove('show');
+  if (!state._inited) { init(); state._inited = true; }
+}
+
+function updateFirebaseStatus(ok) {
+  const el = document.getElementById('firebase-status-box');
+  if (el) {
+    el.className = 'firebase-status ' + (ok ? 'connected' : 'disconnected');
+    const user = ok && typeof firebase !== 'undefined' && firebase.auth?.()?.currentUser;
+    el.innerHTML = ok
+      ? `<span>✅ Đã kết nối${user ? ' · ' + user.email : ''}</span>`
+      : '<span>⚠️ Chưa kết nối — đang lưu local</span>';
+  }
+  const authEl = document.getElementById('auth-actions');
+  if (authEl) authEl.style.display = ok ? 'block' : 'none';
+  const hdr = document.getElementById('header-meta');
+  if (hdr) hdr.textContent = ok ? '☁️ Cloud sync' : '💾 Local only';
+}
+
+function saveFirebaseConfig() {
+  try {
+    const cfg = JSON.parse(document.getElementById('firebase-config-input').value.trim());
+    ls('ielts_firebase_config', cfg);
+    alert('Đã lưu! Đang tải lại trang để kết nối...');
+    location.reload();
+  } catch(e) { alert('Config JSON không hợp lệ: ' + e.message); }
+}
+
+async function syncFromFirebase() {
+  if (!state.db || !state.userId) return;
+  try {
+    const base = state.db.collection('users').doc(state.userId);
+
+    const errDoc = await base.collection('errors').doc('data').get();
+    if (errDoc.exists && errDoc.data().errors?.length) {
+      state.userErrors = errDoc.data().errors;
+      ls('ielts_errors', state.userErrors);
+    }
+
+    const histDoc = await base.collection('history').doc('data').get();
+    if (histDoc.exists && histDoc.data().history?.length) {
+      state.history = histDoc.data().history;
+      ls('ielts_history', state.history);
+    }
+
+    const statsDoc = await base.collection('stats').doc('data').get();
+    if (statsDoc.exists) {
+      state.stats = { ...state.stats, ...statsDoc.data() };
+      ls('ielts_stats', state.stats);
+    }
+
+    const cardDoc = await base.collection('card_states').doc('data').get();
+    if (cardDoc.exists && cardDoc.data().cardStates) {
+      // Merge: cloud thắng nếu có dữ liệu, giữ local nếu cloud thiếu key
+      state.cardStates = { ...state.cardStates, ...cardDoc.data().cardStates };
+      ls('ielts_card_states', state.cardStates);
+    }
+
+    const exDoc = await base.collection('custom_ex').doc('data').get();
+    if (exDoc.exists && exDoc.data().exercises?.length) {
+      state.customExercises = exDoc.data().exercises;
+      ls('ielts_custom_ex', state.customExercises);
+    }
+
+    refreshHome();
+    renderErrors();
+  } catch(e) { console.warn('syncFromFirebase error:', e); }
+}
+
+function updateFirebaseStatus(ok) {
+  const el = document.getElementById('firebase-status-box');
+  if (el) {
+    el.className = 'firebase-status ' + (ok ? 'connected' : 'disconnected');
+    el.innerHTML = ok ? `<span>✅ Đã kết nối (${state.userId})</span>` : '<span>⚠️ Chưa kết nối — đang lưu local</span>';
+  }
+  const hdr = document.getElementById('header-meta');
+  if (hdr) hdr.textContent = ok ? '☁️ Cloud sync' : '💾 Local only';
+}
+
+function saveFirebaseConfig() {
+  try {
+    const cfg = JSON.parse(document.getElementById('firebase-config-input').value.trim());
+function disconnectFirebase() { ls('ielts_firebase_config', null); location.reload(); }
+
+// ═══════════════════════════════════════════════════════════════
+// 5. SM-2 SPACED REPETITION
+// ═══════════════════════════════════════════════════════════════
+// quality: 0=Again(❌), 1=Hard(🔄), 2=Good(✅), 3=Easy(🌊)
+function sm2Update(cardState, quality) {
+  let { interval = 0, ef = 2.5, reps = 0 } = cardState || {};
+  
+  if (quality <= 1) {
+    // Hard hoặc Quên: luôn ôn lại ngày mai
+    reps = 0;
+    interval = 1;
+  } else {
+    if (reps === 0) {
+      // Lần đầu gặp bài:
+      interval = quality === 3 ? 4 : 1; // Dễ ngay từ đầu → 4 ngày; Nhớ → 1 ngày
+    } else if (reps === 1) {
+      interval = quality === 3 ? 10 : 6; // Dễ lần 2 → 10 ngày; Nhớ → 6 ngày
+    } else {
+      interval = Math.round(interval * ef);
+      if (quality === 3) interval = Math.round(interval * 1.3); // Easy bonus
+    }
+    reps++;
+  }
+  
+  // Điều chỉnh ease factor
+  ef = Math.max(1.3, ef + 0.1 - (3 - quality) * (0.08 + (3 - quality) * 0.02));
+  
+  const due = Date.now() + interval * 24 * 60 * 60 * 1000;
+  return { interval, ef, reps, due };
+}
+
+function getCardState(id) {
+  return state.cardStates[id] || null;
+}
+
+function updateCardState(id, quality) {
+  const current = getCardState(id) || {};
+  state.cardStates[id] = sm2Update(current, quality);
+  saveCardStates();
+}
+
+function getIntervalLabel(quality, cardId) {
+  const sim = sm2Update(getCardState(cardId) || {}, quality);
+  if (sim.interval === 1) return 'ngày mai';
+  if (sim.interval < 7)   return sim.interval + ' ngày';
+  if (sim.interval < 30)  return Math.round(sim.interval/7) + ' tuần';
+  return Math.round(sim.interval/30) + ' tháng';
+}
+
+function getDueCount() {
+  const now = Date.now();
+  const allEx = [...EXERCISES, ...state.customExercises];
+  return allEx.filter(ex => {
+    const cs = state.cardStates[ex.id];
+    return !cs || cs.due <= now;
+  }).length;
+}
+
+function getExerciseStatus(id) {
+  const cs = state.cardStates[id];
+  if (!cs) return 'new';
+  if (cs.due <= Date.now()) return 'due';
+  return 'learned';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 6. EXERCISE ENGINE
+// ═══════════════════════════════════════════════════════════════
+const SESSION_COUNTS = { quick:5, medium:12, long:25, due:20, errors:20 };
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildSession(type, count, filterCat) {
+  const now = Date.now();
+  
+  if (type === 'errors') {
+    const active = state.userErrors.filter(e => !e.mastered);
+    if (!active.length) return [];
+    return shuffle(active.map(e => buildErrorExercise(e))).slice(0, count);
+  }
+  
+  let pool = [...EXERCISES, ...state.customExercises];
+  const activeErrors = state.userErrors.filter(e => !e.mastered);
+  activeErrors.forEach(err => pool.push(buildErrorExercise(err)));
+  
+  if (filterCat) pool = pool.filter(e => e.cat === filterCat);
+  
+  if (type === 'due') {
+    // Only due or new cards
+    const due = pool.filter(ex => {
+      const cs = state.cardStates[ex.id];
+      return !cs || cs.due <= now;
+    });
+    return shuffle(due).slice(0, count);
+  }
+  
+  // For regular sessions: prioritize due/new, then fill with non-due
+  const duePool = shuffle(pool.filter(ex => {
+    const cs = state.cardStates[ex.id];
+    return !cs || cs.due <= now;
+  }));
+  const notDuePool = shuffle(pool.filter(ex => {
+    const cs = state.cardStates[ex.id];
+    return cs && cs.due > now;
+  }));
+  
+  const combined = [...duePool, ...notDuePool];
+  return combined.slice(0, count);
+}
+
+function buildErrorExercise(err) {
+  return {
+    id: 'user-err-' + err.id,
+    type: 'mcq',
+    cat: 'common-errors',
+    catLabel: '🔴 Lỗi của bạn (' + err.errorType + ')',
+    q: `Lỗi: "${err.wrong}"\n\nSửa thành:`,
+    opts: [err.correction, err.wrong, '[Lựa chọn không đúng]', '[Lựa chọn không đúng]'].sort(() => Math.random() - 0.5),
+    ans: null,
+    _correction: err.correction,
+    exp: err.note || 'Đây là lỗi bạn đã ghi. Hãy ghi nhớ cách sửa đúng.',
+    tpl: '',
+    isErrorExercise: true,
+  };
+}
+
+function getCorrectIndexForErrorEx(ex) {
+  return ex.opts.findIndex(o => o === ex._correction);
+}
+
+function startSession(type, filterCat) {
+  const count = SESSION_COUNTS[type] || 12;
+  
+  if (type === 'errors' && !state.userErrors.filter(e=>!e.mastered).length) {
+    alert('Không có lỗi nào chưa thuộc! Hãy thêm lỗi vào nhật ký trước.'); return;
+  }
+  if (type === 'due' && getDueCount() === 0) {
+    alert('Không có bài nào đến hạn hôm nay! Hãy làm session thường.'); return;
+  }
+  
+  const exercises = buildSession(type, count, filterCat);
+  if (!exercises.length) { alert('Không có bài tập nào trong chủ đề này.'); return; }
+  
+  state.session = { type, filterCat, count: exercises.length };
+  state.currentSessionExercises = exercises;
+  state.sessionIndex = 0;
+  state.sessionRatings = [];
+  state.currentExState = 'question';
+  state.selectedMcq = null;
+  
+  showScreen('practice');
+  document.getElementById('practice-setup').style.display = 'none';
+  document.getElementById('practice-active').style.display = 'block';
+  document.getElementById('practice-complete').style.display = 'none';
+  
+  const labels = { quick:'Nhanh · 5 câu', medium:'Trung bình · 12 câu', long:'Đầy đủ · 25 câu', due:'Ôn theo SR', errors:'Ôn lỗi' };
+  document.getElementById('session-label').textContent = filterCat
+    ? 'Chủ đề · ' + exercises.length + ' câu'
+    : (labels[type] || type);
+  
+  renderCurrentExercise();
+}
+
+function renderCurrentExercise() {
+  const ex = state.currentSessionExercises[state.sessionIndex];
+  const total = state.currentSessionExercises.length;
+  const pct = (state.sessionIndex / total) * 100;
+  
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = state.sessionIndex + '/' + total;
+  
+  state.currentExState = 'question';
+  state.selectedMcq = null;
+  
+  const status = getExerciseStatus(ex.id);
+  const statusBadge = status === 'new' ? '<span class="sr-pill sr-new">✦ Mới</span>' 
+    : status === 'due' ? '<span class="sr-pill sr-due">📅 Đến hạn</span>'
+    : '';
+  
+  let html = `<div class="ex-card fade-in">`;
+  html += `<div class="ex-category"><span class="badge badge-blue">${ex.catLabel}</span>${statusBadge}</div>`;
+  html += `<div class="ex-question">${escHtml(ex.q)}</div>`;
+  
+  if (ex.hint) html += `<div class="ex-hint">💡 Gợi ý: ${escHtml(ex.hint)}</div>`;
+  if (ex.tpl)  html += `<div class="ex-template">📐 ${escHtml(ex.tpl)}</div>`;
+  
+  if (ex.type === 'mcq') {
+    html += '<div class="mcq-opts">';
+    ex.opts.forEach((opt, i) => {
+      html += `<button class="mcq-opt" id="mcq-opt-${i}" onclick="selectMcq(${i})">${escHtml(opt)}</button>`;
+    });
+    html += '</div>';
+  } else if (ex.type === 'fillBlank') {
+    const displayed = ex.sentence.replace(ex.blanks[0], '___');
+    html += `<div style="font-size:.9rem;line-height:1.8;margin-bottom:12px">${escHtml(displayed)}</div>`;
+    html += `<div class="answer-area"><input type="text" id="ans-input" placeholder="Điền từ còn thiếu..." onkeydown="if(event.key==='Enter')checkAnswer()" autocomplete="off" spellcheck="false"></div>`;
+  } else {
+    html += `<div class="answer-area"><textarea id="ans-input" placeholder="Viết câu IELTS của bạn ở đây..."></textarea></div>`;
+  }
+  
+  html += '</div>';
+  document.getElementById('exercise-container').innerHTML = html;
+  
+  // Action area
+  const action = document.getElementById('action-area');
+  if (ex.type === 'mcq') {
+    action.innerHTML = `<button class="btn btn-primary btn-block" onclick="checkAnswer()">Kiểm tra ✓</button>`;
+  } else if (ex.type === 'fillBlank') {
+    action.innerHTML = `<button class="btn btn-primary btn-block" onclick="checkAnswer()">Kiểm tra ✓</button>`;
+    setTimeout(() => document.getElementById('ans-input')?.focus(), 100);
+  } else {
+    action.innerHTML = `<button class="btn btn-primary btn-block" onclick="revealAnswer()">Xem đáp án 👁️</button>`;
+  }
+}
+
+function selectMcq(idx) {
+  state.selectedMcq = idx;
+  document.querySelectorAll('.mcq-opt').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+}
+
+function checkAnswer() {
+  const ex = state.currentSessionExercises[state.sessionIndex];
+  
+  if (ex.type === 'mcq') {
+    if (state.selectedMcq === null) { alert('Hãy chọn một đáp án.'); return; }
+    
+    const correctIdx = ex.isErrorExercise ? getCorrectIndexForErrorEx(ex) : ex.ans;
+    const isCorrect = state.selectedMcq === correctIdx;
+    
+    document.querySelectorAll('.mcq-opt').forEach((el, i) => {
+      el.style.pointerEvents = 'none';
+      if (i === correctIdx) el.classList.add('correct');
+      else if (i === state.selectedMcq && !isCorrect) el.classList.add('wrong');
+    });
+    
+    showExplanation(ex, isCorrect ? ex.opts[correctIdx] : ex.opts[correctIdx]);
+    showRatingButtons(ex.id);
+    
+  } else if (ex.type === 'fillBlank') {
+    const input = document.getElementById('ans-input');
+    const userVal = input.value.trim().toLowerCase();
+    const correct = ex.blanks[0].toLowerCase();
+    const isCorrect = userVal === correct;
+    
+    input.style.borderColor = isCorrect ? 'var(--success)' : 'var(--danger)';
+    input.style.background  = isCorrect ? 'var(--success-l)' : 'var(--danger-l)';
+    input.disabled = true;
+    
+    showExplanation(ex, ex.ans);
+    showRatingButtons(ex.id);
+  }
+  state.currentExState = 'revealed';
+}
+
+function revealAnswer() {
+  const ex = state.currentSessionExercises[state.sessionIndex];
+  showExplanation(ex, ex.ans);
+  showRatingButtons(ex.id);
+  state.currentExState = 'revealed';
+}
+
+function showExplanation(ex, answer) {
+  const container = document.getElementById('exercise-container');
+  let extra = '';
+  if (ex.exp) extra = `<div class="explanation"><strong>💡 Giải thích:</strong> ${escHtml(ex.exp)}</div>`;
+  const revealDiv = `<div class="answer-reveal"><div class="label">✅ Đáp án đúng</div><div class="answer">${escHtml(answer)}</div></div>${extra}`;
+  container.querySelector('.ex-card').insertAdjacentHTML('beforeend', revealDiv);
+}
+
+function showRatingButtons(cardId) {
+  document.getElementById('action-area').innerHTML = `
+    <div class="text-xs text-2 mb-2" style="text-align:center">Bạn nhớ bài này thế nào?</div>
+    <div class="rating-btns">
+      <button class="r-easy" onclick="rateAndNext(3)">🌊 Dễ<span class="rating-interval">${getIntervalLabel(3, cardId)}</span></button>
+      <button class="r-good" onclick="rateAndNext(2)">✅ Nhớ<span class="rating-interval">${getIntervalLabel(2, cardId)}</span></button>
+      <button class="r-hard" onclick="rateAndNext(1)">🔄 Khó<span class="rating-interval">${getIntervalLabel(1, cardId)}</span></button>
+      <button class="r-bad" onclick="rateAndNext(0)">❌ Quên<span class="rating-interval">${getIntervalLabel(0, cardId)}</span></button>
+    </div>`;
+}
+
+function rateAndNext(quality) {
+  const ex = state.currentSessionExercises[state.sessionIndex];
+  const userAns = ex.type === 'mcq'
+    ? (ex.opts[state.selectedMcq] || '')
+    : (document.getElementById('ans-input')?.value || '');
+  
+  // Update SM-2 state
+  updateCardState(ex.id, quality);
+  
+  state.sessionRatings.push({ id: ex.id, quality, userAns });
+  
+  state.sessionIndex++;
+  if (state.sessionIndex >= state.currentSessionExercises.length) {
+    finishSession();
+  } else {
+    renderCurrentExercise();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function finishSession() {
+  const total  = state.sessionRatings.length;
+  const easy   = state.sessionRatings.filter(r => r.quality === 3).length;
+  const good   = state.sessionRatings.filter(r => r.quality === 2).length;
+  const hard   = state.sessionRatings.filter(r => r.quality === 1).length;
+  const bad    = state.sessionRatings.filter(r => r.quality === 0).length;
+  const pct    = total ? Math.round(((easy + good) / total) * 100) : 0;
+  
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.stats.lastDate === today) { /* same day */ }
+  else if (state.stats.lastDate === getPrevDay(today)) state.stats.streak++;
+  else state.stats.streak = 1;
+  state.stats.lastDate = today;
+  state.stats.totalEx   = (state.stats.totalEx || 0) + total;
+  state.stats.totalGood = (state.stats.totalGood || 0) + easy + good;
+  
+  const session = { date: new Date().toLocaleString('vi-VN'), type: state.session.type, total, easy, good, hard, bad, pct };
+  state.history.unshift(session);
+  saveHistory(); saveStats();
+  
+  document.getElementById('practice-active').style.display = 'none';
+  document.getElementById('practice-complete').style.display = 'block';
+  
+  document.getElementById('complete-score').textContent = pct + '%';
+  document.getElementById('score-easy').textContent = easy;
+  document.getElementById('score-good').textContent = good;
+  document.getElementById('score-hard').textContent = hard;
+  document.getElementById('score-bad').textContent = bad;
+  
+  const msgs = pct >= 80 ? 'Xuất sắc! Spaced Repetition đang hoạt động tốt! 🎉' : pct >= 60 ? 'Tốt! Bài khó sẽ xuất hiện sớm hơn nhé 💪' : 'Cần ôn thêm — các bài ❌/🔄 sẽ quay lại sớm! 📖';
+  document.getElementById('complete-sub').textContent = msgs;
+  
+  const wrongRatings = state.sessionRatings.filter(r => r.quality <= 1);
+  if (wrongRatings.length) {
+    let revHtml = `<div class="card-title mb-2">🔁 Cần ôn lại (${wrongRatings.length} câu)</div>`;
+    wrongRatings.forEach(r => {
+      const ex = state.currentSessionExercises.find(e => e.id === r.id);
+      if (!ex) return;
+      revHtml += `<div class="card mt-2">
+        <div class="text-xs text-2 mb-2">${ex.catLabel}</div>
+        <div class="text-sm mb-2">${escHtml(ex.q.slice(0, 120))}${ex.q.length > 120 ? '...' : ''}</div>
+        <div class="answer-reveal" style="margin:0">
+          <div class="label">Đáp án đúng</div>
+          <div class="answer text-sm">${escHtml(ex.ans || ex.opts?.[ex.ans] || '')}</div>
+        </div>
+        ${ex.exp ? `<div class="explanation text-xs mt-2"><strong>💡</strong> ${escHtml(ex.exp)}</div>` : ''}
+      </div>`;
+    });
+    document.getElementById('session-review-area').innerHTML = revHtml;
+  }
+  
+  refreshHome();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getPrevDay(dateStr) {
+  const d = new Date(dateStr); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 7. ERROR LOG
+// ═══════════════════════════════════════════════════════════════
+function addError() {
+  const wrong      = document.getElementById('err-wrong').value.trim();
+  const correction = document.getElementById('err-correction').value.trim();
+  const errorType  = document.getElementById('err-type').value;
+  const task       = document.getElementById('err-task').value;
+  const note       = document.getElementById('err-note').value.trim();
+  
+  if (!wrong || !correction) { alert('Vui lòng điền câu sai và cách sửa.'); return; }
+  
+  const err = { id: Date.now().toString(), wrong, correction, errorType, task, note, mastered: false, createdAt: new Date().toISOString() };
+  state.userErrors.unshift(err);
+  saveErrors();
+  
+  ['err-wrong','err-correction','err-note'].forEach(id => { document.getElementById(id).value = ''; });
+  renderErrors();
+  refreshHome();
+}
+
+function toggleMastered(errId) {
+  const err = state.userErrors.find(e => e.id === errId);
+  if (err) { err.mastered = !err.mastered; saveErrors(); renderErrors(); }
+}
+
+function deleteError(errId) {
+  if (!confirm('Xóa lỗi này?')) return;
+  state.userErrors = state.userErrors.filter(e => e.id !== errId);
+  saveErrors(); renderErrors(); refreshHome();
+}
+
+function filterErrors(mode) {
+  state.errorFilter = mode;
+  document.getElementById('filter-all').className    = 'btn btn-sm ' + (mode==='all'   ? 'btn-primary' : 'btn-secondary');
+  document.getElementById('filter-active').className = 'btn btn-sm ' + (mode==='active' ? 'btn-primary' : 'btn-secondary');
+  renderErrors();
+}
+
+function renderErrors() {
+  const list = state.errorFilter === 'active' ? state.userErrors.filter(e => !e.mastered) : state.userErrors;
+  document.getElementById('error-total-count').textContent = state.userErrors.length;
+  const el = document.getElementById('error-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ico">✨</div><div>Chưa có lỗi nào. Hãy ghi lỗi khi luyện!</div></div>';
+    return;
+  }
+  const typeColors = { vocabulary:'blue', grammar:'purple', frame:'teal', collocation:'yellow', preposition:'red', paraphrase:'green' };
+  el.innerHTML = list.map(err => `
+    <div class="error-item ${err.mastered ? 'mastered' : ''}">
+      <div class="error-wrong">❌ ${escHtml(err.wrong)}</div>
+      <div class="error-correction">✅ ${escHtml(err.correction)}</div>
+      ${err.note ? `<div class="error-note">💡 ${escHtml(err.note)}</div>` : ''}
+      <div class="error-meta">
+        <div class="flex gap-2">
+          <span class="badge badge-${typeColors[err.errorType]||'blue'}">${err.errorType}</span>
+          <span class="badge badge-teal">${err.task}</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-sm ${err.mastered ? 'btn-secondary' : 'btn-success'}" onclick="toggleMastered('${err.id}')">${err.mastered ? '↩️ Bỏ thuộc' : '✅ Đã thuộc'}</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteError('${err.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 8. AI EXERCISE GENERATOR
+// ═══════════════════════════════════════════════════════════════
+function openAIModal() {
+  document.getElementById('ai-modal').classList.add('open');
+  document.getElementById('ai-result-area').innerHTML = '';
+  document.getElementById('ai-save-btn').style.display = 'none';
+  state.pendingAIExercises = [];
+}
+function closeAIModal() {
+  document.getElementById('ai-modal').classList.remove('open');
+}
+
+document.getElementById('ai-topic').addEventListener('change', function() {
+  document.getElementById('ai-custom-prompt-wrap').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+
+const AI_TOPIC_PROMPTS = {
+  'nom-f1': 'Frame 1: "The [noun] of X acts as a catalyst for the [noun] of Y." (cause → result). Topics: environment, technology, economy, education, health.',
+  'nom-f2': 'Frame 2: "The [noun] is largely attributable to the [noun]." (explain cause). Topics: social issues, urban problems, health.',
+  'nom-f3': 'Frame 3: "A sudden surge / steady rise in [noun] has profoundly reshaped/disrupted/transformed [noun]." Topics: AI, remote work, social media, urbanization.',
+  'nom-f4': 'Frame 4: "The implementation of [noun] plays a pivotal role in the mitigation of [noun]." (government solution → problem). Topics: pollution, obesity, unemployment.',
+  'nom-f5': 'Frame 5: "The adoption of [noun] serves as an effective antidote to [noun]." (personal/societal solution). Topics: mental health, workplace burnout, inequality.',
+  'nom-f6': 'Frame 6: "The primary merit of [noun] lies in the enhancement of [noun]." (main benefit). Topics: education abroad, technology, exercise.',
+  'nom-f7-8': 'Frame 7: "gradual degradation of [noun]" and Frame 8: "widening disparity between [X] and [Y]". Negative consequences. Topics: environment, society, health.',
+  'nom-advanced': 'Advanced Task 2 frames: contingency (hinges on), mutual exclusivity (at the expense of), emblematic (emblematic of a broader), reconfiguration (fundamental reconfiguration of). Mix of these.',
+  'task1-intro': 'Task 1 intro phrases: "The graph illustrates", non-defining relative clauses "which/where/when", A4 emphasis "It is + country/year + that...". Line graphs, bar charts, pie charts.',
+  'task1-trend': 'Task 1 trend phrases: B1 "Having V3..."; B2 "before V-ing" vs "only to V" (unexpected reversal); B3 verb scale (edged up vs surged); B4 nominalization (there was a dramatic increase in).',
+  'task1-compare': 'Task 1 comparison: A3 cross-comparison "While X hit a peak of N, Y..."; A5 contrast "whereas/in contrast"; C1 pie "accounted for"; C2 ratio "twice as high as"; percentage points vs percent.',
+  'task2-thesis': 'Task 2 thesis statements: frames B (outweigh benefits), C (both views), D (partial agreement with condition), E (nuanced stance). Different topics: technology, education, government.',
+  'task2-body': 'Task 2 body paragraph frames: I (mechanism "it is this... that"), J (elaboration "more specifically"), K (logical chain "as a result of which"), L (cleft "It is not X but Y that"), M (concession-rebuttal).',
+  'common-errors': 'Common IELTS errors: "far from necessary" (not beyond), "well-being" uncountable, "electronic" (not electronical), "recorded" for static charts (not witnessed), subject shift in paraphrase, "interest" vs "interests".',
+};
+
+async function generateExercises() {
+  const topic = document.getElementById('ai-topic').value;
+  const count = parseInt(document.getElementById('ai-count').value);
+  const customPrompt = document.getElementById('ai-custom-prompt').value.trim();
+  
+  const topicDesc = topic === 'custom' ? customPrompt : (AI_TOPIC_PROMPTS[topic] || topic);
+  if (!topicDesc) { alert('Vui lòng mô tả yêu cầu.'); return; }
+  
+  const btn = document.getElementById('ai-gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Đang tạo...';
+  document.getElementById('ai-result-area').innerHTML = '<div class="text-sm text-2 mt-3">⏳ Claude đang tạo bài tập mới...</div>';
+  document.getElementById('ai-save-btn').style.display = 'none';
+  
+  const systemPrompt = `You are an IELTS Writing expert. Generate exactly ${count} IELTS writing practice exercises in Vietnamese for a student at upper-intermediate level targeting Band 7-8.
+
+Return ONLY a JSON array with no preamble. Each item must follow this schema exactly:
+{
+  "id": "custom-<random 6 chars>",
+  "type": "mcq" | "fillBlank" | "translate",
+  "cat": "custom",
+  "catLabel": "🤖 AI Generated: <short topic label>",
+  "q": "The question text in Vietnamese (for translate: describe what to write; for mcq: the question; for fillBlank: the sentence context)",
+  "hint": "Optional hint in Vietnamese (can be empty string)",
+  "ans": "The correct answer as a string",
+  "exp": "Explanation in Vietnamese why this is correct, what to remember",
+  "tpl": "The frame template if applicable (can be empty string)",
+  
+  For mcq only add: "opts": ["correct answer", "wrong1", "wrong2", "wrong3"] (shuffle order randomly, first is NOT always correct),
+  For fillBlank only add: "sentence": "The full sentence with the blank word replaced by ___", "blanks": ["the blank word"]
+}
+
+Focus area: ${topicDesc}
+
+Make exercises varied: mix mcq, fillBlank, and translate types. Use different IELTS topics (environment, technology, education, health, society). Make wrong MCQ options plausible but clearly incorrect for students who know the frame. Explanations must be in Vietnamese.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Generate ${count} exercises about: ${topicDesc}. Return only the JSON array.` }]
+      })
+    });
+    
+    const data = await resp.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const exercises = JSON.parse(clean);
+    
+    if (!Array.isArray(exercises)) throw new Error('Invalid response format');
+    
+    // Ensure unique IDs
+    exercises.forEach(ex => {
+      if (!ex.id || ex.id === 'custom-<random 6 chars>') {
+        ex.id = 'custom-' + Math.random().toString(36).substr(2, 6);
+      }
+    });
+    
+    state.pendingAIExercises = exercises;
+    renderAIResults(exercises);
+    document.getElementById('ai-save-btn').style.display = 'inline-flex';
+    
+  } catch(e) {
+    document.getElementById('ai-result-area').innerHTML = `<div class="card mt-3" style="border-color:var(--danger);background:var(--danger-l)"><div class="text-sm" style="color:var(--danger)">❌ Lỗi: ${escHtml(e.message)}</div></div>`;
+  }
+  
+  btn.disabled = false;
+  btn.innerHTML = '✨ Tạo bài tập';
+}
+
+function renderAIResults(exercises) {
+  let html = `<div class="card-title mt-3 mb-2">✨ ${exercises.length} bài tập mới:</div>`;
+  exercises.forEach((ex, i) => {
+    const typeLabel = ex.type === 'mcq' ? 'Trắc nghiệm' : ex.type === 'fillBlank' ? 'Điền từ' : 'Dịch / Viết câu';
+    let ansDisplay = ex.ans;
+    if (ex.type === 'mcq' && ex.opts) ansDisplay = ex.opts[0]; // show correct
+    html += `<div class="ai-result-card">
+      <div class="ai-type">${i+1}. ${typeLabel} · ${ex.catLabel}</div>
+      <div class="ai-q">${escHtml(ex.q)}${ex.hint ? '\n💡 ' + escHtml(ex.hint) : ''}</div>
+      <div class="ai-ans">✅ ${escHtml(ansDisplay || ex.ans || '')}</div>
+      ${ex.exp ? `<div class="text-xs text-2 mt-2">📝 ${escHtml(ex.exp)}</div>` : ''}
+    </div>`;
+  });
+  document.getElementById('ai-result-area').innerHTML = html;
+}
+
+function saveGeneratedExercises() {
+  if (!state.pendingAIExercises.length) return;
+  state.customExercises = [...state.customExercises, ...state.pendingAIExercises];
+  saveCustomEx();
+  state.pendingAIExercises = [];
+  document.getElementById('ai-save-btn').style.display = 'none';
+  alert(`✅ Đã lưu ${state.customExercises.length} bài tập vào bộ sưu tập! Chúng sẽ xuất hiện trong các session luyện tập.`);
+  updateExCounts();
+  closeAIModal();
+}
+
+function clearCustomExercises() {
+  if (!confirm('Xóa tất cả bài tập AI đã tạo?')) return;
+  state.customExercises = [];
+  saveCustomEx();
+  updateExCounts();
+  alert('Đã xóa.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 9. STUDY REFERENCE
+// ═══════════════════════════════════════════════════════════════
+const STUDY_CATS = [
+  { id:'nom',      label:'🔑 Nominalization' },
+  { id:'task1-a',  label:'📊 Task1: A Intro' },
+  { id:'task1-b',  label:'📈 Task1: B Trend' },
+  { id:'task1-c',  label:'🥧 Task1: C Pie' },
+  { id:'task2-intro', label:'📝 Task2: Intro' },
+  { id:'task2-body',  label:'📝 Task2: Body' },
+  { id:'common-errors', label:'⚠️ Lỗi thường gặp' },
+  { id:'vocab-task1',  label:'📖 Vocabulary' },
+];
+
+const FRAME_CONTENT = {
+  nom: [
+    { num:'F1', name:'Nguyên nhân → Kết quả', tpl:'The [N] of X acts as a catalyst for the [N] of Y.', note:'Dùng khi Y là một sự thay đổi/transformation lớn. Không dùng "leads to" vì quá thông thường.', exs:['The escalating global warming acts as a catalyst for the alteration of global weather patterns.','The widespread adoption of remote working acts as a catalyst for the transformation of traditional office culture.'] },
+    { num:'F2', name:'Giải thích nguyên nhân', tpl:'The [N of problem] is largely attributable to the [N of cause].', note:'"attributable" là từ cố định — không thay thế bằng từ khác.', exs:['The traffic congestion in urban areas is largely attributable to the proliferation of private vehicles.','Mental health crises among youth are largely attributable to the excessive consumption of social media platforms.'] },
+    { num:'F3', name:'Xu hướng tăng → Tác động', tpl:'A sudden surge / steady rise in [N] has profoundly reshaped/disrupted/transformed [N].', note:'"disrupted" = tiêu cực; "reshaped" = trung tính; "transformed" = biến đổi lớn. Chọn theo ngữ nghĩa.', exs:['A sudden surge in AI capabilities has profoundly disrupted the stability of the global job market.','A steady rise in online food delivery has profoundly transformed the operational dynamics of traditional dining.'] },
+    { num:'F4', name:'Giải pháp → Giảm thiểu', tpl:'The implementation of [N] plays a pivotal role in the mitigation of [N].', note:'"mitigation" = giảm nhẹ (học thuật). Dùng "implementation of" + danh từ.', exs:['The implementation of a sugar tax plays a pivotal role in the mitigation of public health crises such as obesity.','The implementation of urban green spaces plays a pivotal role in the mitigation of the urban heat island effect.'] },
+    { num:'F5', name:'Liều thuốc giải', tpl:'The adoption of [N] serves as an effective antidote to [N].', note:'"antidote to" — luôn đi với "to", không phải "for".', exs:['The adoption of flexible working arrangements serves as an effective antidote to workplace burnout.'] },
+    { num:'F6', name:'Lợi ích chính', tpl:'The primary merit of [N] lies in the enhancement of [N].', note:'"enhancement" cho skills/quality; "optimization" CHỈ cho systems (không cho người).', exs:['The primary merit of studying abroad lies in the enhancement of intercultural awareness.'] },
+    { num:'F7', name:'Hệ quả tiêu cực', tpl:'This may precipitate a gradual degradation of [N].', note:'"precipitate" = gây ra (học thuật). Dùng cho hệ quả tiêu cực.', exs:['Unrestricted industrialization may precipitate a gradual degradation of natural ecosystems.'] },
+    { num:'F8', name:'Bất bình đẳng', tpl:'...widening disparity between [group A] and [group B].', note:'Dùng khi nói về khoảng cách ngày càng tăng giữa hai nhóm.', exs:['The digitalisation of services risks widening the disparity between the tech-savvy and the elderly.'] },
+  ],
+};
+
+function renderStudy() {
+  const tabsEl = document.getElementById('study-tabs');
+  tabsEl.innerHTML = STUDY_CATS.map(c =>
+    `<button class="cat-tab ${c.id === state.studyCat ? 'active' : ''}" onclick="setStudyCat('${c.id}')">${c.label}</button>`
+  ).join('');
+  
+  renderStudyCat();
+}
+
+function setStudyCat(cat) {
+  state.studyCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(el => el.classList.remove('active'));
+  event?.target?.classList.add('active');
+  renderStudyCat();
+}
+
+function renderStudyCat() {
+  const el = document.getElementById('study-content');
+  const cat = state.studyCat;
+  
+  if (cat === 'nom' && FRAME_CONTENT.nom) {
+    el.innerHTML = FRAME_CONTENT.nom.map(f => `
+      <div class="frame-card">
+        <div class="frame-num">${f.num}</div>
+        <div class="frame-name">${f.name}</div>
+        <div class="frame-template">${escHtml(f.tpl)}</div>
+        <div class="frame-note">${escHtml(f.note)}</div>
+        <div class="frame-examples">${f.exs.map(ex => `<div class="frame-ex">📝 ${escHtml(ex)}</div>`).join('')}</div>
+      </div>`).join('');
+    return;
+  }
+  
+  // Show exercises for other categories
+  const catExs = EXERCISES.filter(e => e.cat === cat);
+  if (!catExs.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ico">📖</div><div>Chưa có nội dung tham khảo cho mục này.</div><div class="text-xs mt-2">Dùng tab Luyện tập để thực hành.</div></div>';
+    return;
+  }
+  
+  el.innerHTML = catExs.map(ex => `
+    <div class="frame-card">
+      <div class="frame-num">${ex.catLabel}</div>
+      <div class="frame-name">${escHtml(ex.q.slice(0, 80))}${ex.q.length > 80 ? '...' : ''}</div>
+      ${ex.tpl ? `<div class="frame-template">${escHtml(ex.tpl)}</div>` : ''}
+      <div class="frame-examples"><div class="frame-ex">✅ ${escHtml(typeof ex.ans === 'number' ? ex.opts[ex.ans] : ex.ans)}</div></div>
+      ${ex.exp ? `<div class="frame-note mt-2">${escHtml(ex.exp)}</div>` : ''}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 10. HOME + NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function refreshHome() {
+  const s = state.stats;
+  document.getElementById('streak-num').textContent = s.streak || 0;
+  document.getElementById('home-last').textContent = s.lastDate
+    ? (s.lastDate === new Date().toISOString().slice(0,10) ? 'Hôm nay' : s.lastDate)
+    : 'Chưa luyện';
+  document.getElementById('stat-total').textContent = s.totalEx || 0;
+  document.getElementById('stat-accuracy').textContent = s.totalEx ? Math.round((s.totalGood/s.totalEx)*100) + '%' : '—';
+  document.getElementById('stat-errors').textContent = state.userErrors.length;
+  document.getElementById('error-count-sub').textContent = state.userErrors.filter(e=>!e.mastered).length + ' lỗi chưa thuộc';
+  
+  // Due banner
+  const due = getDueCount();
+  const dueBanner = document.getElementById('due-banner');
+  if (due > 0) {
+    dueBanner.style.display = 'flex';
+    document.getElementById('due-count').textContent = due;
+  } else {
+    dueBanner.style.display = 'none';
+  }
+  
+  // Recent history
+  const histEl = document.getElementById('recent-history');
+  if (!state.history.length) {
+    histEl.innerHTML = '<div class="empty-state"><div class="ico">🌱</div><div>Chưa có lịch sử. Bắt đầu luyện thôi!</div></div>';
+  } else {
+    histEl.innerHTML = state.history.slice(0, 5).map(h => `
+      <div class="history-item">
+        <div class="history-header">
+          <span class="text-sm">${h.type || 'session'}</span>
+          <span class="badge badge-${h.pct>=80?'green':h.pct>=60?'yellow':'red'}">${h.pct}%</span>
+        </div>
+        <div class="history-date">${h.date}</div>
+        <div class="history-detail">
+          <span>📊 ${h.total} câu</span>
+          <span style="color:var(--teal)">🌊 ${h.easy||0} Dễ</span>
+          <span style="color:var(--success)">✅ ${h.good||0} Nhớ</span>
+          <span style="color:var(--warn)">🔄 ${h.hard||0} Khó</span>
+          <span style="color:var(--danger)">❌ ${h.bad||0} Quên</span>
+        </div>
+        <div class="history-score-bar"><div class="history-score-fill" style="width:${h.pct}%"></div></div>
+      </div>`).join('');
+  }
+  
+  updateExCounts();
+  buildTopicBtns('topic-btns');
+  buildTopicBtns('practice-topic-btns');
+}
+
+function updateExCounts() {
+  const total = EXERCISES.length + state.customExercises.length;
+  const totalEl = document.getElementById('total-ex-count');
+  if (totalEl) totalEl.textContent = total + ' bài';
+  const custEl = document.getElementById('custom-ex-count');
+  if (custEl) custEl.textContent = state.customExercises.length;
+}
+
+function buildTopicBtns(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const topics = [
+    { cat:'nom', label:'🔑 Nominalization' },
+    { cat:'task1-a', label:'📊 Task1 Intro' },
+    { cat:'task1-b', label:'📈 Task1 Trend' },
+    { cat:'task2-intro', label:'📝 Task2 Intro' },
+    { cat:'task2-body', label:'📝 Task2 Body' },
+    { cat:'common-errors', label:'⚠️ Lỗi thường gặp' },
+    { cat:'vocab-task1', label:'📖 Vocabulary' },
+  ];
+  el.innerHTML = topics.map(t =>
+    `<button class="topic-btn" onclick="startSession('topic', '${t.cat}')">${t.label}</button>`
+  ).join('');
+}
+
+function showScreen(name) {
+  state.screen = name;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
+  const screenEl = document.getElementById('screen-' + name);
+  if (screenEl) screenEl.classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  
+  if (name === 'home') refreshHome();
+  if (name === 'study') renderStudy();
+  if (name === 'errors') { renderErrors(); filterErrors(state.errorFilter); }
+  if (name === 'settings') {
+    updateFirebaseStatus(state.firebaseReady);
+    const saved = ls('ielts_firebase_config');
+    if (saved) document.getElementById('firebase-config-input').value = JSON.stringify(saved, null, 2);
+    updateExCounts();
+  }
+  if (name === 'practice') {
+    document.getElementById('practice-setup').style.display = 'block';
+    document.getElementById('practice-active').style.display = 'none';
+    document.getElementById('practice-complete').style.display = 'none';
+    buildTopicBtns('practice-topic-btns');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 11. UTILS
+// ═══════════════════════════════════════════════════════════════
+function escHtml(s) {
+  if (!s && s !== 0) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function exportSessionPDF()  { window.print(); }
+function exportErrorsPDF()   { showScreen('errors'); setTimeout(() => window.print(), 100); }
+function exportAllPDF()      { window.print(); }
+
+function clearLocalData() {
+  if (!confirm('Xóa TẤT CẢ dữ liệu local (lịch sử, lỗi, SR states)? Không thể hoàn tác.')) return;
+  ['ielts_errors','ielts_history','ielts_stats','ielts_card_states','ielts_custom_ex'].forEach(k => ls(k, null));
+  initStorage();
+  refreshHome();
+  renderErrors();
+  alert('Đã xóa.');
+}
+
+// Close modal on overlay click
+document.getElementById('ai-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAIModal();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 12. BOOT
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  initStorage();
+  showScreen('home');
+  refreshHome();
+}
+
+(function boot() {
+  const cfg = (() => { try { return JSON.parse(localStorage.getItem('ielts_firebase_config')); } catch { return null; } })();
+
+  // No Firebase config → chạy offline luôn, không cần login
+  if (!cfg) { init(); return; }
+
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  (async () => {
+    try {
+      await loadScript('https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js');
+
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+      state.db = firebase.firestore();
+
+      // Auth state listener — đây là nơi duy nhất gọi init()
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          // Đã đăng nhập
+          state.userId = user.uid;
+          state.firebaseReady = true;
+          document.getElementById('login-overlay').classList.remove('show');
+          updateUserHeader(user);
+          updateFirebaseStatus(true);
+          if (!state._inited) { init(); state._inited = true; }
+          else syncFromFirebase(); // đăng nhập lại sau sign-out rồi sign-in
+        } else {
+          // Chưa đăng nhập → hiện màn hình login
+          document.getElementById('login-overlay').classList.add('show');
+        }
+      });
+
+    } catch(e) {
+      // Firebase không load được → chạy offline
+      console.warn('Firebase load failed, offline mode', e);
+      init();
+    }
+  })();
+})();
+</script>
+<!-- ══ LOGIN OVERLAY ════════════════════════════════════════════ -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">🌸</div>
+    <div class="login-title">IELTS <span>Writing</span></div>
+    <div style="font-size:1rem;font-weight:800;color:var(--text2);margin-bottom:16px;letter-spacing:.5px">TRAINER</div>
+    <div class="login-sub">Đăng nhập để lịch Spaced Repetition và nhật ký lỗi tự động đồng bộ giữa điện thoại và máy tính.</div>
+    <button class="btn-google" onclick="signInWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Đăng nhập với Google
+    </button>
+    <div class="login-skip" onclick="useLocalMode()">Dùng offline (không đồng bộ)</div>
+    <div class="login-note">🔒 App chỉ đọc email để nhận diện tài khoản — không lưu mật khẩu, không gửi email quảng cáo.</div>
+  </div>
+</div>
+
+</body>
+</html>
