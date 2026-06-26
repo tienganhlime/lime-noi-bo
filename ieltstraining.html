@@ -1168,6 +1168,12 @@ function updateFirebaseStatus(ok) {
 function saveFirebaseConfig() {
   try {
     const cfg = JSON.parse(document.getElementById('firebase-config-input').value.trim());
+    ls('ielts_firebase_config', cfg);
+    alert('Đã lưu! Đang tải lại trang để kết nối...');
+    location.reload();
+  } catch(e) { alert('Config JSON không hợp lệ: ' + e.message); }
+}
+
 function disconnectFirebase() { ls('ielts_firebase_config', null); location.reload(); }
 
 // ═══════════════════════════════════════════════════════════════
