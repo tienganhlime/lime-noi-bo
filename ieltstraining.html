@@ -613,10 +613,13 @@ body { font-size: 1rem; line-height: 1.6; }
         <div class="card mb-3">
           <div class="card-sub">Dán Firebase config JSON (Project Settings → Web app):</div>
           <div class="form-group">
-            <textarea id="firebase-config-input" rows="7" placeholder='{
-  "apiKey": "...",
-  "authDomain": "...",
-  "projectId": "..."
+            <textarea id="firebase-config-input" rows="8" placeholder='{
+  apiKey: "AIzaSy...",
+  authDomain: "project.firebaseapp.com",
+  projectId: "project-id",
+  storageBucket: "project.firebasestorage.app",
+  messagingSenderId: "123456",
+  appId: "1:123:web:abc"
 }'></textarea>
           </div>
           <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()">💾 Lưu & kết nối</button>
@@ -1105,14 +1108,6 @@ function updateFirebaseStatus(ok) {
   if (hdr) hdr.textContent = ok ? '☁️ Cloud sync' : '💾 Local only';
 }
 
-function saveFirebaseConfig() {
-  try {
-    const cfg = JSON.parse(document.getElementById('firebase-config-input').value.trim());
-    ls('ielts_firebase_config', cfg);
-    alert('Đã lưu! Đang tải lại trang để kết nối...');
-    location.reload();
-  } catch(e) { alert('Config JSON không hợp lệ: ' + e.message); }
-}
 
 async function syncFromFirebase() {
   if (!state.db || !state.userId) return;
@@ -1167,11 +1162,20 @@ function updateFirebaseStatus(ok) {
 
 function saveFirebaseConfig() {
   try {
-    const cfg = JSON.parse(document.getElementById('firebase-config-input').value.trim());
+    let raw = document.getElementById('firebase-config-input').value.trim();
+    // Firebase Console xuất JS object (key không có quotes) → tự động convert sang JSON
+    const jsonStr = raw
+      .replace(/\/\/.*$/gm, '')                         // bỏ comment //
+      .replace(/,(\s*[}\]])/g, '$1')                    // bỏ trailing comma
+      .replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":'); // thêm quotes cho key
+    const cfg = JSON.parse(jsonStr);
+    if (!cfg.apiKey || !cfg.projectId) throw new Error('Thiếu apiKey hoặc projectId');
     ls('ielts_firebase_config', cfg);
-    alert('Đã lưu! Đang tải lại trang để kết nối...');
+    alert('✅ Đã lưu! Đang tải lại trang để kết nối...');
     location.reload();
-  } catch(e) { alert('Config JSON không hợp lệ: ' + e.message); }
+  } catch(e) {
+    alert('❌ Config không hợp lệ: ' + e.message + '\n\nHãy copy toàn bộ phần { ... } từ Firebase Console.');
+  }
 }
 
 function disconnectFirebase() { ls('ielts_firebase_config', null); location.reload(); }
