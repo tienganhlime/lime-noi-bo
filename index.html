@@ -5842,13 +5842,18 @@ let makeupUnsub = null;
 
 function subscribeToMakeup() {
   if (makeupUnsub) makeupUnsub();
-  const q = query(collection(db, 'makeupRequests'), orderBy('createdAt', 'desc'));
+  // No orderBy → avoids composite index requirement; sort in JS
+  const q = query(collection(db, 'makeupRequests'), limit(500));
   makeupUnsub = onSnapshot(q, snap => {
-    makeupRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Update badge CSKH
+    makeupRequests = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    const todayStr = fmt(new Date());
+    // Badge = cards with scheduled date <= today and not fully done
     const pending = makeupRequests.filter(r => {
-      const students = r.students || [];
-      return students.some(s => !s.done);
+      const scheduled = r.scheduledDate || r.absentDate || '';
+      if (scheduled && scheduled > todayStr) return false; // future → not yet
+      return (r.students || []).some(s => !s.done);
     });
     const badge = document.getElementById('makeupBadge');
     if (badge) {
@@ -5858,48 +5863,65 @@ function subscribeToMakeup() {
     if (document.getElementById('page-makeup')?.classList.contains('active')) {
       renderMakeupPage();
     }
-  });
+  }, err => console.error('makeup listener:', err));
 }
 
 window.openMakeupModal = function() {
   const profile = window._state.profile;
-  // Set cơ sở mặc định theo profile
   const branchSel = document.getElementById('makeupBranch');
   if (profile?.branch?.length) branchSel.value = profile.branch[0];
-  // Set ngày hôm nay cho absentDate
-  document.getElementById('makeupAbsentDate').value = today.toISOString().slice(0,10);
+  const todayVal = today.toISOString().slice(0,10);
+  // absentDates only for bu_bai
+  document.getElementById('makeupAbsentDates').value = todayVal;
+  document.getElementById('makeupScheduledDate').value = todayVal;
   document.getElementById('makeupClass').value = '';
-  document.getElementById('makeupContent').value = '';
+  document.getElementById('makeupContentItems').value = '';
   document.getElementById('makeupStudents').value = '';
   document.getElementById('makeupNote').value = '';
+  updateMakeupTitle();
   openModal('makeupModal');
 };
 
 window.submitMakeupForm = async function() {
   const branch = document.getElementById('makeupBranch').value;
   const className = document.getElementById('makeupClass').value.trim();
-  const content = document.getElementById('makeupContent').value.trim();
+  const contentRaw = document.getElementById('makeupContentItems').value.trim();
   const studentsRaw = document.getElementById('makeupStudents').value.trim();
-  const absentDate = document.getElementById('makeupAbsentDate').value;
+  const scheduledDate = document.getElementById('makeupScheduledDate').value;
   const note = document.getElementById('makeupNote').value.trim();
-
   const loai = document.querySelector('input[name="makeupLoai"]:checked')?.value || 'bu_bai';
-  if (!className || !content || !studentsRaw) {
-    showToast('⚠️ Điền đầy đủ Tên lớp, Nội dung và Danh sách học sinh', 'warn'); return;
+
+  if (!className || !contentRaw || !studentsRaw) {
+    showToast('⚠️ Điền đủ Tên lớp, Nội dung và Danh sách học sinh', 'warn'); return;
   }
-  const students = studentsRaw.split('\n').map(s => s.trim()).filter(Boolean).map(name => ({ name, done: false, doneBy: '', doneAt: '' }));
+  if (!scheduledDate) { showToast('⚠️ Chọn ngày cần ôn/bù', 'warn'); return; }
+
+  // Parse content items (one per line)
+  const contentItems = contentRaw.split('\n').map(s => s.trim()).filter(Boolean)
+    .map(content => ({ content, done: false, doneBy: '', doneAt: '' }));
+
+  // Parse absent dates (only for bu_bai, comma or newline separated)
+  let absentDates = [];
+  if (loai === 'bu_bai') {
+    const raw = document.getElementById('makeupAbsentDates').value.trim();
+    absentDates = raw ? raw.split(/[,\n]/).map(s => s.trim()).filter(Boolean) : [];
+  }
+
+  const students = studentsRaw.split('\n').map(s => s.trim()).filter(Boolean)
+    .map(name => ({ name, done: false, doneBy: '', doneAt: '', nextDate: '' }));
   if (!students.length) { showToast('⚠️ Nhập ít nhất 1 học sinh', 'warn'); return; }
 
   const profile = window._state.profile;
   try {
     await addDoc(collection(db, 'makeupRequests'), {
-      branch, className, content, students, absentDate, note, loai,
+      branch, className, contentItems, students,
+      scheduledDate, absentDates, note, loai,
       submittedBy: profile?.name || 'Trợ giảng',
       submittedById: window._state.user.uid,
       createdAt: serverTimestamp(),
       allDone: false,
     });
-    showToast('✅ Đã gửi phiếu bù bài! CSKH đã nhận được thông báo.', 'success');
+    showToast('✅ Đã tạo phiếu! Sẽ hiện trong danh sách từ ngày ' + scheduledDate, 'success');
     closeModal('makeupModal');
   } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
@@ -5907,43 +5929,93 @@ window.submitMakeupForm = async function() {
 // Helper: render one makeup card
 function makeupCardHTML(r, role) {
   const students = r.students || [];
-  const doneCount = students.filter(s => s.done).length;
-  const allDone = doneCount === students.length;
+  const contentItems = r.contentItems || (r.content ? [{ content: r.content, done: false }] : []);
+  const doneStudents = students.filter(s => s.done).length;
+  const doneContent  = contentItems.filter(c => c.done).length;
+  const allDone = students.length > 0 && doneStudents === students.length;
   const branchLabel = { tk:'Trung Kính', th:'Trung Hòa', md:'Mỹ Đình' }[r.branch] || r.branch;
   const canTick = role === 'admin' || role === 'leader' ||
     window._state.profile?.team === 'cskh' || window._state.profile?.team === 'chuyenmon' ||
     window._state.profile?.team === 'trogiangHT';
-  const loaiIcon = r.loai === 'on_bai' ? '📖' : '📚';
+  const loaiIcon  = r.loai === 'on_bai' ? '📖' : '📚';
   const loaiLabel = r.loai === 'on_bai'
-    ? '<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#EDE7F6;color:#6A1B9A">ÔN BÀI</span>'
-    : '<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#FFF3E0;color:#E65100">BÙ BÀI</span>';
+    ? '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#EDE7F6;color:#6A1B9A">ÔN BÀI</span>'
+    : '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#FFF3E0;color:#E65100">BÙ BÀI</span>';
 
-  return `<div class="makeup-card ${allDone ? 'done-card' : 'pending-card'}" style="border-left:3px solid ${r.loai==='on_bai'?'#7E57C2':'#FF8A65'}">
+  // Overdue detection
+  const todayStr = fmt(new Date());
+  const sched = r.scheduledDate || r.absentDate || '';
+  const isOverdue = !allDone && sched && sched < todayStr;
+  const overdueHTML = isOverdue
+    ? '<div style="background:#FFF5F5;border:1px solid #FEB2B2;border-radius:6px;padding:5px 10px;font-size:12px;color:var(--urgent);margin-bottom:8px;display:flex;align-items:center;gap:6px">⚠️ Quá hạn — chưa ôn/bù kịp</div>'
+    : '';
+
+  // Absent dates display (bu_bai only)
+  const absentDates = r.absentDates || (r.absentDate ? [r.absentDate] : []);
+  const absentHTML = (r.loai !== 'on_bai' && absentDates.length)
+    ? `<span>📅 Ngày nghỉ: ${absentDates.join(', ')}</span>`
+    : '';
+
+  // Content items with individual ticks
+  const contentHTML = contentItems.map((ci, cidx) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:${ci.done ? 'var(--done-bg)' : '#FAFAFA'};margin-bottom:4px">
+      <div style="width:18px;height:18px;border-radius:4px;border:2px solid ${ci.done ? 'var(--done)' : 'var(--border)'};background:${ci.done ? 'var(--done)' : 'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:${canTick?'pointer':'default'};font-size:11px;color:white"
+        ${canTick ? `onclick="toggleMakeupContent('${r.id}',${cidx})"` : ''}>${ci.done ? '✓' : ''}</div>
+      <span style="flex:1;font-size:12px;${ci.done ? 'text-decoration:line-through;color:var(--text-muted)' : ''}">${escapeHTML(ci.content)}</span>
+      ${ci.done ? `<span style="font-size:10px;color:var(--done)">✅ ${escapeHTML(ci.doneBy||'')}${ci.doneAt ? ' · '+ci.doneAt : ''}</span>` : ''}
+    </div>`).join('');
+
+  // Students with tick + reschedule for overdue
+  const studentsHTML = students.map((s, idx) => {
+    const myNextDate = s.nextDate || '';
+    const reschedHTML = (!s.done && isOverdue && canTick)
+      ? `<div style="display:flex;gap:4px;align-items:center;margin-top:4px">
+          <span style="font-size:11px;color:var(--text-muted)">📅 Hẹn ngày:</span>
+          <input type="date" class="field-input" style="font-size:11px;padding:2px 6px;width:135px" value="${myNextDate}"
+            id="reschedule-${r.id}-${idx}" min="${todayStr}">
+          <button class="task-btn" style="font-size:11px;padding:2px 8px" onclick="saveReschedule('${r.id}',${idx})">Lưu</button>
+         </div>`
+      : (myNextDate && !s.done ? `<div style="font-size:11px;color:var(--lime-dark);margin-top:2px">📅 Lịch bù tiếp: ${myNextDate}</div>` : '');
+    return `<div class="makeup-student-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+      <div style="display:flex;align-items:center;gap:8px;width:100%">
+        <span class="makeup-student-name">${escapeHTML(s.name)}</span>
+        ${s.done ? `<span style="font-size:11px;color:var(--done)">✅ ${escapeHTML(s.doneBy||'')}${s.doneAt ? ' · '+s.doneAt : ''}</span>` : ''}
+        ${canTick ? `<button class="makeup-check-btn ${s.done ? 'done-btn' : ''}" style="margin-left:auto"
+          onclick="toggleMakeupStudent('${r.id}',${idx})">${s.done ? '↩ Bỏ' : '✔ Xong'}</button>` : ''}
+      </div>
+      ${reschedHTML}
+    </div>`;
+  }).join('');
+
+  return `<div class="makeup-card ${allDone ? 'done-card' : isOverdue ? '' : 'pending-card'}"
+    style="border-left:3px solid ${r.loai==='on_bai'?'#7E57C2':'#FF8A65'};${isOverdue&&!allDone?'border-color:var(--urgent)':''};margin-bottom:10px">
     <div class="makeup-card-head">
       <div style="flex:1">
-        <div class="makeup-title" style="display:flex;align-items:center;gap:6px">
-          ${loaiLabel} ${loaiIcon} ${escapeHTML(r.className)} · ${escapeHTML(r.content)}
+        <div class="makeup-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${loaiLabel} ${loaiIcon} <strong>${escapeHTML(r.className)}</strong>
         </div>
-        <div class="makeup-meta">
+        <div class="makeup-meta" style="margin-top:4px">
           <span>🏠 ${branchLabel}</span>
-          ${r.absentDate ? `<span>📅 Ngày nghỉ: ${r.absentDate}</span>` : ''}
+          ${sched ? `<span>📅 Ngày ôn/bù: <strong>${sched}</strong></span>` : ''}
+          ${absentHTML}
           <span>👤 ${escapeHTML(r.submittedBy)}</span>
           ${r.note ? `<span>📝 ${escapeHTML(r.note)}</span>` : ''}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-        <span class="${allDone ? 'badge-ok' : 'badge-warn'}">${doneCount}/${students.length}</span>
+        <span class="${allDone ? 'badge-ok' : 'badge-warn'}">${doneStudents}/${students.length} HS</span>
+        <span style="font-size:10px;color:var(--text-muted)">${doneContent}/${contentItems.length} ND</span>
         ${(role==='admin'||role==='leader') ? `<button class="task-btn" style="font-size:10px;color:var(--urgent)" onclick="deleteMakeupRequest('${r.id}')">🗑️</button>` : ''}
       </div>
     </div>
-    <div class="makeup-students">
-      ${students.map((s, idx) => `
-        <div class="makeup-student-row">
-          <span class="makeup-student-name">${escapeHTML(s.name)}</span>
-          ${s.done ? `<span style="font-size:11px;color:var(--text-muted)">✅ ${escapeHTML(s.doneBy||'')} ${s.doneAt ? '· '+s.doneAt : ''}</span>` : ''}
-          ${canTick ? `<button class="makeup-check-btn ${s.done ? 'done-btn' : ''}"
-            onclick="toggleMakeupStudent('${r.id}', ${idx})">${s.done ? '↩ Bỏ' : '✔ Xong'}</button>` : ''}
-        </div>`).join('')}
+    ${overdueHTML}
+    ${contentItems.length ? `<div style="margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">📚 Nội dung</div>
+      ${contentHTML}
+    </div>` : ''}
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">👥 Học sinh</div>
+      <div class="makeup-students">${studentsHTML}</div>
     </div>
   </div>`;
 }
@@ -6070,9 +6142,14 @@ window.updateMakeupTitle = function() {
   const titleEl = document.getElementById('makeupModalTitle');
   if (titleEl) titleEl.textContent = isBu ? '📚 Tạo phiếu bù bài' : '📖 Tạo phiếu ôn bài';
   const contentLabel = document.getElementById('makeupContentLabel');
-  if (contentLabel) contentLabel.textContent = isBu ? 'Nội dung bù bài *' : 'Nội dung ôn bài *';
+  if (contentLabel) contentLabel.textContent = isBu
+    ? 'Nội dung cần bù * (mỗi dòng = 1 mục tick riêng)'
+    : 'Nội dung cần ôn * (mỗi dòng = 1 mục tick riêng)';
   const submitBtn = document.getElementById('makeupSubmitBtn');
   if (submitBtn) submitBtn.textContent = isBu ? 'Gửi phiếu bù bài' : 'Gửi phiếu ôn bài';
+  // Show/hide absent dates field (only for bu_bai)
+  const absentWrap = document.getElementById('makeupAbsentDatesWrap');
+  if (absentWrap) absentWrap.style.display = isBu ? 'block' : 'none';
 };
 
 window.renderMakeupPage = function() {
@@ -6082,22 +6159,44 @@ window.renderMakeupPage = function() {
   const statusFilter = document.getElementById('makeupStatusFilter')?.value || 'pending';
   const loaiFilter   = document.getElementById('makeupLoaiFilter')?.value || '';
   const role = window._state.profile?.role;
+  const todayStr = fmt(new Date());
 
   let list = makeupRequests.filter(r => {
     if (branchFilter && r.branch !== branchFilter) return false;
     if (loaiFilter   && (r.loai || 'bu_bai') !== loaiFilter) return false;
     const allDone = (r.students || []).every(s => s.done);
-    if (statusFilter === 'pending') return !allDone;
+    if (statusFilter === 'pending') {
+      if (allDone) return false;
+      // Hide future cards unless filterStatus = 'all'
+      const sched = r.scheduledDate || r.absentDate || '';
+      // Show if scheduled today or earlier, OR if any student has nextDate <= today
+      const hasNextDue = (r.students || []).some(s => s.nextDate && s.nextDate <= todayStr);
+      if (sched && sched > todayStr && !hasNextDue) return false;
+      return true;
+    }
     if (statusFilter === 'done') return allDone;
-    return true;
+    return true; // 'all'
   });
 
   if (!list.length) {
-    grid.innerHTML = '<div style="color:var(--text-muted);padding:20px 0;text-align:center">Không có phiếu nào</div>';
+    const futureCount = makeupRequests.filter(r => {
+      const sched = r.scheduledDate || r.absentDate || '';
+      return sched > todayStr && !(r.students||[]).every(s=>s.done);
+    }).length;
+    grid.innerHTML = `<div style="color:var(--text-muted);padding:20px 0;text-align:center">
+      Không có phiếu nào${futureCount ? ` — có ${futureCount} phiếu chưa đến ngày (chọn "Tất cả" để xem trước)` : ''}
+    </div>`;
     return;
   }
 
-  // Group: Bù bài first, then Ôn bài, each sub-grouped by className
+  // Sort: overdue first, then by date
+  list.sort((a,b) => {
+    const sa = a.scheduledDate || a.absentDate || '';
+    const sb = b.scheduledDate || b.absentDate || '';
+    return sa.localeCompare(sb);
+  });
+
+  // Group by loai then className
   const groups = { bu_bai: {}, on_bai: {} };
   list.forEach(r => {
     const loai = r.loai || 'bu_bai';
@@ -6124,15 +6223,49 @@ window.toggleMakeupStudent = async function(reqId, idx) {
   const req = makeupRequests.find(r => r.id === reqId);
   if (!req) return;
   const students = [...(req.students || [])];
+  const nowDone = !students[idx].done;
   students[idx] = {
     ...students[idx],
-    done: !students[idx].done,
-    doneBy: !students[idx].done ? (window._state.profile?.name || '') : '',
-    doneAt: !students[idx].done ? new Date().toLocaleDateString('vi-VN') : '',
+    done: nowDone,
+    doneBy: nowDone ? (window._state.profile?.name || '') : '',
+    doneAt: nowDone ? new Date().toLocaleDateString('vi-VN') : '',
+    nextDate: nowDone ? '' : students[idx].nextDate, // clear reschedule if ticked done
   };
   const allDone = students.every(s => s.done);
   try {
     await updateDoc(doc(db, 'makeupRequests', reqId), { students, allDone });
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.toggleMakeupContent = async function(reqId, cidx) {
+  const req = makeupRequests.find(r => r.id === reqId);
+  if (!req) return;
+  const contentItems = [...(req.contentItems || [])];
+  if (!contentItems[cidx]) return;
+  const nowDone = !contentItems[cidx].done;
+  contentItems[cidx] = {
+    ...contentItems[cidx],
+    done: nowDone,
+    doneBy: nowDone ? (window._state.profile?.name || '') : '',
+    doneAt: nowDone ? new Date().toLocaleDateString('vi-VN') : '',
+  };
+  try {
+    await updateDoc(doc(db, 'makeupRequests', reqId), { contentItems });
+    showToast(nowDone ? '✅ Đã đánh dấu nội dung xong' : 'Đã bỏ tick nội dung', nowDone ? 'success' : 'warn');
+  } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
+};
+
+window.saveReschedule = async function(reqId, idx) {
+  const req = makeupRequests.find(r => r.id === reqId);
+  if (!req) return;
+  const input = document.getElementById(`reschedule-${reqId}-${idx}`);
+  if (!input || !input.value) { showToast('Chọn ngày hẹn tiếp', 'warn'); return; }
+  const nextDate = input.value;
+  const students = [...(req.students || [])];
+  students[idx] = { ...students[idx], nextDate };
+  try {
+    await updateDoc(doc(db, 'makeupRequests', reqId), { students });
+    showToast(`📅 Đã hẹn ôn/bù lại vào ${nextDate} — phiếu sẽ tự hiện vào ngày đó`, 'success');
   } catch(e) { showToast('Lỗi: ' + e.message, 'error'); }
 };
 
@@ -6158,10 +6291,10 @@ updateDateDisplay();
       <option value="th">Trung Hòa</option>
       <option value="md">Mỹ Đình</option>
     </select>
-    <select class="field-input" id="makeupStatusFilter" style="width:140px" onchange="renderMakeupPage()">
-      <option value="pending">Chưa xong</option>
-      <option value="done">Đã hoàn thành</option>
-      <option value="all">Tất cả</option>
+    <select class="field-input" id="makeupStatusFilter" style="width:160px" onchange="renderMakeupPage()">
+      <option value="pending">⏳ Chưa xong (đến hạn)</option>
+      <option value="all">📋 Tất cả (kể cả chưa đến ngày)</option>
+      <option value="done">✅ Đã hoàn thành</option>
     </select>
     <div style="flex:1"></div>
     <button class="btn btn-outline" onclick="openMakeupUploadModal()" style="font-size:12px">📥 Upload danh sách</button>
@@ -6174,12 +6307,14 @@ updateDateDisplay();
 
 <!-- Makeup submit modal -->
 <div class="modal-overlay" id="makeupModal">
-  <div class="modal">
+  <div class="modal" style="max-width:560px">
     <div class="modal-head">
       <div class="modal-title" id="makeupModalTitle">📚 Tạo phiếu bù/ôn bài</div>
       <button class="modal-close" onclick="closeModal('makeupModal')">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- Loại -->
       <div class="field-group" style="margin-bottom:12px">
         <label class="field-label">Loại *</label>
         <div style="display:flex;gap:12px">
@@ -6193,7 +6328,9 @@ updateDateDisplay();
           </label>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+      <!-- Cơ sở + Lớp -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="field-group">
           <label class="field-label">Cơ sở *</label>
           <select class="field-input" id="makeupBranch">
@@ -6207,24 +6344,41 @@ updateDateDisplay();
           <input class="field-input" id="makeupClass" placeholder="VD: 3Dory0T">
         </div>
       </div>
-      <div class="field-group">
-        <label class="field-label" id="makeupContentLabel">Nội dung bù bài *</label>
-        <textarea class="field-input" id="makeupContent" rows="2" placeholder="VD: Unit 5 từ vựng + cấu trúc, ôn bài test 1..."></textarea>
-      </div>
-      <div class="field-group">
-        <label class="field-label">Danh sách học sinh cần bù (mỗi dòng 1 tên *)</label>
-        <textarea class="field-input" id="makeupStudents" rows="4" placeholder="Nguyễn Minh Khoa&#10;Trần Bảo Anh&#10;Lê Tuấn Nam"></textarea>
-        <div class="modal-note">Mỗi dòng 1 học sinh. CSKH sẽ tick từng em khi đã bù xong.</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+      <!-- Ngày ôn/bù + Ngày nghỉ -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="field-group">
-          <label class="field-label">Ngày nghỉ</label>
-          <input class="field-input" type="date" id="makeupAbsentDate">
+          <label class="field-label">📅 Ngày cần ôn/bù *</label>
+          <input class="field-input" type="date" id="makeupScheduledDate">
+          <div class="modal-note">Phiếu sẽ hiện trong danh sách từ ngày này.</div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Ghi chú thêm</label>
-          <input class="field-input" id="makeupNote" placeholder="VD: gọi PH đến sớm">
+        <div class="field-group" id="makeupAbsentDatesWrap">
+          <label class="field-label">Ngày nghỉ (có thể nhiều ngày)</label>
+          <input class="field-input" id="makeupAbsentDates" placeholder="VD: 2025-06-18, 2025-06-20">
+          <div class="modal-note">Ngăn cách bằng dấu phẩy. Để trống nếu không rõ.</div>
         </div>
+      </div>
+
+      <!-- Nội dung (nhiều mục, mỗi dòng 1 tick) -->
+      <div class="field-group" style="margin-bottom:12px">
+        <label class="field-label" id="makeupContentLabel">Nội dung cần ôn/bù * (mỗi dòng = 1 mục tick riêng)</label>
+        <textarea class="field-input" id="makeupContentItems" rows="3"
+          placeholder="Unit 5 từ vựng&#10;Unit 5 ngữ pháp Present Perfect&#10;Bài tập trang 42-43"></textarea>
+        <div class="modal-note">Mỗi dòng sẽ là 1 ô tick riêng để theo dõi từng phần đã ôn chưa.</div>
+      </div>
+
+      <!-- Học sinh -->
+      <div class="field-group" style="margin-bottom:12px">
+        <label class="field-label">Danh sách học sinh * (mỗi dòng 1 tên)</label>
+        <textarea class="field-input" id="makeupStudents" rows="4"
+          placeholder="Nguyễn Minh Khoa&#10;Trần Bảo Anh&#10;Lê Tuấn Nam"></textarea>
+        <div class="modal-note">CSKH/Chuyên môn sẽ tick từng em. Nếu chưa kịp → hẹn ngày bù tiếp.</div>
+      </div>
+
+      <!-- Ghi chú -->
+      <div class="field-group">
+        <label class="field-label">Ghi chú thêm</label>
+        <input class="field-input" id="makeupNote" placeholder="VD: ưu tiên ôn trước bài kiểm tra, gọi PH...">
       </div>
     </div>
     <div class="modal-foot">
