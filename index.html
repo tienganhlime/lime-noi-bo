@@ -2448,6 +2448,19 @@ select.field-input {
           </select>
         </div>
       </div>
+      <!-- Extra teams for leader managing multiple teams -->
+      <div class="field-group" id="extraTeamsWrap" style="display:none">
+        <label class="field-label">Quản lý thêm đội (giữ Ctrl/Cmd để chọn nhiều)</label>
+        <select class="field-input" id="newUserExtraTeams" multiple style="height:84px">
+          <option value="cskh">CSKH</option>
+          <option value="chuyenmon">Chuyên môn</option>
+          <option value="trogiangHT">Trợ giảng</option>
+          <option value="vanhanh">Vận hành</option>
+          <option value="tuyensinh">Tuyển sinh</option>
+          <option value="marketing">Marketing</option>
+        </select>
+        <div class="modal-note">Đội chính đã chọn ở trên sẽ tự bị loại trừ khỏi danh sách này.</div>
+      </div>
       <div class="field-group">
         <label class="field-label">Cơ sở (có thể chọn nhiều — giữ Ctrl/Cmd)</label>
         <select class="field-input" id="newUserBranch" multiple style="height:84px">
@@ -2595,6 +2608,18 @@ let WEEK_TREND = [];
 // =============================================================
 //  UTILS
 // =============================================================
+// ── Multi-team helper ──
+// Returns all teams a user belongs to (primary + extraTeams)
+function getAllTeams(profile) {
+  if (!profile) return [];
+  const primary = profile.team ? [profile.team] : [];
+  const extra   = Array.isArray(profile.extraTeams) ? profile.extraTeams : [];
+  return [...new Set([...primary, ...extra])];
+}
+function isInTeam(profile, teamKey) {
+  return getAllTeams(profile).includes(teamKey);
+}
+
 function fmt(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
@@ -2801,10 +2826,10 @@ async function initApp() {
 
   document.getElementById('sidebarAvatar').textContent = initials(profile.name).charAt(0);
   document.getElementById('sidebarName').textContent = profile.name;
-  const teamLabel = profile.team ? TEAMS[profile.team]?.label || profile.team : '';
+  const teamLabels = getAllTeams(profile).map(t => TEAMS[t]?.label || t).join(' & ');
   const branchLabel = (profile.branch || []).map(b => BRANCH_LABEL[b] || b).join(', ');
   document.getElementById('sidebarRole').textContent =
-    [ROLE_LABELS[profile.role] || profile.role, teamLabel, branchLabel].filter(Boolean).join(' · ');
+    [ROLE_LABELS[profile.role] || profile.role, teamLabels, branchLabel].filter(Boolean).join(' · ');
 
   applyRoleVisibility();
   setupBranchSelect();
@@ -3223,7 +3248,8 @@ function updateBadges() {
     let count = 0;
     if (profile?.role === 'admin') count = source.length;
     else if (profile?.role === 'leader') {
-      count = source.filter(t => t.leaderCheckLeaderId === window._state.user?.uid || (!t.leaderCheckLeaderId && t.team === profile.team)).length;
+      const lTeams = getAllTeams(profile);
+      count = source.filter(t => t.leaderCheckLeaderId === window._state.user?.uid || (!t.leaderCheckLeaderId && lTeams.includes(t.team))).length;
     }
     leaderCheckBadge.textContent = count;
     leaderCheckBadge.style.display = count > 0 ? 'inline-flex' : 'none';
@@ -3245,11 +3271,12 @@ function renderTodayPage() {
     if (isAdmin) return true;
     // Show if assigned directly to me
     if (t.assignedToUid === myUid || t.assignedEmail === myEmail) return true;
-    // Show if it belongs to my team (and not assigned to someone else specifically)
-    if (t.team === myTeamId) {
+    // Show if it belongs to any of my teams
+    const myAllTeams = getAllTeams(window._state.profile);
+    if (myAllTeams.includes(t.team)) {
       if (!t.assignedToUid && !t.assignedEmail) return true; // unassigned = whole team
       if (t.assignedToUid === myUid || t.assignedEmail === myEmail) return true;
-      // Leaders see all team tasks
+      // Leaders see all tasks across all their teams
       const role = window._state.profile?.role;
       if (role === 'leader') return true;
     }
@@ -3592,10 +3619,11 @@ function renderLeaderCheckPage() {
   if (profile.role === 'admin') {
     relevant = source;
   } else {
-    // Leader chỉ thấy: việc gán đích danh cho mình, hoặc chưa chọn leader cụ thể nhưng cùng team mình quản lý
+    // Leader thấy: gán đích danh cho mình, hoặc chưa chọn leader nhưng thuộc bất kỳ team nào họ quản lý
+    const lcTeams = getAllTeams(profile);
     relevant = source.filter(t =>
       t.leaderCheckLeaderId === window._state.user.uid ||
-      (!t.leaderCheckLeaderId && t.team === profile.team)
+      (!t.leaderCheckLeaderId && lcTeams.includes(t.team))
     );
   }
 
@@ -4361,7 +4389,12 @@ function updateLeaveBadge() {
 function renderPersonnelPage() {
   updateLeaveBadge();
   const activeFilter = document.querySelector('#personnelFilterRow .filter-chip.active')?.dataset.team || 'all';
-  const list = activeFilter === 'all' ? STAFF : STAFF.filter(s => s.team === activeFilter);
+  const pProfile = window._state.profile;
+  const pAllTeams = getAllTeams(pProfile);
+  const pIsAdmin = pProfile?.role === 'admin';
+  // Non-admin leaders only see staff from their managed teams
+  let baseStaff = (pIsAdmin) ? STAFF : STAFF.filter(s => pAllTeams.includes(s.team) || !s.team);
+  const list = activeFilter === 'all' ? baseStaff : baseStaff.filter(s => s.team === activeFilter);
   const role = window._state.profile?.role;
   const canApprove = role === 'admin' || role === 'leader';
 
@@ -4854,20 +4887,21 @@ function renderUsersPage() {
   if (!tbody) return;
   const me = window._state.profile;
   const isAdmin = me?.role === 'admin';
-  // Leader chỉ thấy user trong team mình; admin thấy tất cả
-  const list = isAdmin ? STAFF : STAFF.filter(u => u.team === me?.team);
+  // Leader thấy user trong TẤT CẢ các team họ quản lý
+  const leaderAllTeams = getAllTeams(me);
+  const list = isAdmin ? STAFF : STAFF.filter(u => leaderAllTeams.includes(u.team));
 
   // Leader cũng được tạo tài khoản — nhưng chỉ cho đội mình (enforce trong modal)
   const createBtn = document.getElementById('createUserBtn');
   if (createBtn) createBtn.style.display = 'inline-flex';
 
   tbody.innerHTML = list.map(u => {
-    const canEdit = isAdmin || (me?.role === 'leader' && u.team === me?.team && u.role !== 'admin' && u.role !== 'leader');
+    const canEdit = isAdmin || (me?.role === 'leader' && leaderAllTeams.includes(u.team) && u.role !== 'admin' && u.role !== 'leader');
     return `<tr>
     <td><strong>${escapeHTML(u.name)}</strong></td>
     <td style="color:var(--text-muted);font-size:12px">${escapeHTML(u.email||'')}</td>
     <td><span class="role-chip ${u.role}">${ROLE_LABELS[u.role]||u.role}</span></td>
-    <td>${u.team ? (TEAMS[u.team]?.label||u.team) : '—'}</td>
+    <td>${getAllTeams(u).map(t => TEAMS[t]?.label||t).join(' & ') || '—'}</td>
     <td>${(u.branch||[]).map(b=>BRANCH_LABEL[b]||b).join(', ')||'—'}</td>
     <td><span class="status-chip ${u.active===false?'disabled':'active'}">${u.active===false?'Đã khoá':'Hoạt động'}</span></td>
     <td>${canEdit ? `<button class="icon-btn" title="Sửa" onclick="openAddUserModal('${u.id}')">✏️</button>` : '<span style="color:var(--text-muted);font-size:11px">—</span>'}</td>
@@ -4895,10 +4929,13 @@ window.openAddUserModal = function(id) {
   roleSel.value = (u ? u.role : 'staff');
   const teamSel = document.getElementById('newUserTeam');
   if (meRole === 'leader') {
-    // Pre-fill & lock team to leader's own team
-    const leaderTeam = window._state.profile?.team || '';
-    teamSel.value = u ? (u.team || leaderTeam) : leaderTeam;
-    teamSel.disabled = true;
+    // Leader can assign to any of their managed teams
+    const leaderAllT = getAllTeams(window._state.profile);
+    // Rebuild options limited to leader's teams
+    teamSel.innerHTML = '<option value="">— Không thuộc đội —</option>' +
+      leaderAllT.map(t => `<option value="${t}">${TEAMS[t]?.label || t}</option>`).join('');
+    teamSel.value = u ? (u.team || leaderAllT[0] || '') : (leaderAllT[0] || '');
+    teamSel.disabled = false;
   } else {
     teamSel.value = u ? (u.team || '') : '';
     teamSel.disabled = false;
@@ -4909,6 +4946,31 @@ window.openAddUserModal = function(id) {
   delBtn.style.display = id ? 'inline-block' : 'none';
   delBtn.textContent = (u && u.active === false) ? '🔓 Mở khoá tài khoản' : '🔒 Khoá tài khoản';
   document.getElementById('userSaveBtn').textContent = id ? 'Lưu thay đổi' : 'Tạo tài khoản';
+
+  // Show extraTeams for leader/admin role
+  const showExtra = () => {
+    const r = document.getElementById('newUserRole').value;
+    const wrap = document.getElementById('extraTeamsWrap');
+    if (wrap) wrap.style.display = (r === 'leader' || r === 'admin') ? 'block' : 'none';
+    // Remove primary team from extraTeams options
+    const primaryTeam = document.getElementById('newUserTeam').value;
+    const extraSel = document.getElementById('newUserExtraTeams');
+    if (extraSel) {
+      [...extraSel.options].forEach(o => {
+        o.style.display = o.value === primaryTeam ? 'none' : '';
+      });
+    }
+  };
+  document.getElementById('newUserRole').onchange = showExtra;
+  document.getElementById('newUserTeam').onchange = showExtra;
+  // Set existing extraTeams
+  const extraSel2 = document.getElementById('newUserExtraTeams');
+  if (extraSel2 && u?.extraTeams) {
+    [...extraSel2.options].forEach(o => { o.selected = (u.extraTeams || []).includes(o.value); });
+  } else if (extraSel2) {
+    [...extraSel2.options].forEach(o => { o.selected = false; });
+  }
+  showExtra();
   openModal('addUserModal');
 };
 
@@ -4923,12 +4985,17 @@ window.submitAddUser = async function() {
   if (meRole2 === 'leader' && (role === 'admin' || role === 'leader')) {
     showToast('Leader không thể gán quyền Admin hoặc Leader', 'error'); return;
   }
-  // Leader: enforce team = their own team regardless of select value
-  const finalTeam = (meRole2 === 'leader') ? (window._state.profile?.team || team) : team;
+  // Leader: enforce team is within their managed teams
+  const leaderManaged = getAllTeams(window._state.profile);
+  const finalTeam = (meRole2 === 'leader')
+    ? (leaderManaged.includes(team) ? team : (leaderManaged[0] || team))
+    : team;
 
   if (editingUserId) {
+    const extraTeamsRaw = [...(document.getElementById('newUserExtraTeams')?.selectedOptions||[])].map(o => o.value);
+    const extraTeams = extraTeamsRaw.filter(t => t !== finalTeam); // exclude primary
     try {
-      await updateDoc(doc(db, 'users', editingUserId), { name, role, team: finalTeam, branch });
+      await updateDoc(doc(db, 'users', editingUserId), { name, role, team: finalTeam, branch, extraTeams });
       showToast('✅ Đã lưu thay đổi', 'success');
       closeModal('addUserModal');
     } catch (e) { showToast('Lỗi: ' + e.message, 'error'); }
@@ -4941,8 +5008,9 @@ window.submitAddUser = async function() {
   try {
     // Tạo bằng app phụ (secondaryAuth) để KHÔNG làm mất phiên đăng nhập Admin hiện tại
     const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const extraTeamsNew = [...(document.getElementById('newUserExtraTeams')?.selectedOptions||[])].map(o => o.value).filter(t => t !== finalTeam);
     await setDoc(doc(db, 'users', cred.user.uid), {
-      name, email, role, team: finalTeam, branch, active: true, createdAt: serverTimestamp(),
+      name, email, role, team: finalTeam, branch, extraTeams: extraTeamsNew, active: true, createdAt: serverTimestamp(),
     });
     await signOut(secondaryAuth);
     showToast(`✅ Đã tạo tài khoản cho ${name}! Gửi email + mật khẩu này cho họ.`, 'success');
@@ -5091,9 +5159,10 @@ let _assigningTaskId = null;
 function renderChecklistPage() {
   const profile = window._state.profile;
   if (!profile) return;
-  const myTeam  = profile.team;
-  const myUid   = window._state.user?.uid;
-  const myRole  = profile.role;
+  const myTeam   = profile.team;
+  const allMyTeams = getAllTeams(profile);
+  const myUid    = window._state.user?.uid;
+  const myRole   = profile.role;
   const isLeader = myRole === 'admin' || myRole === 'leader';
 
   // hide member detail panel by default
@@ -5102,10 +5171,19 @@ function renderChecklistPage() {
   document.getElementById('checklistMemberPicker').style.display = 'none';
   _clMemberUid = null;
 
-  // Build tabs — leaders get richer tab set
+  // Build tabs — if leader manages multiple teams, add a tab per extra team
   const tabSource = isLeader ? CHECKLIST_TABS_LEADER : CHECKLIST_TABS_STAFF;
   const tabCfg = tabSource[myTeam] || tabSource._default;
   const tabs = [...tabCfg];
+  // Extra team tabs for multi-team leaders
+  if (isLeader && allMyTeams.length > 1) {
+    allMyTeams.slice(1).forEach(t => {
+      const tLabel = TEAMS[t]?.label || t;
+      if (!tabs.find(tab => tab.id === 'extra_' + t)) {
+        tabs.push({ id: 'extra_' + t, label: '📋 ' + tLabel, extraTeam: t });
+      }
+    });
+  }
   if (isLeader) tabs.push({ id: 'members', label: '👥 Thành viên' });
 
   // Validate current tab
@@ -5118,8 +5196,8 @@ function renderChecklistPage() {
     </button>`).join('');
 
   // Page title
-  const teamLabel = TEAMS[myTeam]?.label || myTeam || '';
-  document.getElementById('checklistPageTitle').textContent = `✅ Checklist — ${teamLabel}`;
+  const teamLabels = allMyTeams.map(t => TEAMS[t]?.label || t).join(' & ');
+  document.getElementById('checklistPageTitle').textContent = `✅ Checklist — ${teamLabels}`;
   document.getElementById('checklistPageSub').textContent = tabs.find(t => t.id === _clTab)?.label || '';
 
   _renderChecklistTab(myTeam, myUid, isLeader, profile);
@@ -5141,6 +5219,22 @@ function _renderChecklistTab(myTeam, myUid, isLeader, profile) {
     return;
   }
   mainContent.style.display = 'block';
+
+  // Extra team tab (multi-team leader)
+  if (tab.startsWith('extra_')) {
+    const extraTeamKey = tab.replace('extra_', '');
+    const extraPool = tasks.filter(t => t.team === extraTeamKey);
+    const urgent  = extraPool.filter(t => t.priority === 'urgent' && t.status !== 'done');
+    const normal  = extraPool.filter(t => t.priority !== 'urgent' && t.status !== 'done');
+    const done    = extraPool.filter(t => t.status === 'done');
+    let html2 = '';
+    if (urgent.length) html2 += `<div style="font-size:11px;font-weight:700;color:var(--urgent);margin-bottom:6px">🔴 Gấp</div>` + urgent.map(t => checklistTaskHTML(t, isLeader)).join('');
+    html2 += normal.map(t => checklistTaskHTML(t, isLeader)).join('');
+    if (!urgent.length && !normal.length) html2 = emptyHTML('Không có việc ✅');
+    if (done.length) html2 += `<details style="margin-top:12px"><summary style="font-size:12px;color:var(--text-muted);cursor:pointer">✅ Đã xong (${done.length})</summary>${done.map(t => checklistTaskHTML(t, isLeader)).join('')}</details>`;
+    document.getElementById('checklistTeamList').innerHTML = html2;
+    return;
+  }
 
   // Filter tasks that belong to this team (privacy gate)
   let pool = tasks.filter(t => t.team === myTeam || (myTeam === 'chuyenmon' && t.team === 'trogiangHT' && tab === 'ta'));
@@ -5253,7 +5347,8 @@ function checklistTaskHTML(task, isLeader) {
 }
 
 function _renderMemberPicker(myTeam, isLeader) {
-  const members = STAFF.filter(s => s.team === myTeam && s.id !== window._state.user?.uid);
+  const pickerAllTeams = getAllTeams(window._state.profile);
+  const members = STAFF.filter(s => pickerAllTeams.includes(s.team) && s.id !== window._state.user?.uid);
   const grid = document.getElementById('checklistMemberGrid');
   if (!members.length) {
     grid.innerHTML = emptyHTML('Không có thành viên nào trong đội');
@@ -5334,7 +5429,10 @@ window.openAssignTask = function(taskId) {
   _assigningTaskId = taskId;
   const task = tasks.find(t => t.id === taskId);
   const myTeam = window._state.profile?.team;
-  const members = STAFF.filter(s => s.team === myTeam || (myTeam === 'chuyenmon' && s.team === 'trogiangHT'));
+  const assignAllTeams = getAllTeams(window._state.profile);
+  // always include trogiangHT for chuyenmon
+  if (assignAllTeams.includes('chuyenmon') && !assignAllTeams.includes('trogiangHT')) assignAllTeams.push('trogiangHT');
+  const members = STAFF.filter(s => assignAllTeams.includes(s.team));
   const sel = document.getElementById('assignTaskSelect');
   sel.innerHTML = `<option value="">— Chọn nhân sự —</option>` +
     members.map(s => `<option value="${s.id}">${escapeHTML(s.name)} — ${TEAMS[s.team]?.label||s.team} (${ROLE_LABELS[s.role]||s.role})</option>`).join('');
