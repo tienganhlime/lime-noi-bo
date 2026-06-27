@@ -614,12 +614,13 @@ body { font-size: 1rem; line-height: 1.6; }
           <div class="card-sub">Dán Firebase config JSON (Project Settings → Web app):</div>
           <div class="form-group">
             <textarea id="firebase-config-input" rows="8" placeholder='{
-  apiKey: "AIzaSy...",
-  authDomain: "project.firebaseapp.com",
-  projectId: "project-id",
-  storageBucket: "project.firebasestorage.app",
-  messagingSenderId: "123456",
-  appId: "1:123:web:abc"
+  apiKey: "AIzaSyBoeI1bQsuHe_tkSY3HQo1YmvHUZcf18xo",
+  authDomain: "ieltstrainer-96e87.firebaseapp.com",
+  projectId: "ieltstrainer-96e87",
+  storageBucket: "ieltstrainer-96e87.firebasestorage.app",
+  messagingSenderId: "492834159937",
+  appId: "1:492834159937:web:6ca6e1a0cd4a1acc3df5c0",
+  measurementId: "G-TYLJXNRMBT"
 }'></textarea>
           </div>
           <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()">💾 Lưu & kết nối</button>
@@ -1972,10 +1973,21 @@ function init() {
 }
 
 (function boot() {
-  const cfg = (() => { try { return JSON.parse(localStorage.getItem('ielts_firebase_config')); } catch { return null; } })();
+  // ── Firebase config (hardcoded — safe to be public, security = Firestore rules) ──
+  const HARDCODED_CFG = {
+    apiKey: "AIzaSyBoeI1bQsuHe_tkSY3HQo1YmvHUZcf18xo",
+    authDomain: "ieltstrainer-96e87.firebaseapp.com",
+    projectId: "ieltstrainer-96e87",
+    storageBucket: "ieltstrainer-96e87.firebasestorage.app",
+    messagingSenderId: "492834159937",
+    appId: "1:492834159937:web:6ca6e1a0cd4a1acc3df5c0",
+    measurementId: "G-TYLJXNRMBT"
+  };
 
-  // No Firebase config → chạy offline luôn, không cần login
-  if (!cfg) { init(); return; }
+  // Ưu tiên config lưu trong Settings (nếu bạn muốn dùng project khác)
+  // Nếu không có → dùng config hardcoded ở trên
+  const cfg = (() => { try { return JSON.parse(localStorage.getItem('ielts_firebase_config')); } catch { return null; } })()
+              || HARDCODED_CFG;
 
   function loadScript(src) {
     return new Promise((res, rej) => {
