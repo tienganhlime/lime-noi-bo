@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IELTS Writing Trainer 🌸</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -251,97 +251,104 @@ body { font-size: 1rem; line-height: 1.6; }
 
 /* ─── Mobile responsive ──────────────── */
 @media (max-width: 600px) {
-  html { font-size: 15px; }
+  /* Base size 21px — to rõ trên điện thoại (+40%) */
+  html { font-size: 21px; }
+  body { line-height: 1.7; }
 
-  main { padding: 14px 14px 96px; }
+  main { padding: 14px 12px 100px; }
 
-  /* Header */
-  header { padding: 12px 14px 10px; }
-  .header-title { font-size: 1.05rem; }
-  .header-meta { font-size: .7rem; }
-  #btn-ai { font-size: .72rem; padding: 7px 12px; }
+  /* Header — giữ nhỏ để không chiếm chỗ */
+  header { padding: 10px 14px 8px; }
+  .header-title { font-size: .9rem; }
+  .header-meta { font-size: .62rem; }
+  #btn-ai { font-size: .62rem; padding: 6px 10px; }
 
-  /* Bottom nav — taller for thumb reach */
-  #bottom-nav button { padding: 12px 4px 10px; font-size: .65rem; }
-  #bottom-nav button .ico { font-size: 1.35rem; }
+  /* Bottom nav */
+  #bottom-nav button { padding: 11px 4px 9px; font-size: .6rem; }
+  #bottom-nav button .ico { font-size: 1.3rem; }
 
-  /* Cards — more breathing room */
-  .card { border-radius: 16px; padding: 16px 14px; }
+  /* Cards */
+  .card { border-radius: 16px; padding: 18px 14px; }
   .card-title { font-size: 1rem; }
 
-  /* Streak bar */
-  .streak-num { font-size: 2.5rem; }
-  .streak-flame { font-size: 2.2rem; }
-  .streak-label { font-size: .78rem; }
+  /* Streak bar — giữ compact */
+  .streak-num { font-size: 2.2rem; }
+  .streak-flame { font-size: 2rem; }
+  .streak-label { font-size: .72rem; }
 
   /* Stats row */
-  .stat-num { font-size: 1.6rem; }
-  .stat-sub { font-size: .7rem; }
+  .stat-num { font-size: 1.5rem; }
+  .stat-sub { font-size: .65rem; }
 
   /* Session cards */
-  .session-card { padding: 16px 10px; }
-  .session-card .ico { font-size: 1.8rem; margin-bottom: 8px; }
-  .session-card .label { font-size: .95rem; }
-  .session-card .sub { font-size: .72rem; }
+  .session-card { padding: 16px 8px; }
+  .session-card .ico { font-size: 1.7rem; margin-bottom: 6px; }
+  .session-card .label { font-size: .9rem; }
+  .session-card .sub { font-size: .67rem; }
 
-  /* Exercise */
-  .ex-card { padding: 18px 14px; }
-  .ex-question { font-size: 1rem !important; line-height: 1.75; }
-  .ex-category { margin-bottom: 14px; }
-  .badge { font-size: .7rem; padding: 4px 12px; }
+  /* ── EXERCISE: phần quan trọng nhất ── */
+  .ex-card { padding: 20px 14px; }
+  .ex-question { font-size: 1.05rem !important; line-height: 1.85; }
+  .ex-category { margin-bottom: 12px; }
+  .badge { font-size: .65rem; padding: 4px 10px; }
 
-  /* MCQ options — large touch targets */
+  /* MCQ options — dễ đọc, dễ bấm */
   .mcq-opt {
-    padding: 14px 16px;
-    font-size: .92rem;
-    min-height: 52px;
+    padding: 15px 14px;
+    font-size: .95rem;
+    min-height: 58px;
     border-radius: 14px;
+    line-height: 1.6;
   }
 
-  /* Fill blank input */
+  /* Input — 16px min để tránh iOS zoom */
   #ans-input, input[type=text], textarea, select {
-    font-size: 16px !important; /* Prevent iOS zoom */
-    padding: 12px 14px;
+    font-size: 16px !important;
+    padding: 13px 13px;
     border-radius: 14px;
   }
 
-  /* Answer reveal */
-  .answer-reveal { padding: 16px; }
-  .answer-reveal .answer { font-size: .95rem; line-height: 1.7; }
-  .explanation { font-size: .85rem; padding: 12px 14px; }
+  /* Answer & explanation — đọc nhiều nhất */
+  .answer-reveal { padding: 15px; }
+  .answer-reveal .answer { font-size: .98rem; line-height: 1.85; }
+  .explanation { font-size: .88rem; padding: 13px 13px; line-height: 1.7; }
 
-  /* Rating buttons — big enough for thumbs */
-  .rating-btns { gap: 6px; margin-top: 16px; }
+  /* Template & hint */
+  .ex-template { font-size: .85rem; line-height: 1.7; }
+  .ex-hint { font-size: .83rem; }
+
+  /* Rating buttons */
+  .rating-btns { gap: 5px; margin-top: 14px; }
   .rating-btns button {
-    padding: 14px 4px;
-    font-size: .8rem;
-    min-height: 64px;
+    padding: 13px 2px;
+    font-size: .76rem;
+    min-height: 66px;
     border-radius: 14px;
   }
-  .rating-interval { font-size: .65rem; }
+  .rating-interval { font-size: .6rem; }
 
-  /* Progress bar */
+  /* Progress */
   .progress-bar { height: 10px; }
-  .progress-text { font-size: .82rem; }
-  .progress-header { margin-bottom: 16px; }
+  .progress-text { font-size: .8rem; }
+  .progress-header { margin-bottom: 14px; }
 
   /* Buttons */
-  .btn { padding: 12px 20px; font-size: .9rem; border-radius: 14px; }
-  .btn-sm { padding: 8px 14px; font-size: .78rem; }
-  .btn-block { padding: 14px 20px; font-size: .95rem; }
+  .btn { padding: 13px 18px; font-size: .88rem; border-radius: 14px; }
+  .btn-sm { padding: 9px 13px; font-size: .75rem; }
+  .btn-block { padding: 14px 18px; font-size: .92rem; }
 
   /* Forms */
-  label { font-size: .82rem; margin-bottom: 6px; }
+  label { font-size: .8rem; margin-bottom: 6px; }
   .form-group { margin-bottom: 16px; }
 
   /* Category tabs */
-  .cat-tab { padding: 8px 16px; font-size: .8rem; }
+  .cat-tab { padding: 8px 14px; font-size: .76rem; }
 
   /* Frame cards */
-  .frame-template { font-size: .85rem; padding: 12px 14px; }
-  .frame-name { font-size: .96rem; }
-  .frame-note { font-size: .8rem; }
-  .frame-ex { font-size: .83rem; padding: 10px 12px; }
+  .frame-template { font-size: .85rem; padding: 12px 13px; line-height: 1.7; }
+  .frame-name { font-size: .95rem; }
+  .frame-note { font-size: .8rem; line-height: 1.65; }
+  .frame-ex { font-size: .83rem; padding: 10px 12px; line-height: 1.7; }
 
   /* Error items */
   .error-wrong, .error-correction { font-size: .88rem; padding: 10px 12px; }
@@ -349,13 +356,13 @@ body { font-size: 1rem; line-height: 1.6; }
 
   /* Due banner */
   .due-count { font-size: 2rem !important; }
-  .due-label { font-size: .88rem !important; }
-  .due-sub { font-size: .75rem !important; }
+  .due-label { font-size: .86rem !important; }
+  .due-sub { font-size: .72rem !important; }
 
   /* Session complete */
-  .complete-score { font-size: 4rem; }
-  .score-item .num { font-size: 1.8rem; }
-  .score-item .lbl { font-size: .72rem; }
+  .complete-score { font-size: 3.5rem; }
+  .score-item .num { font-size: 1.7rem; }
+  .score-item .lbl { font-size: .68rem; }
 
   /* Modal */
   .modal-box { padding: 20px 16px 40px; }
