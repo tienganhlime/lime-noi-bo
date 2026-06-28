@@ -499,7 +499,10 @@ body { font-size: 1rem; line-height: 1.6; }
           <div style="font-size:1.4rem;margin-bottom:6px">🤖✨</div>
           <div class="card-title" style="color:var(--primary)">Hết bài ôn? Tạo bài mới với AI!</div>
           <div class="text-sm text-2 mt-1 mb-3">Chọn frame hoặc chủ đề → Claude tạo ngay 5–10 bài MCQ/điền từ mới với câu văn khác nhau. Cùng pattern, nội dung mới để tư duy không bị nhàm.</div>
-          <button class="btn btn-primary btn-block" onclick="openAIModal()">✨ Tạo bài tập mới với AI</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" style="flex:1" onclick="openAIModal()">✨ AI tạo bài</button>
+            <button class="btn btn-secondary" style="flex:1" onclick="openImportModal()">📥 Import JSON</button>
+          </div>
         </div>
       </div>
 
@@ -614,13 +617,12 @@ body { font-size: 1rem; line-height: 1.6; }
           <div class="card-sub">Dán Firebase config JSON (Project Settings → Web app):</div>
           <div class="form-group">
             <textarea id="firebase-config-input" rows="8" placeholder='{
-  apiKey: "AIzaSyBoeI1bQsuHe_tkSY3HQo1YmvHUZcf18xo",
-  authDomain: "ieltstrainer-96e87.firebaseapp.com",
-  projectId: "ieltstrainer-96e87",
-  storageBucket: "ieltstrainer-96e87.firebasestorage.app",
-  messagingSenderId: "492834159937",
-  appId: "1:492834159937:web:6ca6e1a0cd4a1acc3df5c0",
-  measurementId: "G-TYLJXNRMBT"
+  apiKey: "AIzaSy...",
+  authDomain: "project.firebaseapp.com",
+  projectId: "project-id",
+  storageBucket: "project.firebasestorage.app",
+  messagingSenderId: "123456",
+  appId: "1:123:web:abc"
 }'></textarea>
           </div>
           <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()">💾 Lưu & kết nối</button>
@@ -712,6 +714,64 @@ body { font-size: 1rem; line-height: 1.6; }
       <button class="btn btn-primary" id="ai-gen-btn" onclick="generateExercises()">✨ Tạo bài tập</button>
       <button class="btn btn-secondary" onclick="closeAIModal()">Đóng</button>
       <button class="btn btn-ghost" id="ai-save-btn" onclick="saveGeneratedExercises()" style="display:none">💾 Lưu vào bộ sưu tập</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IMPORT MODAL ══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="import-modal" onclick="if(event.target===this)closeImportModal()">
+  <div class="modal-box">
+    <div class="modal-title">📥 Import bài tập từ JSON</div>
+    <div class="text-sm text-2 mb-3">Dán mảng JSON bài tập vào bên dưới. Mỗi bài phải có: <code>type</code>, <code>cat</code>, <code>q</code>, <code>ans</code>. Xem format mẫu bên dưới.</div>
+
+    <details style="margin-bottom:12px">
+      <summary class="text-sm" style="cursor:pointer;color:var(--primary);font-weight:700">📋 Xem format mẫu</summary>
+      <pre id="import-sample" style="font-size:.7rem;background:var(--bg3);padding:12px;border-radius:var(--rs);overflow-x:auto;margin-top:8px;white-space:pre-wrap;color:var(--text2)">[
+  {
+    "type": "translate",
+    "cat": "nom",
+    "catLabel": "🔑 Frame 1: Nguyên nhân → Kết quả",
+    "q": "Viết câu Band 8.0 bằng Frame 1:\\nXe điện phổ biến → thay đổi thị trường dầu mỏ.",
+    "hint": "(widespread adoption of EVs / transformation / global oil market)",
+    "ans": "The widespread adoption of electric vehicles acts as a catalyst for the transformation of the global oil market.",
+    "exp": "Danh từ hóa: \\"adopt EVs\\" → \\"adoption of EVs\\". Frame 1 cố định: \\"acts as a catalyst for\\".",
+    "tpl": "The [N] of X acts as a catalyst for the [N] of Y."
+  },
+  {
+    "type": "fillBlank",
+    "cat": "nom",
+    "catLabel": "🔑 Frame 2: Giải thích nguyên nhân",
+    "q": "Tội phạm mạng tăng — vì người dùng bảo vệ dữ liệu kém.",
+    "sentence": "The rise in cybercrime is largely ___ to inadequate data protection practices.",
+    "blanks": ["attributable"],
+    "ans": "The rise in cybercrime is largely attributable to inadequate data protection practices.",
+    "exp": "\\"attributable\\" — từ cố định trong Frame 2.",
+    "tpl": ""
+  },
+  {
+    "type": "mcq",
+    "cat": "nom",
+    "catLabel": "🔑 Frame 3: Xu hướng → Tác động",
+    "q": "Chọn động từ đúng: AI bùng nổ → ___ thị trường lao động.",
+    "opts": ["disrupted", "reshaped", "transformed", "affected"],
+    "ans": 1,
+    "exp": "\\"reshaped\\" = thay đổi có hệ thống. \\"disrupted\\" = tiêu cực.",
+    "tpl": ""
+  }
+]</pre>
+    </details>
+
+    <div class="form-group">
+      <label>Dán JSON vào đây</label>
+      <textarea id="import-json-input" rows="10" placeholder="[&#10;  { ... }&#10;]" style="font-family:monospace;font-size:.75rem"></textarea>
+    </div>
+
+    <div id="import-status" style="display:none;padding:10px 12px;border-radius:var(--rs);margin-bottom:12px;font-size:.85rem"></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="importExercisesJSON()">📥 Import</button>
+      <button class="btn btn-ghost" onclick="validateImportJSON()">🔍 Kiểm tra trước</button>
+      <button class="btn btn-secondary" onclick="closeImportModal()">Đóng</button>
     </div>
   </div>
 </div>
@@ -888,9 +948,9 @@ const EXERCISES = [
    opts:['streets ahead of','by far the highest','easily surpassed','by a considerable margin'],ans:0,
    exp:'"streets ahead of" — khá informal. Trong Task 1 academic, ưu tiên: "by far the highest", "easily surpassed", "by a considerable margin", "comfortably exceeded".',tpl:''},
   {id:'t1a-05',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A5 Tương phản',
-   q:'"___ City A nearly quadrupled, City B grew only modestly."\nChọn liên từ đúng:',
-   opts:['Whereas','By contrast,','In contrast to City A,','Unlike City A,'],ans:0,
-   exp:'"Whereas" + mệnh đề hoàn chỉnh + "," + mệnh đề 2. "By contrast" đứng đầu câu mới. "In contrast to" / "Unlike" đi với danh từ, không phải mệnh đề.',tpl:''},
+   q:'"___ developed countries posted steady growth, developing nations saw sharp declines."\nChọn liên từ đúng:',
+   opts:['Whereas','By contrast,','In contrast to developed countries,','Unlike developed countries,'],ans:0,
+   exp:'"Whereas" + mệnh đề đầy đủ + "," + mệnh đề 2. Các cụm còn lại sai vì: "By contrast" đứng đầu câu MỚI (không phối hợp 2 mệnh đề trong 1 câu); "In contrast to" / "Unlike" đi với DANH TỪ, không phải mệnh đề.',tpl:''},
   {id:'t1b-01',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B1 Having+V3',
    q:'Frame B1 "Having + V3" dùng khi nào?',
    opts:['Mô tả giai đoạn TRƯỚC rồi nói điều xảy ra SAU — tránh lặp chủ ngữ','Mô tả hai xu hướng xảy ra đồng thời','Dự đoán xu hướng tương lai','So sánh hai đối tượng'],ans:0,
@@ -914,8 +974,8 @@ const EXERCISES = [
    exp:'"witnessed/saw/experienced" ngụ ý có yếu tố thời gian/trải nghiệm. Biểu đồ tĩnh (so sánh các nước tại 1 mốc) → dùng "recorded" hoặc "had".',tpl:''},
   {id:'t1b-06',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B6 Nhân số',
    q:'Giá trị tăng từ 4 lên 17. Cách diễn đạt nào ĐÚNG nhất?',
-   opts:['nearly quadrupled (≈ gấp 4.25 lần)','more than doubled','grew by a factor of 2','tripled'],ans:0,
-   exp:'17/4 = 4.25 lần → "nearly quadrupled" là chính xác nhất. Ví dụ thực tế: USA ~18 tấn CO2 vs Brazil ~4 tấn → "nearly quadrupled".',tpl:''},
+   opts:['more than quadrupled','nearly quadrupled (≈ gấp ~3.8 lần)','tripled','grew by a factor of 4'],ans:0,
+   exp:'17 ÷ 4 = 4.25 lần → HƠN 4 lần → "more than quadrupled". ⚠️ "nearly quadrupled" nghĩa là GẦN 4 lần (~3.7–3.9x) — KHÔNG dùng khi giá trị đã vượt qua 4x. Với 4.25x: "more than quadrupled" hoặc "just over quadrupled".',tpl:''},
   {id:'t1b-07',type:'fillBlank',cat:'task1-b',catLabel:'📈 Task 1: B4 Danh từ hóa',
    q:'Viết lại bằng danh từ hóa (tránh dùng "increased dramatically"):',
    sentence:'There was a ___ increase in renewable energy use after 2015.',
@@ -973,6 +1033,709 @@ const EXERCISES = [
    q:'"Sở hữu xe riêng tăng trong khi xe buýt sụt giảm." Cụm nào diễn đạt đúng nhất?',
    opts:['Preference for private cars grew at the expense of buses.','People preferred cars more than buses.','Private cars became more popular while bus usage fell.','Car ownership grew and bus use declined.'],ans:0,
    exp:'"at the expense of" = A tăng đánh đổi bằng sự giảm sút của B. Cụm này rất học thuật và súc tích.',tpl:''},
+
+  // ══ NOM FRAMES 8-9-11-13-15 (chưa có) ══════════════════════
+  {id:'n8-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 8: Đánh đổi (Tradeoff)',
+   q:'Frame 8 dùng khi nào?',
+   opts:['Thừa nhận lợi ích của X nhưng chỉ ra cái giá phải trả','Phủ nhận hoàn toàn giải pháp X','So sánh hai giải pháp ngang nhau','Đưa ra ví dụ minh hoạ'],ans:0,
+   exp:'"While the [N] of X offers undeniable benefits, it is not without the attendant risk of [N of drawback]." — Cấu trúc concession + cost.',
+   tpl:'While the [N] of X offers undeniable benefits, it is not without the attendant risk of [N].'},
+  {id:'n8-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 8: Đánh đổi',
+   q:'Viết câu Band 8.0 bằng Frame 8:\nAI tự động hoá công việc mang lại hiệu quả cao, nhưng đi kèm rủi ro mất việc làm hàng loạt.',
+   hint:'(automation of labour through AI / widespread displacement of low-skilled workers)',
+   ans:'While the automation of labour through AI offers undeniable benefits in terms of productivity, it is not without the attendant risk of widespread displacement of low-skilled workers.',
+   exp:'"not without the attendant risk of" — cụm học thuật cực mạnh để thừa nhận nhược điểm. "attendant" = đi kèm theo.',
+   tpl:'While the [N] of X offers undeniable benefits, it is not without the attendant risk of [N].'},
+  {id:'n8-03',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 8: Đánh đổi',
+   q:'Phát triển du lịch đại trà mang lại doanh thu, nhưng cũng gây tổn hại môi trường.',
+   sentence:'While the expansion of mass tourism offers undeniable economic benefits, it is not without the ___ risk of irreversible environmental degradation.',
+   blanks:['attendant'],
+   ans:'While the expansion of mass tourism offers undeniable economic benefits, it is not without the attendant risk of irreversible environmental degradation.',
+   exp:'"attendant" = đi kèm theo, gắn liền với. Rất học thuật. Không dùng "related" hay "associated" ở đây.',tpl:''},
+
+  {id:'n9-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 9: Gạt ra ngoài lề (Marginalisation)',
+   q:'"The rise of e-commerce giants has gradually ___ independent local retailers."\nTừ nào phù hợp nhất?',
+   opts:['marginalised','replaced','affected','dominated'],ans:0,
+   exp:'"marginalised" = bị đẩy ra ngoài lề thị trường/xã hội — mạnh và chính xác hơn "replaced" hay "affected". Mang nghĩa bất bình đẳng cấu trúc.',
+   tpl:'The [dominance/rise] of [N] has gradually marginalised [N of weaker group].'},
+  {id:'n9-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 9: Gạt ra ngoài lề',
+   q:'Viết câu Band 8.0 bằng Frame 9:\nChuỗi cà phê lớn mở rộng → đẩy các quán cà phê độc lập ra ngoài lề.',
+   hint:'(proliferation of multinational coffee chains / independent café owners)',
+   ans:'The proliferation of multinational coffee chains has gradually marginalised independent café owners, threatening the cultural diversity of urban neighbourhoods.',
+   exp:'"proliferation of" là danh từ hóa tốt hơn "expansion". Thêm hệ quả ("threatening cultural diversity") làm câu Band 8+ hơn.',
+   tpl:'The [dominance/rise/proliferation] of [N] has gradually marginalised [N].'},
+
+  {id:'n11-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 11: Tái cấu trúc (Reconfiguration)',
+   q:'Khi nào dùng "reconfigured" thay vì "changed"?',
+   opts:['Khi sự thay đổi mang tính cấu trúc, hệ thống — không chỉ bề mặt','Khi thay đổi tiêu cực','Khi thay đổi nhanh chóng','Khi thay đổi ở quy mô nhỏ'],ans:0,
+   exp:'"Fundamentally reconfigured" = thay đổi từ gốc rễ về cấu trúc/hệ thống. "Changed/altered" quá chung chung. "Disrupted" = gián đoạn tiêu cực. "Reconfigured" = định hình lại.',
+   tpl:'The [N] of [X] has fundamentally reconfigured the [N] of [Y].'},
+  {id:'n11-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 11: Tái cấu trúc',
+   q:'Viết câu Band 8.0 bằng Frame 11:\nSự bùng nổ của mạng xã hội đã định hình lại cơ bản cách báo chí vận hành.',
+   hint:'(proliferation of social media platforms / operational landscape of traditional journalism)',
+   ans:'The proliferation of social media platforms has fundamentally reconfigured the operational landscape of traditional journalism.',
+   exp:'"operational landscape" = cảnh quan vận hành, cách hệ thống hoạt động. "Reconfigured" thay "changed" — mạnh và học thuật hơn nhiều.',
+   tpl:'The [N] of X has fundamentally reconfigured the [N] of Y.'},
+  {id:'n11-03',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 11: Tái cấu trúc',
+   q:'Làm việc từ xa trở nên phổ biến → thay đổi cấu trúc nơi làm việc truyền thống.',
+   sentence:'The normalisation of remote work has fundamentally ___ the conventional structure of the corporate workplace.',
+   blanks:['reconfigured'],
+   ans:'The normalisation of remote work has fundamentally reconfigured the conventional structure of the corporate workplace.',
+   exp:'"normalisation of remote work" — danh từ hóa từ "remote work has become normal". "Reconfigured" thay "changed/transformed" — nhấn tính cấu trúc.',tpl:''},
+
+  {id:'n13-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 13: Phụ thuộc lẫn nhau (Nexus)',
+   q:'"There is an inextricable ___ between educational attainment and economic mobility."\nTừ học thuật nhất:',
+   opts:['nexus','connection','link','relationship'],ans:0,
+   exp:'"nexus" = mối liên hệ cốt lõi, không thể tách rời. "inextricable nexus between X and Y" — rất học thuật, Band 8+ vocabulary.',
+   tpl:'There is an inextricable nexus between [N of cause] and [N of effect].'},
+  {id:'n13-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 13: Phụ thuộc lẫn nhau',
+   q:'Viết câu Band 8.0 bằng Frame 13:\nCó mối liên hệ không thể tách rời giữa chất lượng không khí và sức khoẻ tâm thần.',
+   hint:'(air quality deterioration / psychological wellbeing of urban populations)',
+   ans:'There is an inextricable nexus between air quality deterioration and the psychological wellbeing of urban populations.',
+   exp:'"inextricable nexus" — không thể thay bằng "strong link" hay "clear connection" cho Band 8. Danh từ hóa cả hai vế.',
+   tpl:'There is an inextricable nexus between [N] and [N].'},
+
+  {id:'n15-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 15: Minh chứng / Phản ánh',
+   q:'"The trillion-dollar wellness industry ___ an epidemic of chronic stress in modern society."\nCụm học thuật nhất:',
+   opts:['stands as a testament to','proves','shows','reflects'],ans:0,
+   exp:'"stands as a testament to" = là bằng chứng hùng hồn cho. Mạnh hơn "reflects" hay "shows" — mang nghĩa đánh giá/nhận định, phù hợp Task 2 opinion essay.',
+   tpl:'The [N] stands as a testament to [N of broader trend/problem].'},
+  {id:'n15-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 15: Minh chứng / Phản ánh',
+   q:'Viết câu Band 8.0 bằng Frame 15:\nTỷ lệ lo âu ở giới trẻ tăng vọt → minh chứng cho tác động tiêu cực của mạng xã hội lên sức khoẻ tâm thần.',
+   hint:'(escalating rates of anxiety among adolescents / detrimental impact of social media on mental health)',
+   ans:'The escalating rates of anxiety among adolescents stand as a testament to the detrimental impact of social media on mental health.',
+   exp:'"stand as a testament to" — chủ ngữ số nhiều → "stand" không "stands". "Detrimental impact" = tác động có hại — học thuật hơn "negative effect".',
+   tpl:'The [N] stands as a testament to [N].'},
+
+  // ══ TASK 2 INTRO / THESIS (mở rộng) ═════════════════════════
+  {id:'t2i-06',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Intro A1 — Paraphrase topic',
+   q:'Khi paraphrase đề bài Task 2, điều nào QUAN TRỌNG NHẤT?',
+   opts:['Giữ nguyên nghĩa, đổi cấu trúc và từ — không thêm quan điểm cá nhân vào intro','Dùng thật nhiều từ đồng nghĩa','Viết intro thật dài để ấn tượng','Đặt câu hỏi tu từ trong intro'],ans:0,
+   exp:'Intro Task 2 = paraphrase đề + thesis. KHÔNG đưa ví dụ hay quan điểm vào đây. Lỗi phổ biến: thêm "I think" hay "Nowadays" không liên quan.',tpl:''},
+  {id:'t2i-07',type:'fillBlank',cat:'task2-intro',catLabel:'✍️ Task 2: Intro A2 — Shift subject',
+   q:'Paraphrase bằng cách đổi chủ ngữ: "Many people believe that social media does more harm than good."',
+   sentence:'___ about whether the influence of social media is ultimately detrimental or beneficial has become increasingly polarised.',
+   blanks:['Public opinion'],
+   ans:'Public opinion about whether the influence of social media is ultimately detrimental or beneficial has become increasingly polarised.',
+   exp:'Đổi "many people believe" → "public opinion... has become polarised". Chủ ngữ mới = "Public opinion" — danh từ hóa, học thuật hơn nhiều.',tpl:''},
+  {id:'t2i-08',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Thesis B — Balanced view',
+   q:'Đề hỏi "Discuss both views and give your own opinion." Thesis nào TỐT NHẤT?',
+   opts:[
+     'While proponents argue that X offers significant benefits, a more nuanced examination suggests that Y ultimately outweighs these advantages.',
+     'In my opinion, X is better than Y.',
+     'Both X and Y have advantages and disadvantages.',
+     'This essay will discuss both sides and then give a conclusion.'
+   ],ans:0,
+   exp:'"While [view A], [view B] ultimately outweighs" — thesis rõ ràng, có lập trường, dùng concession. Tránh "In my opinion" ở thesis và "This essay will discuss" quá formulaic.',tpl:''},
+  {id:'t2i-09',type:'translate',cat:'task2-intro',catLabel:'✍️ Task 2: Thesis C — Strong stance',
+   q:'Viết thesis mạnh cho đề: "Some argue that zoos are cruel. Others believe they are essential for conservation. Discuss both views."',
+   hint:'(welfare of animals in captivity / conservation of endangered species)',
+   ans:'While concerns about the welfare of animals in captivity are entirely legitimate, the role of zoological institutions in the conservation of endangered species renders them an indispensable component of modern biodiversity strategy.',
+   exp:'"entirely legitimate" = thừa nhận quan điểm kia một cách học thuật. "renders them indispensable" = danh từ hóa + link verb học thuật. Rõ lập trường ngay ở thesis.',
+   tpl:'While [concern A] is entirely legitimate, the [N of benefit] renders [X] an indispensable [N].'},
+  {id:'t2i-10',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Intro A4 — Passive paraphrase',
+   q:'"Governments should invest more in public transport." Paraphrase nào TỐT NHẤT?',
+   opts:[
+     'The question of whether greater governmental investment in public transport infrastructure is warranted has sparked considerable debate.',
+     'Governments need to put more money into public transport.',
+     'It is argued that governments should invest in transport.',
+     'Many people think that public transport needs more government money.'
+   ],ans:0,
+   exp:'"whether [N] is warranted has sparked considerable debate" — dùng passive + danh từ hóa + academic framing. Tránh copy nguyên từ đề và tránh "many people think".',tpl:''},
+
+  // ══ TASK 2 BODY — MECHANISMS & ELABORATION ══════════════════
+  {id:'t2b-03',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body I — Cơ chế nhân quả',
+   q:'Sau khi nêu luận điểm chính, câu nào ĐÚNG về cơ chế nhân quả (Frame I)?',
+   opts:[
+     '"This is primarily because prolonged screen exposure disrupts melatonin production, thereby impairing sleep quality."',
+     '"This is because phones are bad for sleep."',
+     '"For example, many young people use phones before sleeping."',
+     '"Therefore, phones should be banned before bedtime."'
+   ],ans:0,
+   exp:'"This is primarily because [mechanism]" — giải thích CƠ CHẾ cụ thể (melatonin, disrupts). Không chỉ nói "phones are bad" — phải giải thích TẠI SAO ở cấp độ cơ chế.',tpl:'This is primarily because [specific mechanism explaining why].'},
+  {id:'t2b-04',type:'fillBlank',cat:'task2-body',catLabel:'🏗️ Task 2: Body J — Elaboration',
+   q:'Nêu thêm bằng chứng sau luận điểm về tác hại của fast food.',
+   sentence:'___ this point further, a longitudinal study by WHO found that countries with the highest fast food consumption also recorded the steepest rises in childhood obesity rates.',
+   blanks:['To elaborate on'],
+   ans:'To elaborate on this point further, a longitudinal study by WHO found that countries with the highest fast food consumption also recorded the steepest rises in childhood obesity rates.',
+   exp:'"To elaborate on this point further" — cụm chuyển tiếp khi muốn phát triển thêm luận điểm đã nêu. Tạo cảm giác lập luận có chiều sâu.',tpl:''},
+  {id:'t2b-05',type:'translate',cat:'task2-body',catLabel:'🏗️ Task 2: Body K — Nhượng bộ + Phản bác',
+   q:'Viết câu nhượng bộ + phản bác (concession-rebuttal) cho luận điểm:\n"Người phản đối nói rằng học trực tuyến linh hoạt, nhưng thiếu tương tác xã hội là bất lợi lớn hơn."',
+   hint:'(flexibility of online education / absence of face-to-face interaction / holistic cognitive development)',
+   ans:'While it is true that online education affords learners a degree of flexibility unattainable in traditional settings, this advantage is substantially offset by the absence of face-to-face interaction, which research consistently identifies as critical to holistic cognitive development.',
+   exp:'"While it is true that [concession], this advantage is substantially offset by [counter]" — cấu trúc nhượng bộ-phản bác chuẩn Band 8. "Substantially offset" = bị lấn át đáng kể.',
+   tpl:'While it is true that [concession], this advantage is substantially offset by [counter-argument].'},
+  {id:'t2b-06',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body L — Cleft Sentence',
+   q:'"Chính GIÁO DỤC, chứ không phải hình phạt, mới là chìa khoá giảm tội phạm."\nViết bằng cleft sentence:',
+   opts:[
+     '"It is education, rather than punitive measures, that holds the key to reducing criminal behaviour."',
+     '"Education is more important than punishment for reducing crime."',
+     '"Education, not punishment, reduces crime."',
+     '"The key to reducing crime is education rather than punishment."'
+   ],ans:0,
+   exp:'"It is [X], rather than [Y], that [V]" — cleft sentence nhấn mạnh chủ thể quan trọng. "Punitive measures" = danh từ hóa học thuật của "punishment". "Holds the key to" = cụm idiom học thuật.',tpl:'It is [X], rather than [Y], that [V/N].'},
+  {id:'t2b-07',type:'fillBlank',cat:'task2-body',catLabel:'🏗️ Task 2: Body M — Dẫn chứng',
+   q:'Đưa bằng chứng/số liệu vào bài.',
+   sentence:'___ by a 2023 McKinsey report, companies that invest in employee mental health programmes see a fourfold return on investment through reduced absenteeism.',
+   blanks:['This is evidenced'],
+   ans:'This is evidenced by a 2023 McKinsey report, companies that invest in employee mental health programmes see a fourfold return on investment through reduced absenteeism.',
+   exp:'"This is evidenced by [source/data]" — cụm dẫn chứng học thuật. Thay thế tốt cho "For example". Lưu ý: trong IELTS không cần số liệu thật — có thể nêu giả định.',tpl:''},
+  {id:'t2b-08',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body N — Điều kiện giả định',
+   q:'Câu nào thể hiện lập luận điều kiện (hypothetical) đúng nhất?',
+   opts:[
+     '"Were governments to impose a carbon tax, industries would be compelled to accelerate the transition to renewable energy."',
+     '"If governments impose a carbon tax, industries will change."',
+     '"Governments should impose a carbon tax so industries change."',
+     '"A carbon tax would make industries use renewable energy."'
+   ],ans:0,
+   exp:'"Were [subject] to [V], [result] would [V]" — câu điều kiện đảo ngược (inversion) = Band 8 grammar. Mạnh hơn "If... will" (quá đơn giản). Dùng khi lập luận về giải pháp chính sách.',tpl:'Were [subject] to [V], [result] would [V/be].'},
+  {id:'t2b-09',type:'translate',cat:'task2-body',catLabel:'🏗️ Task 2: Body O — So sánh tăng dần',
+   q:'Viết câu dùng cấu trúc "The more... the more..." về giáo dục và năng suất lao động.',
+   hint:'(level of educational attainment / productive contribution to the national economy)',
+   ans:'The higher the level of educational attainment, the more productive an individual\'s contribution to the national economy is likely to be.',
+   exp:'"The higher X, the more Y" — cấu trúc so sánh tăng dần. Danh từ hóa "being educated" → "level of educational attainment". Học thuật và súc tích.',
+   tpl:'The [comparative adj] the [N of cause], the [comparative] the [N of result].'},
+  {id:'t2b-10',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body — Linking ideas',
+   q:'Câu mở đoạn body 2 hay dùng cụm nào để KHÔNG bị lặp "Another reason is"?',
+   opts:[
+     '"A further dimension of this issue concerns the [N of second argument]."',
+     '"Also, another thing is..."',
+     '"My second point is..."',
+     '"In addition to this, another reason is..."'
+   ],ans:0,
+   exp:'"A further dimension of this issue concerns [N]" — rất học thuật và linh hoạt. Các lựa chọn khác quá informal hoặc lặp từ.',tpl:'A further dimension of this issue concerns the [N of second argument].'},
+
+  // ══ TASK 2 CONCLUSION ════════════════════════════════════════
+  {id:'t2c-01',type:'mcq',cat:'task2-conc',catLabel:'📝 Task 2: Kết bài T — Tổng kết',
+   q:'Kết bài Task 2 cần có gì? Chọn CẤU TRÚC đúng nhất:',
+   opts:[
+     'Tóm lại lập trường + tóm lại lập luận chính + khuyến nghị/dự đoán (3 phần)',
+     'Chỉ cần nhắc lại thesis',
+     'Thêm ví dụ mới chưa đề cập',
+     'Xin lỗi nếu chưa đủ bằng chứng'
+   ],ans:0,
+   exp:'3 phần: (1) restate thesis = nhắc lại lập trường BẰNG ngôn ngữ khác; (2) summary of arguments; (3) recommendation/implication — optional nhưng tốt cho Band 8.',tpl:''},
+  {id:'t2c-02',type:'fillBlank',cat:'task2-conc',catLabel:'📝 Task 2: Kết bài T — Mở đoạn',
+   q:'Viết câu mở đoạn kết bài (không dùng "In conclusion,").',
+   sentence:'___ the arguments presented above, it is evident that the benefits of renewable energy investment substantially outweigh its economic costs.',
+   blanks:['In light of'],
+   ans:'In light of the arguments presented above, it is evident that the benefits of renewable energy investment substantially outweigh its economic costs.',
+   exp:'"In light of the arguments presented above" — thay thế học thuật cho "In conclusion". "It is evident that" = mạnh hơn "I think".',tpl:''},
+  {id:'t2c-03',type:'translate',cat:'task2-conc',catLabel:'📝 Task 2: Kết bài U — Khuyến nghị',
+   q:'Viết câu khuyến nghị cho kết bài về giáo dục môi trường trong trường học.',
+   hint:'(environmental literacy / core curriculum / long-term sustainability of the planet)',
+   ans:'It is therefore imperative that policymakers integrate environmental literacy into the core curriculum, as the long-term sustainability of the planet ultimately depends on the ecological awareness of future generations.',
+   exp:'"It is therefore imperative that [subject] + [V]" — cụm khuyến nghị học thuật mạnh. Tránh "Government should" quá đơn giản.',
+   tpl:'It is therefore imperative that [subject] [V], as [justification].'},
+
+  // ══ TASK 1 — BỔ SUNG ═════════════════════════════════════════
+  {id:'t1b-08',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B5 Dự đoán (Projection)',
+   q:'"Dân số thế giới dự báo đạt 10 tỷ vào 2050." Cụm chính xác nhất trong Task 1:',
+   opts:[
+     '"The global population is projected to reach 10 billion by 2050."',
+     '"The global population will reach 10 billion in 2050."',
+     '"By 2050, the global population reaches 10 billion."',
+     '"The global population is going to be 10 billion in 2050."'
+   ],ans:0,
+   exp:'"is projected to" = dùng cho dự báo/dự đoán từ dữ liệu. "will" = quá chắc chắn. "is going to" = informal. Biến thể: "is forecast to", "is expected to".',tpl:'[Subject] is projected/forecast/expected to [V] by [year].'},
+  {id:'t1b-09',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B6 So sánh tỷ lệ (Ratio)',
+   q:'"Nhật Bản có dân số gấp đôi Hàn Quốc." Cụm ĐÚNG về GRAMMAR:',
+   opts:[
+     '"Japan\'s population was roughly twice that of South Korea."',
+     '"Japan\'s population was twice more than South Korea\'s."',
+     '"Japan had two times more population than South Korea."',
+     '"Japan\'s population was two times bigger than South Korea."'
+   ],ans:0,
+   exp:'"twice that of" — dùng "that of" thay cho lặp lại danh từ. "Twice more than" là SAI ngữ pháp phổ biến. Đúng: "twice as large as", "twice that of".',tpl:'[Country A]\'s [N] was [X] times that of [Country B].'},
+  {id:'t1b-10',type:'fillBlank',cat:'task1-b',catLabel:'📈 Task 1: B3 Tăng nhẹ rồi ổn định',
+   q:'Doanh số tăng nhẹ từ 2010 đến 2015, sau đó đi ngang đến 2020.',
+   sentence:'Sales ___ slightly between 2010 and 2015, before levelling off for the remainder of the period.',
+   blanks:['edged up'],
+   ans:'Sales edged up slightly between 2010 and 2015, before levelling off for the remainder of the period.',
+   exp:'"edged up" = tăng rất nhẹ và từ từ. "Levelled off" = đi ngang/ổn định. "For the remainder of the period" = cho phần thời gian còn lại.',tpl:''},
+  {id:'t1a-06',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: A3 So sánh tỷ lệ',
+   q:'"GDP của Đức cao hơn của Italy, nhưng tỷ lệ tăng trưởng của Italy cao hơn." Câu nào ĐÚNG nhất?',
+   opts:[
+     '"While Germany\'s GDP comfortably exceeded that of Italy, the latter recorded a considerably higher growth rate."',
+     '"Germany had more GDP than Italy but Italy grew faster."',
+     '"Germany\'s GDP was higher than Italy and Italy\'s growth rate was higher."',
+     '"Compared to Germany, Italy had a higher growth rate despite lower GDP."'
+   ],ans:0,
+   exp:'"comfortably exceeded that of" (tránh lặp GDP) + "the latter" (thay cho Italy lần 2) + "recorded a considerably higher growth rate" (danh từ hóa). Câu D cũng OK nhưng kém học thuật hơn.',tpl:''},
+  {id:'t1a-07',type:'translate',cat:'task1-a',catLabel:'📊 Task 1: A1 Mở bài line chart',
+   q:'Viết câu mở bài cho line chart:\nBiểu đồ cho thấy lượng khách du lịch đến Việt Nam từ 2010-2020.',
+   hint:'(annual number of international tourist arrivals / Vietnam / ten-year period)',
+   ans:'The line graph illustrates changes in the annual number of international tourist arrivals to Vietnam over a ten-year period from 2010 to 2020.',
+   exp:'"illustrates changes in" — chuẩn cho line chart. "annual number of... arrivals" — danh từ hóa học thuật. Không nói "shows how many tourists came".',tpl:'The [chart type] illustrates [N of change/trend] in [N] over [time period].'},
+
+  // ══ BỔ SUNG LỖI THỰC TẾ ══════════════════════════════════════
+  {id:'err-07',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi: Số nhiều / Số ít',
+   q:'Lỗi từ bài làm: "The researches show that..."\nSửa lại:',
+   opts:[
+     '"Research shows that..." (uncountable)',
+     '"The research show that..."',
+     '"Researches show that..."',
+     '"A research shows that..."'
+   ],ans:0,
+   exp:'"research" là danh từ KHÔNG ĐẾM ĐƯỢC → không thêm "s", không dùng "a research". Tương tự: evidence, information, advice, knowledge, feedback.',tpl:''},
+  {id:'err-08',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi: Từ quá mạnh / Vague',
+   q:'"This problem is very big and very serious."\nCâu nào ĐÚNG nhất cho Task 2?',
+   opts:[
+     '"This issue has reached an unprecedented scale and poses a significant threat to social cohesion."',
+     '"This problem is extremely big and very serious."',
+     '"This is a very big problem which is very serious."',
+     '"The problem is big and serious in many ways."'
+   ],ans:0,
+   exp:'"Unprecedented scale" = quy mô chưa từng có. "poses a significant threat to" = danh từ hóa. "Social cohesion" = từ vựng học thuật. Tránh "very big/serious" — quá đơn giản.',tpl:''},
+  {id:'err-09',type:'mcq',cat:'common-errors',catLabel:'⚠️ Lỗi: Paraphrase lệch nghĩa',
+   q:'Đề: "Technology makes people lazier." Paraphrase nào SAI NGHĨA?',
+   opts:[
+     '"Digital innovations have rendered the population increasingly productive."',
+     '"Technological advancement has contributed to a decline in physical and cognitive effort."',
+     '"The proliferation of technology fosters a culture of convenience-dependence."',
+     '"Technological tools have reduced the necessity for manual exertion."'
+   ],ans:0,
+   exp:'Đáp án A ĐẢO NGHĨA hoàn toàn: "productive" ≠ "lazier". Đây là lỗi nguy hiểm nhất khi paraphrase — thêm từ đồng nghĩa nhưng làm đảo ý.',tpl:''},
+
+
+  // ══ TASK 1: B NÂNG CAO ══════════════════════════════════════
+  {id:'t1bx-01',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B — with + N + V-ing',
+   q:'"Doanh thu thuế tăng ở cả 5 quốc gia, trong đó Thụy Điển ghi nhận mức tăng cao nhất." Cấu trúc nào ĐÚNG?',
+   opts:[
+     '"Tax revenue rose across all five countries, with Sweden recording by far the steepest increase."',
+     '"Tax revenue rose across all five countries and Sweden recorded the steepest increase."',
+     '"Tax revenue rose across all five countries. Sweden recorded the steepest increase."',
+     '"Tax revenue rose across all five countries. And Sweden recorded the steepest increase."'
+   ],ans:0,
+   exp:'"..., with + N + V-ing" — nêu xu hướng chung rồi ngay lập tức spotlight 1 đối tượng nổi bật trong cùng câu. Gọn và học thuật hơn tách 2 câu.',tpl:'[Xu hướng chung], with [N] [V-ing] by far the...'},
+  {id:'t1bx-02',type:'fillBlank',cat:'task1-b',catLabel:'📈 Task 1: B — Dao động không ổn định',
+   q:'Giá dầu lên xuống liên tục, dao động từ $40 đến $90 mỗi thùng.',
+   sentence:'Oil prices ___ considerably throughout the period, ranging from $40 to $90 per barrel.',
+   blanks:['fluctuated'],
+   ans:'Oil prices fluctuated considerably throughout the period, ranging from $40 to $90 per barrel.',
+   exp:'"fluctuated considerably, ranging from X to Y" — cụm chuẩn cho biểu đồ lên xuống không có xu hướng rõ. Thêm "ranging from X to Y" để chỉ biên độ dao động.',tpl:''},
+  {id:'t1bx-03',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B — Điểm giao nhau (crossover)',
+   q:'2 đường line chart cắt nhau năm 2008, sau đó quốc gia A dẫn đầu. Câu nào đúng nhất?',
+   opts:[
+     '"The two lines converge in 2008, after which Country A maintains a clear lead."',
+     '"In 2008, the two lines met and Country A became higher."',
+     '"Country A and Country B crossed in 2008, then A was higher."',
+     '"Both countries had the same value in 2008 before A became bigger."'
+   ],ans:0,
+   exp:'"converge in [year]" = hai đường hội tụ. "after which [X] maintains a clear lead" — "after which" là subordinating phrase học thuật. Tránh "met" hay "crossed".',tpl:'The two lines converge in [year], after which [X] maintains a clear lead.'},
+  {id:'t1bx-04',type:'fillBlank',cat:'task1-b',catLabel:'📈 Task 1: B — Ổn định sau biến động',
+   q:'Sau đà tăng vọt, giá duy trì vững chắc ở mức mới cao hơn.',
+   sentence:'Following the surge, prices ___ at the new, higher level for the remainder of the period.',
+   blanks:['held steady'],
+   ans:'Following the surge, prices held steady at the new, higher level for the remainder of the period.',
+   exp:'"held steady at" = duy trì vững ở mức... Biến thể: "levelled off at", "stabilised at", "plateaued at". "For the remainder of the period" = trong phần còn lại của giai đoạn.',tpl:''},
+  {id:'t1bx-05',type:'mcq',cat:'task1-b',catLabel:'📈 Task 1: B — Overview (câu tổng quan)',
+   q:'Câu overview Task 1 phải như thế nào? Chọn câu ĐÚNG chuẩn:',
+   opts:[
+     '"Overall, while renewable energy showed a marked increase, fossil fuel use remained relatively static throughout."',
+     '"Overall, renewable energy increased from 10% to 40% while fossil fuels stayed at 50%."',
+     '"In conclusion, renewable energy went up and fossil fuels did not change much."',
+     '"To sum up, the graph shows two main trends: renewable energy going up and fossil fuels staying stable."'
+   ],ans:0,
+   exp:'Overview KHÔNG dùng số liệu cụ thể — chỉ nêu xu hướng nổi bật nhất. "While X showed a marked increase, Y remained relatively static" — cấu trúc đối chiếu, không có %, không có năm.',tpl:'Overall, while X showed a marked increase, Y remained relatively static throughout.'},
+  {id:'t1bx-06',type:'translate',cat:'task1-b',catLabel:'📈 Task 1: B — Nhóm 6 giao nhau',
+   q:'Viết câu về điểm giao nhau:\nNhật Bản vượt qua Trung Quốc vào giữa những năm 1990, sau đó duy trì vị trí dẫn đầu.',
+   hint:'(Japan, China, mid-1990s)',
+   ans:'Japan overtook China in the mid-1990s and subsequently maintained a clear lead for the remainder of the period.',
+   exp:'"overtook" = vượt qua (điểm giao nhau). "Subsequently maintained a clear lead" = sau đó duy trì khoảng cách rõ rệt. "For the remainder of the period" = trong phần còn lại.',
+   tpl:'[X] overtook [Y] in [time period] and subsequently maintained a clear lead.'},
+
+  // ══ TASK 1: C3/C4 — PIE CHART NÂNG CAO ═════════════════════
+  {id:'t1cx-01',type:'mcq',cat:'task1-c',catLabel:'🥧 Task 1: C3 — Liệt kê phần nhỏ',
+   q:'Sau khi nêu danh mục lớn nhất (housing 35%), cách liệt kê tiếp theo GỌN NHẤT:',
+   opts:[
+     '"...followed by transport at 20%, with the remaining categories making up only 15%."',
+     '"...then transport was 20% and the other things were 15%."',
+     '"...and transport was 20%, food was 8%, healthcare was 7%."',
+     '"Next, transport accounted for 20%. The remaining categories were only 15%."'
+   ],ans:0,
+   exp:'"followed by X at Y%, with the remaining categories making up only Z%" — 1 câu gọn gàng cho nhiều danh mục nhỏ. Tránh liệt kê từng cái một.',tpl:'...followed by [X] at [Y]%, with the remaining categories making up only [Z]%.'},
+  {id:'t1cx-02',type:'fillBlank',cat:'task1-c',catLabel:'🥧 Task 1: C4 — at the expense of',
+   q:'Tỉ lệ bán hàng online tăng từ 10% lên 35%, còn mua tại cửa hàng giảm tương ứng.',
+   sentence:'The share of online sales grew from 10% to 35% ___ in-store purchases.',
+   blanks:['at the expense of'],
+   ans:'The share of online sales grew from 10% to 35% at the expense of in-store purchases.',
+   exp:'"at the expense of" = A tăng đánh đổi bằng sự giảm sút của B — rất học thuật. Dùng khi PIE CHART SO SÁNH 2 thời điểm và một phần tăng thì phần kia phải giảm.',tpl:''},
+  {id:'t1cx-03',type:'mcq',cat:'task1-c',catLabel:'🥧 Task 1: Pie so sánh bội số',
+   q:'"Chi tiêu nhà ở (35%) cao gần gấp bốn lần chi tiêu giải trí (9%)." Cách diễn đạt ĐÚNG nhất:',
+   opts:[
+     '"Spending on housing was as much as four times that on entertainment."',
+     '"Spending on housing was four times more than entertainment."',
+     '"Housing spending was four times bigger than entertainment spending."',
+     '"Housing was four times as much more than entertainment."'
+   ],ans:0,
+   exp:'"as much as four times that on..." — "as much as" nhấn mạnh mức chênh lệch đáng ngạc nhiên. "that on" thay cho lặp lại "spending on". Câu B sai ngữ pháp ("four times more than" = 5 lần, không phải 4).',tpl:'[X] was as much as [N] times that on [Y].'},
+
+  // ══ TASK 1: G — QUY CHIẾU / TRÁNH LẶP ══════════════════════
+  {id:'t1g-01',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: G — former / latter',
+   q:'"Tax revenue rose in the USA and Japan, from 25.1% in __ and 32.1% in __." Điền đúng:',
+   opts:[
+     '"the former... the latter" (USA = former vì nêu trước)',
+     '"the latter... the former"',
+     '"the first... the second"',
+     '"the previous... the next"'
+   ],ans:0,
+   exp:'"the former" = cái được nêu TRƯỚC (USA). "the latter" = cái được nêu SAU (Japan). Chỉ dùng khi đã nêu đúng 2 đối tượng ngay trước đó.',tpl:'...from [X] in the former and [Y] in the latter.'},
+  {id:'t1g-02',type:'fillBlank',cat:'task1-a',catLabel:'📊 Task 1: G — this figure',
+   q:'Dùng "this figure" để tránh lặp lại số liệu vừa nêu.',
+   sentence:'Coal usage fell to 20%; ___ had stood at 45% just a decade earlier.',
+   blanks:['this figure'],
+   ans:'Coal usage fell to 20%; this figure had stood at 45% just a decade earlier.',
+   exp:'"this figure" = con số vừa nêu (20%) — tránh lặp "coal usage" hay viết lại "20%". Biến thể: "this proportion", "this share", "this level".',tpl:''},
+  {id:'t1g-03',type:'mcq',cat:'task1-a',catLabel:'📊 Task 1: G — respectively',
+   q:'"Chi tiêu nhà ở, giao thông và thực phẩm lần lượt là 35%, 20% và 15%." Dùng:',
+   opts:[
+     '"...stood at 35%, 20% and 15% respectively."',
+     '"...stood at 35%, then 20%, then 15%."',
+     '"...were 35%, 20% and 15% in order."',
+     '"...were 35% for housing, 20% for transport, and 15% for food."'
+   ],ans:0,
+   exp:'"respectively" = lần lượt theo đúng thứ tự đã liệt kê. Đặt cuối câu. Ngắn gọn và tránh lặp tên 3 lần.',tpl:'[X], [Y] and [Z] stood at [a]%, [b]% and [c]% respectively.'},
+  {id:'t1g-04',type:'fillBlank',cat:'task1-a',catLabel:'📊 Task 1: G — corresponding figure',
+   q:'So sánh tỉ lệ nhập học nữ và nam tại cùng một thời điểm.',
+   sentence:'Female enrolment reached 60%, compared with the ___ of 45% for males.',
+   blanks:['corresponding figure'],
+   ans:'Female enrolment reached 60%, compared with the corresponding figure of 45% for males.',
+   exp:'"the corresponding figure for [group]" = con số tương ứng dành cho... Dùng khi so sánh 2 đối tượng tại cùng thời điểm. Không cần lặp lại "enrolment".',tpl:''},
+
+  // ══ TASK 1: VOCABULARY — THEO CHỦ ĐỀ ════════════════════════
+  {id:'v-05',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Kinh tế — Chi tiêu',
+   q:'Biểu đồ so sánh "chi tiêu y tế chiếm bao nhiêu % ngân sách". Cụm nào CHUẨN NHẤT?',
+   opts:[
+     '"spending on healthcare as a share of the monthly budget"',
+     '"how much money spent on healthcare"',
+     '"healthcare expenses percentage"',
+     '"the cost of healthcare in the budget"'
+   ],ans:0,
+   exp:'"spending on [category] as a share of the [budget/total]" — danh từ hóa học thuật. Biến thể: "the proportion of income spent on", "the share of expenditure devoted to".',tpl:''},
+  {id:'v-06',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Năng lượng — Tiêu thụ',
+   q:'"Tiêu thụ than giảm dần từng năm." Cụm nào ĐÚNG nhất cho Task 1?',
+   opts:[
+     '"Coal consumption fell year on year."',
+     '"The use of coal kept decreasing year after year."',
+     '"Coal usage went down every year."',
+     '"People used less coal every year."'
+   ],ans:0,
+   exp:'"coal consumption" = danh từ hóa. "fell year on year" = giảm từng năm — rất chuẩn Task 1. Tránh "people used" (chủ ngữ không phù hợp cho biểu đồ thống kê).',tpl:''},
+  {id:'v-07',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Dân số — Lao động',
+   q:'"Tỉ lệ người làm nông nghiệp giảm." Cụm ĐÚNG nhất:',
+   opts:[
+     '"The proportion of workers in agriculture declined."',
+     '"The number of farmers went down."',
+     '"Agricultural workers became less."',
+     '"Agriculture employment reduced."'
+   ],ans:0,
+   exp:'"the proportion of workers in [sector]" — chuẩn Task 1 khi biểu đồ thể hiện % lao động. "The number of" dùng khi biểu đồ cho số tuyệt đối, không phải tỉ lệ.',tpl:''},
+  {id:'v-08',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Công nghệ',
+   q:'"Doanh số điện thoại thông minh tăng vọt sau 2010." Cụm nào phù hợp?',
+   opts:[
+     '"Sales of smartphones expanded considerably after 2010."',
+     '"The popularity of smartphones surged after 2010."',
+     '"More and more people bought smartphones after 2010."',
+     '"Smartphone sales went up a lot after 2010."'
+   ],ans:0,
+   exp:'"sales of [product]" = doanh số — dùng khi biểu đồ cho số đơn vị bán. "Popularity of" = độ phổ biến (không phải doanh số). "Expanded considerably" = tăng đáng kể — trung tính, phù hợp.',tpl:''},
+  {id:'v-09',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Bản đồ quy hoạch',
+   q:'"Khu công nghiệp được chuyển đổi thành khu dân cư." Cụm Task 1 đúng:',
+   opts:[
+     '"The industrial zone was converted into a residential area."',
+     '"The industrial zone became a residential area."',
+     '"The industrial zone changed to a residential area."',
+     '"The industrial zone turned residential."'
+   ],ans:0,
+   exp:'"was converted into" — passive chuẩn cho map/plan task. Biến thể: "was transformed into", "was replaced by", "was demolished to make way for".',tpl:''},
+  {id:'v-10',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Tái chế',
+   q:'"Tỉ lệ giấy được tái chế tăng mạnh lên 60%." Cụm ĐÚNG nhất:',
+   opts:[
+     '"The recycling rate for paper climbed sharply to 60%."',
+     '"The percentage of paper recycled surged sharply to 60%."',
+     '"Paper recycling percentage climbed sharply to 60%."',
+     '"Recycled paper rate increased steeply to 60%."'
+   ],ans:0,
+   exp:'"the recycling rate for [material]" = tỉ lệ tái chế của loại vật liệu. "Climbed sharply to" = tăng mạnh đến mức... Câu B sai vì "surged" và "sharply" trùng ý.',tpl:''},
+  {id:'v-11',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Giáo dục & Y tế',
+   q:'"Tuổi thọ ở Nhật Bản vượt mức trung bình toàn cầu." Cụm ĐÚNG nhất:',
+   opts:[
+     '"Life expectancy in Japan exceeded the global average."',
+     '"People in Japan lived longer than average."',
+     '"Japan\'s life span was higher than the world average."',
+     '"The living age in Japan was above average globally."'
+   ],ans:0,
+   exp:'"Life expectancy in [country]" — danh từ chuẩn, không nói "living age" hay "life span" (khác nghĩa). "Exceeded" = vượt qua — học thuật hơn "was higher than".',tpl:''},
+  {id:'v-12',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Nhà ở & Internet',
+   q:'"Tỉ lệ người thuê nhà tăng." Cụm ĐÚNG nhất:',
+   opts:[
+     '"The proportion of people who rent their homes increased."',
+     '"More people rented homes."',
+     '"The number of renters went up."',
+     '"Home rental percentage increased."'
+   ],ans:0,
+   exp:'"the proportion of people who [V]" — chuẩn khi biểu đồ dùng %. "The number of [N]" — dùng khi biểu đồ dùng số tuyệt đối. Hai cụm này không thể đổi chỗ cho nhau.',tpl:''},
+  {id:'v-13',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Sở thích & Giải trí',
+   q:'"Thời gian xem TV giảm trong giai đoạn này." Cụm ĐÚNG nhất:',
+   opts:[
+     '"Time spent on watching television decreased over the period."',
+     '"Television watching time went down during this period."',
+     '"People watched less TV over the period."',
+     '"TV viewership time decreased in this period."'
+   ],ans:0,
+   exp:'"time spent on [activity]" = thời gian dành cho hoạt động đó. "Decreased over the period" — không dùng "in this period" (dùng "over"). Câu C có "people" là chủ ngữ — tránh trừ khi biểu đồ rõ ràng về người.',tpl:''},
+  {id:'v-14',type:'mcq',cat:'vocab-task1',catLabel:'📖 Từ vựng: Tội phạm',
+   q:'"Số vụ trộm cắp tăng nhẹ năm 2015." Cụm ĐÚNG nhất:',
+   opts:[
+     '"Cases of theft increased slightly in 2015."',
+     '"Theft cases slightly went up in 2015."',
+     '"Stealing increased a bit in 2015."',
+     '"The theft number slightly increased in 2015."'
+   ],ans:0,
+   exp:'"cases of [crime type]" = số vụ. "Increased slightly" — trạng từ đặt sau động từ. Không dùng "stealing" (quá informal), không nói "theft number" (phải là "the number of theft cases").',tpl:''},
+
+
+  // ══ NOMINALIZATION FRAMES — WORKBOOK CHÍNH XÁC ══════════════
+  // Frame 8 thực tế: Despite immediate gains → long-term erosion/deterioration
+  {id:'n8w-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 8: Lợi ngắn hạn vs Hại dài hạn',
+   q:'Frame 8 đầy đủ là gì?',
+   opts:['Despite the immediate [adj] gains of X, its long-term consequence is the [erosion/deterioration/depletion/degradation] of Y.',
+         'While X offers benefits, it also causes problems.',
+         'Although X is useful, it is not without disadvantages.',
+         'X provides short-term gains but long-term losses.'],ans:0,
+   exp:'"Despite the immediate gains" — nhượng bộ ngắn hạn. Chọn noun cuối theo loại: erosion of (trust/values/identity), deterioration of (health/infrastructure), depletion of (resources), degradation of (ecosystems/soil).',
+   tpl:'Despite the immediate [adj] gains of X, its long-term consequence is the [erosion/deterioration/depletion/degradation] of Y.'},
+  {id:'n8w-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 8: Lợi ngắn hạn vs Hại dài hạn',
+   q:'Viết câu Band 8.0 bằng Frame 8:\nNhà máy mang lại tiền ngay bây giờ, nhưng tàn phá môi trường về lâu dài.',
+   hint:'(industrial expansion / financial gains / irreversible degradation / local ecosystems)',
+   ans:'Despite the immediate financial gains of industrial expansion, its long-term consequence is the irreversible degradation of local ecosystems.',
+   exp:'"Despite the immediate financial gains" = nhượng bộ. "Irreversible degradation of ecosystems" = hệ quả dài hạn. Không dùng "erosion" ở đây — "degradation" mới đúng với "ecosystems".',
+   tpl:'Despite the immediate [adj] gains of [N], its long-term consequence is the [erosion/deterioration/depletion/degradation] of [N].'},
+  {id:'n8w-03',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 8: Lợi ngắn hạn vs Hại dài hạn',
+   q:'Học vẹt giúp qua kỳ thi nhanh, nhưng phá huỷ tư duy phản biện về sau.',
+   sentence:'Despite the immediate academic gains of rote memorisation, its long-term consequence is the ___ of critical thinking skills.',
+   blanks:['erosion'],
+   ans:'Despite the immediate academic gains of rote memorisation, its long-term consequence is the erosion of critical thinking skills.',
+   exp:'"erosion of critical thinking skills" — "erosion" dùng cho: trust, values, identity, skills. Không phải "degradation" (dùng cho ecosystems, soil).',tpl:''},
+
+  // Frame 9 thực tế: While X fosters short-term benefit, it concurrently precipitates Y
+  {id:'n9w-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 9: Lợi ích ngắn hạn & Khủng hoảng đồng thời',
+   q:'"While monetary expansion may foster short-term ___, it concurrently precipitates the crisis of hyperinflation."',
+   opts:['wealth creation','economic benefits','prosperity','financial gains'],ans:0,
+   exp:'"foster short-term [N]" — sau "foster" phải là danh từ hóa. "Concurrently precipitates" = đồng thời thúc đẩy/gây ra. "Precipitates" nhấn tính đột ngột, nhanh hơn dự kiến.',
+   tpl:'While X may foster short-term [N of benefit], it concurrently precipitates the [N of crisis] of Y.'},
+  {id:'n9w-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 9: Lợi ích ngắn hạn & Khủng hoảng đồng thời',
+   q:'Viết câu Band 8.0 bằng Frame 9:\nDùng đồ nhựa tiện lợi ngắn hạn, nhưng đồng thời gây ra khủng hoảng ô nhiễm đại dương.',
+   hint:'(plastic packaging / short-term convenience / oceanic pollution crisis)',
+   ans:'While plastic packaging may foster short-term consumer convenience, it concurrently precipitates the crisis of oceanic pollution that threatens marine biodiversity at scale.',
+   exp:'"consumer convenience" = danh từ hóa "convenient for consumers". "Precipitates the crisis of oceanic pollution" — "precipitates" thay "causes" là Band 8+ vocab.',
+   tpl:'While [N] may foster short-term [N of benefit], it concurrently precipitates the [N of crisis] of [N].'},
+
+  // Frame 11 thực tế: holds a distinct advantage over Y in terms of Z
+  {id:'n11w-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 11: Lợi thế rõ rệt (holds a distinct advantage)',
+   q:'"Online learning ___ traditional classroom settings in terms of self-paced flexibility."',
+   opts:['holds a distinct advantage over','is better than','outperforms','surpasses'],ans:0,
+   exp:'"holds a distinct advantage over Y in terms of [Noun]" — diễn đạt so sánh mang tính xác nhận, không phủ nhận hoàn toàn. "In terms of" luôn đi với danh từ.',
+   tpl:'X holds a distinct advantage over Y in terms of [Noun of quality/aspect].'},
+  {id:'n11w-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 11: Lợi thế rõ rệt',
+   q:'Viết câu Band 8.0 bằng Frame 11:\nTàu điện ngầm tốt hơn xe buýt vì đúng giờ và đáng tin cậy hơn.',
+   hint:'(subway networks / bus services / punctuality and schedule reliability)',
+   ans:'Subway networks hold a distinct advantage over conventional bus services in terms of punctuality and schedule reliability.',
+   exp:'"Subway networks" = danh từ hóa. "Conventional bus services" = từ vựng học thuật. "In terms of punctuality and schedule reliability" — nêu đúng TIÊU CHÍ so sánh.',
+   tpl:'[X] holds a distinct advantage over [Y] in terms of [Noun of quality].'},
+  {id:'n11w-03',type:'fillBlank',cat:'nom',catLabel:'🔑 Frame 11: Lợi thế rõ rệt',
+   q:'Năng lượng mặt trời bền vững hơn nhiên liệu hoá thạch về môi trường dài hạn.',
+   sentence:'Solar energy holds a distinct ___ over fossil fuels in terms of long-term environmental sustainability.',
+   blanks:['advantage'],
+   ans:'Solar energy holds a distinct advantage over fossil fuels in terms of long-term environmental sustainability.',
+   exp:'"holds a distinct advantage" — cụm cố định. "Advantage over" không phải "advantage than" hay "advantage against".',tpl:''},
+
+  // Frame 13 thực tế: not mutually exclusive; former fosters latter
+  {id:'n13w-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 13: Không mâu thuẫn — cái này nuôi cái kia',
+   q:'Frame 13 dùng khi nào hiệu quả nhất?',
+   opts:['Khi bác bỏ quan điểm cực đoan rằng X và Y loại trừ nhau — thường trong "Discuss both views"',
+         'Khi so sánh X tốt hơn Y',
+         'Khi thừa nhận nhược điểm của X',
+         'Khi đưa ra giải pháp cho vấn đề'],ans:0,
+   exp:'"X and Y are not mutually exclusive" = bác bỏ binary thinking. "The former fosters the latter" = cái trước nuôi dưỡng cái sau. Rất mạnh trong discussion essay và opinion essay.',
+   tpl:'X and Y are not mutually exclusive; rather, the [N] of the former fosters the [N] of the latter.'},
+  {id:'n13w-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 13: Không mâu thuẫn',
+   q:'Viết câu Band 8.0 bằng Frame 13:\nTăng trưởng kinh tế và bảo vệ môi trường không mâu thuẫn — phát triển kinh tế hỗ trợ bền vững môi trường.',
+   hint:'(economic expansion / environmental sustainability)',
+   ans:'Economic expansion and environmental sustainability are not mutually exclusive; rather, the judicious management of the former can actively foster the long-term viability of the latter.',
+   exp:'"judicious management of the former" = quản lý sáng suốt tăng trưởng kinh tế. "Long-term viability of the latter" = tính bền vững dài hạn của môi trường. "Judicious" = Band 8 adjective.',
+   tpl:'X and Y are not mutually exclusive; rather, the [N] of the former can actively foster the [N] of the latter.'},
+
+  // Frame 14 thực tế: serves as a clear manifestation of
+  {id:'n14w-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 14: Biểu hiện rõ ràng (manifestation)',
+   q:'"Manifestation" khác "testament" thế nào?',
+   opts:['"manifestation" = biểu hiện cụ thể, nhìn thấy được; "testament" = bằng chứng hùng hồn, tôn trọng hơn',
+         'Hai từ hoàn toàn đồng nghĩa',
+         '"testament" dùng cho tích cực; "manifestation" cho tiêu cực',
+         '"manifestation" chỉ dùng trong văn học'],ans:0,
+   exp:'"serves as a clear manifestation of" = là biểu hiện rõ ràng của. Dùng khi X minh chứng cho thực trạng Y bằng sự hiện diện cụ thể. Còn "stands as a testament to" nhấn sự kính trọng/khâm phục hơn.',
+   tpl:'The [N of phenomenon] serves as a clear manifestation of [N of underlying reality].'},
+  {id:'n14w-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 14: Biểu hiện rõ ràng',
+   q:'Viết câu Band 8.0 bằng Frame 14:\nNgười ta mua đồ xa xỉ ngày càng nhiều → xã hội đang rất vật chất.',
+   hint:'(surging demand for luxury goods / deep-rooted consumerism in modern society)',
+   ans:'The surging demand for luxury goods serves as a clear manifestation of the deep-rooted consumerism that pervades modern society.',
+   exp:'"serves as a clear manifestation of" — Frame 14 chuẩn. "That pervades modern society" = mệnh đề quan hệ mở rộng. "Deep-rooted" = ăn sâu vào — Band 8 adjective.',
+   tpl:'The [N] serves as a clear manifestation of [N].'},
+
+  // Frame 15 thực tế: reflects a fundamental transformation / signals a sea change
+  {id:'n15w-01',type:'mcq',cat:'nom',catLabel:'🔑 Frame 15: Phản ánh thay đổi tư duy (sea change)',
+   q:'Tại sao tránh dùng "paradigm shift" và thay bằng cụm nào?',
+   opts:['"paradigm shift" dùng quá nhiều trong IELTS → thay bằng "fundamental transformation" hoặc "sea change"',
+         '"paradigm shift" sai ngữ pháp',
+         '"paradigm shift" quá informal',
+         '"paradigm shift" chỉ dùng trong khoa học, không dùng trong xã hội học'],ans:0,
+   exp:'"Sea change" = sự thay đổi lớn và triệt để (nguồn gốc Shakespeare). "Fundamental transformation" = biến đổi từ gốc rễ. Cả hai ít gặp hơn trong bài thi và nghe học thuật hơn.',
+   tpl:'The [N] signals a sea change in the way [group] perceive(s) [concept]. OR: reflects a fundamental transformation in [N of mindset].'},
+  {id:'n15w-02',type:'translate',cat:'nom',catLabel:'🔑 Frame 15: Phản ánh thay đổi tư duy',
+   q:'Viết câu Band 8.0 bằng Frame 15:\nGiới trẻ trì hoãn kết hôn → phản ánh thay đổi trong nhận thức về gia đình.',
+   hint:'(delayed marriage among young adults / perception of family structures / younger generation)',
+   ans:'The growing prevalence of delayed marriage among young adults signals a sea change in the way younger generations perceive family structures and personal fulfilment.',
+   exp:'"The growing prevalence of" — danh từ hóa xu hướng. "Signals a sea change in the way [group] perceive" — Frame 15 chuẩn. "Personal fulfilment" = thêm chiều sâu cho nhận định.',
+   tpl:'The [N] signals a sea change in the way [group] perceive(s) [concept].'},
+
+  // ══ TASK 2 INTRO — CÁC FRAME CHƯA CÓ ════════════════════════
+  {id:'t2i-11',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Intro A2 — Divide opinion',
+   q:'Đề: "Remote work is more productive than office work. Do you agree?" Intro Frame A2 là:',
+   opts:[
+     '"Remote work is an issue that continues to divide opinion, with some maintaining that it enhances productivity while others contend that it undermines workplace cohesion."',
+     '"Remote work has become a subject of considerable debate in recent years."',
+     '"As remote work becomes increasingly prevalent, concerns have arisen regarding its long-term effects."',
+     '"It is often argued that remote work is more productive than office-based arrangements."'
+   ],ans:0,
+   exp:'Frame A2 "continues to divide opinion" → dùng cho đề "Discuss both views". Dấu hiệu: đề có 2 quan điểm đối lập rõ ràng. Frame A1 "subject of considerable debate" → dùng cho Agree/Disagree.',tpl:'[Topic] is an issue that continues to divide opinion, with some maintaining that [View A] while others contend that [View B].'},
+  {id:'t2i-12',type:'fillBlank',cat:'task2-intro',catLabel:'✍️ Task 2: Intro A3 — As... increasingly prevalent',
+   q:'Đề: "AI in classrooms is affecting student critical thinking." Viết intro dạng Trend.',
+   sentence:'As artificial intelligence becomes increasingly prevalent in classrooms, concerns have ___ regarding its impact on learners critical thinking.',
+   blanks:['arisen'],
+   ans:'As artificial intelligence becomes increasingly prevalent in classrooms, concerns have arisen regarding its impact on students\' critical thinking skills.',
+   exp:'"concerns have arisen regarding" — passive hoàn chỉnh cho xu hướng đang nảy sinh. "As [trend] becomes increasingly prevalent" = Frame A3, dùng cho đề Trend/Causes & Effects.',tpl:''},
+  {id:'t2i-13',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Intro A5 — Double-edged sword',
+   q:'Đề: "Discuss the advantages and disadvantages of social media." Frame tốt nhất là:',
+   opts:[
+     '"Social media is widely regarded as a double-edged sword, bringing both considerable advantages and notable disadvantages."',
+     '"Social media has advantages and disadvantages."',
+     '"While social media is good, it also has some problems."',
+     '"This essay will discuss both the positive and negative aspects of social media."'
+   ],ans:0,
+   exp:'"widely regarded as a double-edged sword" — idiom học thuật, chuẩn cho Advantages/Disadvantages essay. Tránh "has advantages and disadvantages" — quá đơn giản và mòn.',tpl:'[Topic] is widely regarded as a double-edged sword, bringing both considerable advantages and notable disadvantages.'},
+  {id:'t2i-14',type:'translate',cat:'task2-intro',catLabel:'✍️ Task 2: Thesis D — Problem/Solution',
+   q:'Viết thesis cho đề: "What are the causes of youth unemployment? What solutions can governments adopt?"',
+   hint:'(skills mismatches and rigid hiring practices / vocational training and incentivised apprenticeships)',
+   ans:'Youth unemployment stems from a combination of skills mismatches and rigid hiring practices, and can best be tackled through vocational training and incentivised apprenticeships.',
+   exp:'"stems from a combination of" — chuẩn cho thesis nêu nhiều nguyên nhân. "Can best be tackled through" = thay "should be solved by". "Incentivised apprenticeships" = học việc có thưởng — từ vựng chính sách.',
+   tpl:'[Problem] stems from a combination of [cause 1] and [cause 2], and can best be tackled through [solution 1] and [solution 2].'},
+  {id:'t2i-15',type:'mcq',cat:'task2-intro',catLabel:'✍️ Task 2: Thesis F — Causes/Effects Essay',
+   q:'Đề chỉ hỏi "What are the causes and effects of declining face-to-face communication?" Thesis nào ĐÚNG?',
+   opts:[
+     '"This essay will explore the key factors driving the decline in face-to-face communication and assess the resulting impact on young people social skills."',
+     '"This essay will examine the causes of this problem and propose the most viable solutions."',
+     '"This essay will discuss why communication is declining and how governments should address this."',
+     '"The decline in face-to-face communication has both causes and effects that will be discussed."'
+   ],ans:0,
+   exp:'Đề KHÔNG hỏi solutions → KHÔNG dùng "propose solutions" (Thesis D). Đúng: "explore the key factors driving X and assess the resulting impact on Y". Lỗi phổ biến: tự thêm "solutions" khi đề không yêu cầu.',tpl:'This essay will explore the key factors driving [phenomenon] and assess the resulting impact on [affected area].'},
+
+  // ══ TASK 2 BODY — FRAMES CHƯA CÓ ════════════════════════════
+  {id:'t2b-11',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body G — Trình bày View A → View B',
+   q:'Câu nào mở đầu View B trong Discussion essay TỐT NHẤT?',
+   opts:[
+     '"Those who take the opposing view, however, contend that standardised tests fail to capture creativity and critical thinking."',
+     '"On the other hand, some people disagree with this."',
+     '"However, there is another perspective to consider."',
+     '"But others think differently about this issue."'
+   ],ans:0,
+   exp:'"Those who take the opposing view, however, contend that [View B]" — chuẩn Frame G. "However" giữa subject và verb tạo emphasis. "Contend" = học thuật hơn "say/think".',tpl:'Those who take the opposing view, however, contend that [View B].'},
+  {id:'t2b-12',type:'fillBlank',cat:'task2-body',catLabel:'🏗️ Task 2: Body H — Problem/Solution',
+   q:'Viết câu giải pháp cho vấn đề lãng phí thực phẩm.',
+   sentence:'While no single measure can fully resolve the food waste crisis, stricter regulation on retail disposal practices ___ the most promising starting point.',
+   blanks:['represents'],
+   ans:'While no single measure can fully resolve the food waste crisis, stricter regulation on retailers\' disposal practices represents the most promising starting point.',
+   exp:'"represents the most promising starting point" — tránh "is the best solution" (quá đơn giản). "While no single measure can fully resolve" = thừa nhận giới hạn của giải pháp — Band 8 nuance.',tpl:'While no single measure can fully resolve [problem], [solution] represents the most promising starting point.'},
+  {id:'t2b-13',type:'translate',cat:'task2-body',catLabel:'🏗️ Task 2: Body J — Chuỗi nhân quả sâu',
+   q:'Viết câu theo Frame J (chuỗi nhân quả):\nGiáo dục song ngữ không chỉ tạo ra thành thạo ngôn ngữ — nó còn nuôi dưỡng tính linh hoạt nhận thức chỉ thấy sau nhiều năm.',
+   hint:'(bilingual education / fluency / cognitive flexibility)',
+   ans:'Bilingual education does not simply produce fluency in a second language; it also cultivates cognitive flexibility that only becomes apparent over many years of use.',
+   exp:'"does not simply produce X; it also cultivates Y that only becomes apparent over [time]" — Frame J chuẩn. Cấu trúc này nhấn hệ quả thứ cấp sâu hơn — rất hiệu quả cho Band 8 elaboration.',
+   tpl:'[X] does not simply produce [immediate effect]; it also cultivates [secondary effect] that only becomes apparent over [time period].'},
+  {id:'t2b-14',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body K — Leo thang luận điểm',
+   q:'Câu nào là ví dụ tốt nhất của Frame K (lý do sau mạnh hơn lý do trước)?',
+   opts:[
+     '"While the cost savings of e-learning are significant in their own right, it is the access it provides to students in remote areas that ultimately tips the balance in its favour."',
+     '"E-learning is good because it is cheap and accessible."',
+     '"E-learning has many benefits, including cost and access."',
+     '"Both cost and access are important reasons to support e-learning."'
+   ],ans:0,
+   exp:'"While [reason 1] is significant in its own right, it is [reason 2] that ultimately tips the balance" — Frame K. "Tips the balance" = nghiêng cán cân. Cấu trúc nhấn lý do QUAN TRỌNG HƠN, không chỉ liệt kê.',tpl:'While [reason 1] is significant in its own right, it is [reason 2] that ultimately tips the balance in favour of [position].'},
+  {id:'t2b-15',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body L — Nhượng bộ (Admittedly)',
+   q:'Câu nhượng bộ nào học thuật và súc tích nhất?',
+   opts:[
+     '"Admittedly, outsourcing reduces labour costs for companies. Nevertheless, it frequently comes at the expense of job security in the domestic workforce."',
+     '"Although outsourcing is cheaper, it is not good for workers."',
+     '"Outsourcing might seem cheaper, but on the other hand workers lose jobs."',
+     '"While outsourcing reduces costs, this is not necessarily a good thing."'
+   ],ans:0,
+   exp:'"Admittedly, [X]. Nevertheless, [Y]" — cặp đôi concession-rebuttal mạnh. "Admittedly" = thừa nhận ngắn gọn, lịch sự. "At the expense of" = với cái giá là. Cấu trúc 2 câu ngắn gọn, punch.',tpl:'Admittedly, [concession]. Nevertheless, [rebuttal].'},
+  {id:'t2b-16',type:'translate',cat:'task2-body',catLabel:'🏗️ Task 2: Body M — Điều kiện giả định (Were)',
+   q:'Viết câu điều kiện giả định về tuần làm việc 4 ngày:\nNếu áp dụng rộng rãi, kết quả dễ thấy nhất là năng suất mỗi giờ tăng lên.',
+   hint:'(four-day work week / measurable rise in employee productivity per hour)',
+   ans:'Were a four-day work week to be adopted on a large scale, the most probable outcome would be a measurable rise in employee productivity per hour worked.',
+   exp:'"Were [subject] to be [V3]" — câu điều kiện đảo ngữ (inversion). KHÔNG dùng "If... were to be" trong văn phong cao. "Most probable outcome would be" — chắc chắn ở mức độ vừa phải, academic.',
+   tpl:'Were [N] to be adopted on a large scale, the most probable outcome would be [N].'},
+  {id:'t2b-17',type:'fillBlank',cat:'task2-body',catLabel:'🏗️ Task 2: Body I — Mechanism (The mechanism)',
+   q:'Giải thích cơ chế tại sao platform gọi xe giảm lương tài xế.',
+   sentence:'The mechanism here is straightforward: as competition among delivery platforms intensifies, companies cut costs by ___ worker pay per delivery.',
+   blanks:['reducing'],
+   ans:'The mechanism here is straightforward: as competition among delivery platforms intensifies, companies cut costs by reducing workers\' pay per delivery.',
+   exp:'"The mechanism here is straightforward: [explanation]" — Frame I chuẩn. Sau "straightforward:" dùng dấu hai chấm rồi giải thích trực tiếp. Không cần "This is because" nếu đã dùng frame này.',tpl:'The mechanism here is straightforward: [explanation of cause → effect].'},
+  {id:'t2b-18',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Body — Hệ quả thứ cấp (in turn)',
+   q:'Câu nào diễn đạt chuỗi nhân quả 2 tầng học thuật nhất?',
+   opts:[
+     '"This would, in turn, lead to reduced burnout among staff, ultimately resulting in lower turnover rates for employers."',
+     '"This would also cause less burnout, which means staff would leave less."',
+     '"As a result, staff would be less burned out and employers would keep more staff."',
+     '"Then, staff would not be burned out, so companies would have lower turnover."'
+   ],ans:0,
+   exp:'"This would, in turn, lead to X, ultimately resulting in Y" — chuỗi nhân quả 2 tầng. "In turn" = đến lượt nó. "Ultimately resulting in" = cuối cùng dẫn đến. Hai cụm này stack nhân quả rất học thuật.',tpl:'This would, in turn, lead to [second effect], ultimately resulting in [final outcome].'},
+
+  // ══ TASK 2 TOPIC SENTENCE (Frame F) ═════════════════════════
+  {id:'t2b-19',type:'mcq',cat:'task2-body',catLabel:'🏗️ Task 2: Topic Sentence — Mở đoạn body',
+   q:'Topic sentence nào MỞ ĐẦU đoạn body mạnh nhất?',
+   opts:[
+     '"Perhaps the most compelling argument in favour of banning single-use plastics concerns the irreversible damage they cause to marine ecosystems."',
+     '"I think the most important reason is the damage to the ocean."',
+     '"One reason is that plastic is bad for the sea."',
+     '"In this paragraph, I will discuss the damage that plastics cause."'
+   ],ans:0,
+   exp:'"Perhaps the most compelling argument in favour of [position] concerns [X]" — Frame F. "Perhaps" softens while "most compelling" asserts. "Concerns the irreversible damage" — danh từ hóa + adjective mạnh.',tpl:'Perhaps the most compelling argument in favour of [position] concerns [Noun phrase of issue].'},
+  {id:'t2b-20',type:'fillBlank',cat:'task2-body',catLabel:'🏗️ Task 2: Central question — Mở đoạn thảo luận',
+   q:'Mở đầu đoạn thảo luận về quyền tự do ngôn luận và bạo lực.',
+   sentence:'Central to this discussion is the question of whether free speech should ___ to speech that incites violence.',
+   blanks:['extend'],
+   ans:'Central to this discussion is the question of whether free speech should extend to speech that incites violence.',
+   exp:'"Central to this discussion is the question of whether..." — đảo ngữ (subject complement trước). Cấu trúc này thay "An important question is...". "Extend to" = áp dụng cho, bao gồm.',tpl:'Central to this discussion is the question of [Noun clause].'},
+
+  // ══ TASK 2 CONCLUSION — BỔ SUNG FRAME ══════════════════════
+  {id:'t2c-04',type:'mcq',cat:'task2-conc',catLabel:'📝 Task 2: Kết bài — Without X, Y inevitable',
+   q:'Câu kết nào nhấn mạnh hệ quả tất yếu nếu không hành động?',
+   opts:[
+     '"Without stricter emissions regulations, a continued rise in respiratory illness in urban populations would be all but inevitable."',
+     '"If we don\'t regulate emissions, people will get sick."',
+     '"Without regulation, things will get worse."',
+     '"Stricter regulations are needed, otherwise the situation will deteriorate."'
+   ],ans:0,
+   exp:'"Would be all but inevitable" = gần như tất yếu xảy ra. "All but" = gần như hoàn toàn. Câu này tạo urgency trong kết bài mà không cần dùng "must" hay "should" trực tiếp.',tpl:'Without [X], [negative consequence] would be all but inevitable.'},
+  {id:'t2c-05',type:'translate',cat:'task2-conc',catLabel:'📝 Task 2: Kết bài — Hệ quả thứ cấp',
+   q:'Viết câu kết nhấn hệ quả dây chuyền:\nThực thi luật phát thải nghiêm ngặt hơn → giảm kiệt sức nhân viên → từ đó giảm tỉ lệ nghỉ việc.',
+   hint:'(stricter emissions regulations / burnout / turnover rates)',
+   ans:'Stricter emissions regulations would reduce corporate pollution costs, which would, in turn, free up resources for employee wellbeing initiatives, ultimately resulting in lower turnover rates across industries.',
+   exp:'"Which would, in turn, [X], ultimately resulting in [Y]" — chuỗi nhân quả 2 tầng cho kết bài. Câu này thể hiện tư duy hệ thống — đặc trưng của bài Band 8.',
+   tpl:'[Solution] would [effect 1], which would, in turn, [effect 2], ultimately resulting in [final outcome].'},
+
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -1181,6 +1944,95 @@ function saveFirebaseConfig() {
 
 function disconnectFirebase() { ls('ielts_firebase_config', null); location.reload(); }
 
+// ── Import JSON ────────────────────────────────────────────────
+function openImportModal() {
+  document.getElementById('import-modal').classList.add('show');
+  document.getElementById('import-status').style.display = 'none';
+}
+function closeImportModal() {
+  document.getElementById('import-modal').classList.remove('show');
+}
+
+function parseImportJSON() {
+  const raw = document.getElementById('import-json-input').value.trim();
+  if (!raw) throw new Error('Chưa nhập dữ liệu.');
+  const data = JSON.parse(raw);
+  if (!Array.isArray(data)) throw new Error('Dữ liệu phải là một mảng [...] JSON.');
+  return data;
+}
+
+function validateImportJSON() {
+  const statusEl = document.getElementById('import-status');
+  statusEl.style.display = 'block';
+  try {
+    const data = parseImportJSON();
+    let errors = [];
+    data.forEach((ex, i) => {
+      if (!ex.type || !['mcq','fillBlank','translate'].includes(ex.type))
+        errors.push(`Bài ${i+1}: type phải là "mcq", "fillBlank", hoặc "translate".`);
+      if (!ex.q) errors.push(`Bài ${i+1}: thiếu trường "q" (câu hỏi).`);
+      if (ex.ans === undefined || ex.ans === null) errors.push(`Bài ${i+1}: thiếu trường "ans".`);
+      if (ex.type === 'mcq' && (!Array.isArray(ex.opts) || ex.opts.length < 2))
+        errors.push(`Bài ${i+1}: MCQ cần "opts" là mảng ít nhất 2 phần tử.`);
+      if (ex.type === 'fillBlank' && !ex.sentence)
+        errors.push(`Bài ${i+1}: fillBlank cần "sentence" (câu có ___).`);
+    });
+    if (errors.length > 0) {
+      statusEl.style.background = 'var(--danger-l)';
+      statusEl.style.color = 'var(--danger)';
+      statusEl.innerHTML = '❌ ' + errors.slice(0,5).join('<br>') + (errors.length > 5 ? `<br>... và ${errors.length-5} lỗi nữa.` : '');
+    } else {
+      statusEl.style.background = 'var(--success-l)';
+      statusEl.style.color = 'var(--success)';
+      statusEl.innerHTML = `✅ Hợp lệ: ${data.length} bài tập. Bấm Import để thêm vào.`;
+    }
+  } catch(e) {
+    statusEl.style.background = 'var(--danger-l)';
+    statusEl.style.color = 'var(--danger)';
+    statusEl.innerHTML = '❌ JSON không hợp lệ: ' + e.message;
+  }
+}
+
+function importExercisesJSON() {
+  const statusEl = document.getElementById('import-status');
+  statusEl.style.display = 'block';
+  try {
+    const data = parseImportJSON();
+    let added = 0, skipped = 0;
+    const existingIds = new Set([
+      ...EXERCISES.map(e => e.id),
+      ...state.customExercises.map(e => e.id)
+    ]);
+    data.forEach((ex, i) => {
+      // Auto-generate id if missing
+      if (!ex.id) ex.id = 'import-' + Date.now() + '-' + i;
+      // Skip duplicates
+      if (existingIds.has(ex.id)) { skipped++; return; }
+      // Set defaults
+      if (!ex.cat) ex.cat = 'custom';
+      if (!ex.catLabel) ex.catLabel = '📦 Import';
+      if (!ex.exp) ex.exp = '';
+      if (!ex.tpl) ex.tpl = '';
+      if (!ex.hint) ex.hint = '';
+      // Validate basics
+      if (!ex.type || !ex.q || ex.ans === undefined) return;
+      state.customExercises.push(ex);
+      existingIds.add(ex.id);
+      added++;
+    });
+    saveCustomEx();
+    updateExCounts();
+    statusEl.style.background = 'var(--success-l)';
+    statusEl.style.color = 'var(--success)';
+    statusEl.innerHTML = `✅ Đã thêm ${added} bài tập!${skipped > 0 ? ` (bỏ qua ${skipped} bài trùng ID)` : ''}<br>Tổng bài tập tuỳ chỉnh: ${state.customExercises.length}`;
+    document.getElementById('import-json-input').value = '';
+  } catch(e) {
+    statusEl.style.background = 'var(--danger-l)';
+    statusEl.style.color = 'var(--danger)';
+    statusEl.innerHTML = '❌ Lỗi: ' + e.message;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 5. SM-2 SPACED REPETITION
 // ═══════════════════════════════════════════════════════════════
@@ -1371,8 +2223,15 @@ function renderCurrentExercise() {
   html += `<div class="ex-category"><span class="badge badge-blue">${ex.catLabel}</span>${statusBadge}</div>`;
   html += `<div class="ex-question">${escHtml(ex.q)}</div>`;
   
-  if (ex.hint) html += `<div class="ex-hint">💡 Gợi ý: ${escHtml(ex.hint)}</div>`;
   if (ex.tpl)  html += `<div class="ex-template">📐 ${escHtml(ex.tpl)}</div>`;
+  // Hint: mcq → hiện thẳng | translate → ẩn sau nút bấm | fillBlank → ẩn (từ đã có trong câu)
+  if (ex.hint) {
+    if (ex.type === 'mcq') {
+      html += `<div class="ex-hint">💡 ${escHtml(ex.hint)}</div>`;
+    } else if (ex.type === 'translate') {
+      html += `<button class="btn btn-sm btn-ghost" style="margin-bottom:8px;font-size:.78rem;padding:6px 12px" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">💡 Xem gợi ý từ vựng</button><div class="ex-hint" style="display:none">💡 Gợi ý: ${escHtml(ex.hint)}</div>`;
+    }
+  }
   
   if (ex.type === 'mcq') {
     html += '<div class="mcq-opts">';
@@ -1992,7 +2851,9 @@ function init() {
   function loadScript(src) {
     return new Promise((res, rej) => {
       const s = document.createElement('script');
-      s.src = src; s.onload = res; s.onerror = rej;
+      s.src = src;
+      s.onload = res;
+      s.onerror = () => rej(new Error('Không tải được Firebase SDK. Kiểm tra kết nối mạng.'));
       document.head.appendChild(s);
     });
   }
