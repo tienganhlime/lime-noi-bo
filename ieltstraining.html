@@ -617,23 +617,8 @@ body { font-size: 1rem; line-height: 1.6; }
         <div id="firebase-status-box" class="firebase-status disconnected">
           <span>⚠️ Chưa kết nối — đang lưu local</span>
         </div>
-        <div id="auth-actions" style="display:none;margin-bottom:12px">
+        <div id="auth-actions" style="display:none;margin-top:10px">
           <button class="btn btn-sm btn-danger" onclick="signOut()">🚪 Đăng xuất</button>
-        </div>
-        <div class="card mb-3">
-          <div class="card-sub">Dán Firebase config JSON (Project Settings → Web app):</div>
-          <div class="form-group">
-            <textarea id="firebase-config-input" rows="8" placeholder='{
-  apiKey: "AIzaSy...",
-  authDomain: "project.firebaseapp.com",
-  projectId: "project-id",
-  storageBucket: "project.firebasestorage.app",
-  messagingSenderId: "123456",
-  appId: "1:123:web:abc"
-}'></textarea>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveFirebaseConfig()">💾 Lưu & kết nối</button>
-          <button class="btn btn-secondary btn-sm" onclick="disconnectFirebase()" style="margin-left:8px">Ngắt</button>
         </div>
       </div>
 
@@ -1953,11 +1938,11 @@ function disconnectFirebase() { ls('ielts_firebase_config', null); location.relo
 
 // ── Import JSON ────────────────────────────────────────────────
 function openImportModal() {
-  document.getElementById('import-modal').classList.add('show');
+  document.getElementById('import-modal').classList.add('open');
   document.getElementById('import-status').style.display = 'none';
 }
 function closeImportModal() {
-  document.getElementById('import-modal').classList.remove('show');
+  document.getElementById('import-modal').classList.remove('open');
 }
 
 function parseImportJSON() {
@@ -2791,8 +2776,6 @@ function showScreen(name) {
   if (name === 'errors') { renderErrors(); filterErrors(state.errorFilter); }
   if (name === 'settings') {
     updateFirebaseStatus(state.firebaseReady);
-    const saved = ls('ielts_firebase_config');
-    if (saved) document.getElementById('firebase-config-input').value = JSON.stringify(saved, null, 2);
     updateExCounts();
   }
   if (name === 'practice') {
